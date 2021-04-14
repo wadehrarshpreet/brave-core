@@ -32,3 +32,7 @@ FOUNDATION_EXPORT const unsigned char BraveRewardsVersionString[];
 #import <BraveRewards/brave_bookmarks_observer.h>
 #import <BraveRewards/brave_bookmarks_importer.h>
 #import <BraveRewards/brave_bookmarks_exporter.h>
+
+// History
+#import <BraveRewards/brave_history_api.h>
+
