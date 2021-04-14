@@ -4,8 +4,10 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 // Public Interface for History Object to be used iOS
+OBJC_EXPORT
 @interface IOSHistoryNode : NSObject
 
 // Title and URL for the History object
@@ -23,6 +25,7 @@
 @property (nonatomic, strong, readonly) UIColor *skcolor;
 
 // Constructor declaring basic History properties
+- (instancetype) init;
 - (instancetype) initWithTitle:(NSString *)title withURL:(NSURL *)url;
 
 @end

@@ -20,9 +20,9 @@ source_set("history") {
   
   deps = [
     "//components/history/core/browser",
-    "//third_party/skia/include/core",
-    "//base/strings",
-    "//net/base/mac",
+    #"//third_party/skia",
+    "//base",
+    "//net",
     "//url"
   ]
 
