@@ -9,10 +9,6 @@ import("//ios/build/config.gni")
 source_set("history") {
   configs += [ "//build/config/compiler:enable_arc" ]
 
-#   headers = [
-#       "brave_history_api"
-#   ]
-
   sources = [
     "brave_history_api.h",
     "brave_history_api.mm"
@@ -20,7 +16,8 @@ source_set("history") {
   
   deps = [
     "//components/history/core/browser",
-    #"//third_party/skia",
+    "//ios/chrome/browser/browser_state",
+    "//ios/chrome/browser",
     "//base",
     "//net",
     "//url"
