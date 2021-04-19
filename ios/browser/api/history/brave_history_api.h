@@ -25,21 +25,19 @@ OBJC_EXPORT
 
 @property (nonatomic, strong, readonly) NSString *title;
 @property(nonatomic, copy, readonly) NSString* guid;
-@property(nonatomic, nullable, copy) NSURL* url;
+@property(nonatomic, copy, readonly) NSURL* url;
 
 @property(nonatomic, nullable, copy, readonly) UIImage* icon;
 @property(nonatomic, nullable, copy, readonly) NSURL* iconUrl;
 
 @property(nonatomic, copy) NSDate* dateAdded;
-@property(nonatomic, copy) NSDate* lastVisitedDate;
 
 - (void)setTitle:(NSString*)title;
 
 - (instancetype)initWithTitle:(NSString*)title
-                           id:(int64_t)id
                          guid:(NSString* _Nullable)guid
-                          url:(NSURL* _Nullable)url
-                    dateAdded:(NSDate* _Nullable)dateAdded;
+                          url:(NSURL*)url
+                    dateAdded:(NSDate*)dateAdded;
 @end
 
 NS_SWIFT_NAME(BraveHistoryAPI)
@@ -51,6 +49,11 @@ OBJC_EXPORT
 
 // - (id<BookmarkModelListener>)addObserver:(id<HistoryModelObserver>)observer;
 // - (void)removeObserver:(id<HistoryModelListener>)observer;
+
+- (void)addHistory:(NSString*)title
+               url:(NSURL*)url
+        dateAdded:(NSDate*)dateAdded;
+- (void)addHistory:(IOSHistoryNode*)history;
 
 - (void)removeHistory:(IOSHistoryNode*)history;
 - (void)removeAll;

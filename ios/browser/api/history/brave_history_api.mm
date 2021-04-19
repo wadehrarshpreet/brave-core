@@ -32,17 +32,12 @@ using namespace base;
 @implementation IOSHistoryNode
 
 - (instancetype)initWithTitle:(NSString*)title
-                           id:(int64_t)id
                          guid:(NSString*)guid
                           url:(NSURL*)url
                     dateAdded:(NSDate*)dateAdded {
   if ((self = [super init])) {
     // Title
     string16 title_ = SysNSStringToUTF16(title);
-
-    // TID
-    int64_t id_ = static_cast<int64_t>(id);
-    DCHECK(id_);
 
     // UID
     GUID guid_ = GUID();
@@ -176,6 +171,20 @@ using namespace base;
 // - (void)removeObserver:(id<HistoryModelListener>)observer {
 // //   [observer destroy];
 // }
+
+- (void)addHistory:(NSString*)title
+               url:(NSURL*)url
+        dateAdded:(NSDate*)dateAdded {
+  IOSHistoryNode *history = [[IOSHistoryNode alloc] initWithTitle:title 
+                                                             guid:nil
+                                                              url:url
+                                                        dateAdded:dateAdded];
+  DCHECK(history);
+}
+
+- (void)addHistory:(IOSHistoryNode*)history {
+
+}
 
 - (void)removeHistory:(IOSHistoryNode*)history {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
