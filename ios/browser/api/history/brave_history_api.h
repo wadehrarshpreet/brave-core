@@ -23,14 +23,13 @@ NS_SWIFT_NAME(HistoryNode)
 OBJC_EXPORT
 @interface IOSHistoryNode : NSObject
 
-@property (nonatomic, strong, readonly) NSString *title;
-@property(nonatomic, copy, readonly) NSString* guid;
-@property(nonatomic, copy, readonly) NSURL* url;
+@property(nonatomic, strong, readonly) NSString *title;
+@property(nonatomic, strong, readonly) NSString* guid;
+@property(nonatomic, strong, readonly) NSURL* url;
+@property(nonatomic, strong, readonly) NSDate* dateAdded;
 
 @property(nonatomic, nullable, copy, readonly) UIImage* icon;
 @property(nonatomic, nullable, copy, readonly) NSURL* iconUrl;
-
-@property(nonatomic, copy) NSDate* dateAdded;
 
 - (void)setTitle:(NSString*)title;
 
@@ -50,9 +49,6 @@ OBJC_EXPORT
 // - (id<BookmarkModelListener>)addObserver:(id<HistoryModelObserver>)observer;
 // - (void)removeObserver:(id<HistoryModelListener>)observer;
 
-- (void)addHistory:(NSString*)title
-               url:(NSURL*)url
-        dateAdded:(NSDate*)dateAdded;
 - (void)addHistory:(IOSHistoryNode*)history;
 
 - (void)removeHistory:(IOSHistoryNode*)history;

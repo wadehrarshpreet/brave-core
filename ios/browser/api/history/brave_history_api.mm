@@ -13,6 +13,11 @@
 #include "ios/chrome/browser/browser_state/chrome_browser_state.h"
 #include "ios/chrome/browser/browser_state/chrome_browser_state_manager.h"
 #include "ios/chrome/browser/application_context.h"
+#include "ios/chrome/browser/history/history_service_factory.h"
+
+#include "components/history/core/browser/history_service.h"
+#include "components/history/core/browser/history_types.h"
+#include "components/keyed_service/core/service_access_type.h"
 
 #include "ios/web/public/thread/web_thread.h"
 #import "net/base/mac/url_conversions.h"
@@ -25,7 +30,10 @@
 using namespace base;
 
 @interface IOSHistoryNode () {
-  bool owned_;
+  string16 title_;
+  GUID guid_;
+  GURL gurl_;
+  base::Time date_added_;
 }
 @end
 
@@ -37,10 +45,10 @@ using namespace base;
                     dateAdded:(NSDate*)dateAdded {
   if ((self = [super init])) {
     // Title
-    string16 title_ = SysNSStringToUTF16(title);
+    [self setTitle:title];
 
     // UID
-    GUID guid_ = GUID();
+    guid_ = GUID();
     if ([guid length] > 0) {
       string16 guid_string = SysNSStringToUTF16(guid);
       DCHECK(IsValidGUID(guid_string));
@@ -50,86 +58,46 @@ using namespace base;
     }
 
     // URL
-    GURL gurl_ = net::GURLWithNSURL(url);
+    gurl_ = net::GURLWithNSURL(url);
 
     // Date Added
-    if (dateAdded) {
-      // base::Time date_added_ = base::Time::FromDoubleT([dateAdded timeIntervalSince1970]);
-    }
-
-    owned_ = true;
+    date_added_ = base::Time::FromDoubleT([dateAdded timeIntervalSince1970]);
   }
 
   return self;
 }
 
 - (void)dealloc {
-  if (owned_) {
-    owned_ = false;
-  }
 }
 
 - (void)setTitle:(NSString*)title {
-
+  title_ = SysNSStringToUTF16(title);
 }
 
 - (NSString*)title {
-  NSString *title = @"History Title";
-  return title;
-}
-
-- (NSString*)guid {
-  NSString *guid = @"GUID";
-  return guid;
+  return base::SysUTF16ToNSString(title_);
 }
 
 - (void)setUrl:(NSURL*)url {
-    
+  gurl_ = net::GURLWithNSURL(url);
 }
 
 - (NSURL*)url {
-  NSString *historyURLString = @"www.brave.com";
-  NSURL *testURL = [NSURL URLWithString: historyURLString];
-
-  return testURL;
+  return net::NSURLWithGURL(gurl_);
 }
 
-- (NSURL*)iconUrl {
-  NSString *iconURLString = @"www.brave.com";
-  NSURL *testIconURL = [NSURL URLWithString: iconURLString];
-
-  return testIconURL;
-}
-
-- (UIImage*)icon {
-  UIImage *testIconImage = [UIImage imageNamed:@"test_img"];
-  return testIconImage;
+- (void)setDateAdded:(NSDate*)dateAdded {
+  date_added_ = base::Time::FromDoubleT([dateAdded timeIntervalSince1970]);
 }
 
 - (NSDate*)dateAdded {
-  NSDate *testDate= [NSDate date];
-  return testDate;
-}
-
-- (void)setDateAdded:(NSDate*)date {
-
-}
-
-- (bool)isFavIconLoaded {
-  return true;
-}
-
-- (bool)isFavIconLoading {
-  return true;
-}
-
-- (void)remove {
-
+  return [NSDate dateWithTimeIntervalSince1970:date_added_.ToDoubleT()];
 }
 
 @end
 
 @interface BraveHistoryAPI ()  {
+  history::HistoryService* history_service_ ;
 }
 @end
 
@@ -150,13 +118,16 @@ using namespace base;
         GetApplicationContext()->GetChromeBrowserStateManager();
     ChromeBrowserState* browserState =
         browserStateManager->GetLastUsedBrowserState();
+    history_service_ = ios::HistoryServiceFactory::GetForBrowserState(
+              browserState, ServiceAccessType::EXPLICIT_ACCESS);
 
-    DCHECK(browserState);
+    DCHECK(history_service_);
   }
   return self;
 }
 
 - (void)dealloc {
+    history_service_ = nil;
 }
 
 - (bool)isLoaded {
@@ -172,18 +143,13 @@ using namespace base;
 // //   [observer destroy];
 // }
 
-- (void)addHistory:(NSString*)title
-               url:(NSURL*)url
-        dateAdded:(NSDate*)dateAdded {
-  IOSHistoryNode *history = [[IOSHistoryNode alloc] initWithTitle:title 
-                                                             guid:nil
-                                                              url:url
-                                                        dateAdded:dateAdded];
-  DCHECK(history);
-}
-
 - (void)addHistory:(IOSHistoryNode*)history {
+  history::HistoryAddPageArgs args;
+  args.url = net::GURLWithNSURL(history.url);
+  args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
+  args.visit_source = history::VisitSource::SOURCE_BROWSED;
 
+  history_service_->AddPage(args);
 }
 
 - (void)removeHistory:(IOSHistoryNode*)history {
