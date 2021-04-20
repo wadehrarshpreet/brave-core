@@ -150,6 +150,7 @@ using namespace base;
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
 
   history_service_->AddPage(args);
+  history_service_->SetPageTitle(args.url, SysNSStringToUTF16(history.title);)
 }
 
 - (void)removeHistory:(IOSHistoryNode*)history {
