@@ -9,6 +9,7 @@
 #include "base/containers/adapters.h"
 #include "base/guid.h"
 #include "base/strings/sys_string_conversions.h"
+#include "base/bind.h"
 
 #include "ios/chrome/browser/browser_state/chrome_browser_state.h"
 #include "ios/chrome/browser/browser_state/chrome_browser_state_manager.h"
@@ -97,7 +98,10 @@ using namespace base;
 @end
 
 @interface BraveHistoryAPI ()  {
+  // History Service for adding and querying
   history::HistoryService* history_service_ ;
+  // Tracker for history requests.
+  base::CancelableTaskTracker tracker_;
 }
 @end
 
@@ -131,7 +135,7 @@ using namespace base;
 }
 
 - (bool)isLoaded {
-    return true;
+    return history_service_->backend_loaded();
 }
 
 // - (id<HistoryModelListener>)addObserver:(id<HistoryModelObserver>)observer {
@@ -148,9 +152,10 @@ using namespace base;
   args.url = net::GURLWithNSURL(history.url);
   args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
+  args.title = SysNSStringToUTF16(history.title);
+  args.floc_allowed = false;
 
   history_service_->AddPage(args);
-  history_service_->SetPageTitle(args.url, SysNSStringToUTF16(history.title);)
 }
 
 - (void)removeHistory:(IOSHistoryNode*)history {
@@ -161,4 +166,51 @@ using namespace base;
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
 }
 
+- (void)searchWithQuery:(NSString*)query maxCount:(NSUInteger)maxCount
+                                       completion:(void(^)(NSArray<IOSHistoryNode*>* historyResults))completion {
+  DCHECK_CURRENTLY_ON(web::WebThread::UI);
+  DCHECK(history_service_->backend_loaded());
+
+  // Check Query is empty for Fetching all history
+  // The entered query can be nil or empty String
+  BOOL fetchAllHistory = !query || [query length] > 0;
+  std::u16string queryString =
+        fetchAllHistory ? std::u16string() : base::SysNSStringToUTF16(query);
+
+  // Creating fetch options for querying history
+  history::QueryOptions options;
+  options.duplicate_policy =
+      fetchAllHistory ? history::QueryOptions::REMOVE_DUPLICATES_PER_DAY
+                      : history::QueryOptions::REMOVE_ALL_DUPLICATES;
+  options.max_count = static_cast<int>(maxCount);;
+  options.matching_algorithm =
+      query_parser::MatchingAlgorithm::ALWAYS_PREFIX_SEARCH;
+
+  __weak BraveHistoryAPI* weakSelf = self;
+  history_service_->QueryHistory(queryString, 
+                                options,
+                                base::BindOnce([](BraveHistoryAPI* weakSelf,
+                                                  std::function<void(NSArray<IOSHistoryNode*>*)>
+                                                      completion,
+                                                  history::QueryResults results) {
+                                  __strong BraveHistoryAPI* self = weakSelf;
+                                  completion([self onHistoryResults:std::move(results)]);
+                                }, weakSelf, completion),
+                                &tracker_);
+}
+
+- (NSArray<IOSHistoryNode*>*)onHistoryResults:(history::QueryResults)results {
+  NSMutableArray<IOSHistoryNode*>* historyNodes = [[NSMutableArray alloc] init];
+
+  for (const auto& result : results) {
+    IOSHistoryNode *historyNode = [[IOSHistoryNode alloc] initWithTitle:base::SysUTF16ToNSString(result.title())
+                                                                   guid:[NSString stringWithFormat:@"%lld", result.id()] 
+                                                                    url:net::NSURLWithGURL(result.url()) 
+                                                              dateAdded:[NSDate dateWithTimeIntervalSince1970:
+                                                                          result.last_visit().ToDoubleT()]];
+    [historyNodes addObject:historyNode];
+  }
+
+  return [historyNodes copy];
+}
 @end

@@ -54,6 +54,9 @@ OBJC_EXPORT
 - (void)removeHistory:(IOSHistoryNode*)history;
 - (void)removeAll;
 
+- (void)searchWithQuery:(NSString*)query maxCount:(NSUInteger)maxCount
+                                       completion:(void(^)(NSArray<IOSHistoryNode*>* historyResults))completion;
+
 @end
 
 NS_ASSUME_NONNULL_END
