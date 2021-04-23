@@ -15,6 +15,7 @@
 #include "ios/chrome/browser/browser_state/chrome_browser_state_manager.h"
 #include "ios/chrome/browser/application_context.h"
 #include "ios/chrome/browser/history/history_service_factory.h"
+#include "ios/chrome/browser/history/web_history_service_factory.h"
 
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
@@ -100,6 +101,8 @@ using namespace base;
 @interface BraveHistoryAPI ()  {
   // History Service for adding and querying
   history::HistoryService* history_service_ ;
+  // WebhistoryService for remove and elete operations
+  history::WebHistoryService* web_history_service;
   // Tracker for history requests.
   base::CancelableTaskTracker tracker_;
 }
@@ -124,6 +127,7 @@ using namespace base;
         browserStateManager->GetLastUsedBrowserState();
     history_service_ = ios::HistoryServiceFactory::GetForBrowserState(
               browserState, ServiceAccessType::EXPLICIT_ACCESS);
+    web_history_service = ios::WebHistoryServiceFactory::GetForBrowserState(browserState);
 
     DCHECK(history_service_);
   }
@@ -153,17 +157,26 @@ using namespace base;
   args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
   args.title = SysNSStringToUTF16(history.title);
-  args.floc_allowed = false;
+  args.floc_allowed = false; // Not allow tracking
 
   history_service_->AddPage(args);
 }
 
 - (void)removeHistory:(IOSHistoryNode*)history {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
+  history_service_->DeleteLocalAndRemoteUrl(web_history_service,
+                                            net::GURLWithNSURL(history.url));
 }
 
-- (void)removeAll {
+- (void)removeAllWithCompletion:(void(^)())completion {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
+  history_service_->DeleteLocalAndRemoteHistoryBetween(web_history_service, 
+                                                      base::Time(), 
+                                                      base::Time::Max(),
+                                                      base::BindOnce([](std::function<void()> completion){
+                                                        completion();
+                                                      }, completion),
+                                                      &tracker_);
 }
 
 - (void)searchWithQuery:(NSString*)query maxCount:(NSUInteger)maxCount
