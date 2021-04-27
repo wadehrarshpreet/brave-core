@@ -7,8 +7,8 @@
 
 #include "base/compiler_specific.h"
 #include "base/containers/adapters.h"
-#include "base/guid.h"
 #include "base/strings/sys_string_conversions.h"
+#include "base/guid.h"
 #include "base/bind.h"
 
 #include "ios/chrome/browser/browser_state/chrome_browser_state.h"
@@ -41,43 +41,28 @@ using namespace base;
 
 @implementation IOSHistoryNode
 
-- (instancetype)initWithTitle:(NSString*)title
-                         guid:(NSString*)guid
-                          url:(NSURL*)url
-                    dateAdded:(NSDate*)dateAdded {
+- (instancetype)initWithURL:(NSURL*)url
+                      title:(NSString* _Nullable)title
+                  dateAdded:(NSDate* _Nullable)dateAdded {
   if ((self = [super init])) {
+    // URL
+    [self setUrl:url];
+    
     // Title
-    [self setTitle:title];
-
-    // UID
-    guid_ = GUID();
-    if ([guid length] > 0) {
-      string16 guid_string = SysNSStringToUTF16(guid);
-      DCHECK(IsValidGUID(guid_string));
-      guid_ = GUID::ParseCaseInsensitive(guid_string);
-    } else {
-      guid_ = GUID::GenerateRandomV4();
+    if (title) {
+     [self setTitle:title];
     }
 
-    // URL
-    gurl_ = net::GURLWithNSURL(url);
-
     // Date Added
-    date_added_ = base::Time::FromDoubleT([dateAdded timeIntervalSince1970]);
+    if (dateAdded) {
+      [self setDateAdded:dateAdded];
+    }
   }
 
   return self;
 }
 
 - (void)dealloc {
-}
-
-- (void)setTitle:(NSString*)title {
-  title_ = SysNSStringToUTF16(title);
-}
-
-- (NSString*)title {
-  return base::SysUTF16ToNSString(title_);
 }
 
 - (void)setUrl:(NSURL*)url {
@@ -88,6 +73,14 @@ using namespace base;
   return net::NSURLWithGURL(gurl_);
 }
 
+- (void)setTitle:(NSString*)title {
+  title_ = SysNSStringToUTF16(title);
+}
+
+- (NSString*)title {
+  return base::SysUTF16ToNSString(title_);
+}
+
 - (void)setDateAdded:(NSDate*)dateAdded {
   date_added_ = base::Time::FromDoubleT([dateAdded timeIntervalSince1970]);
 }
@@ -95,14 +88,13 @@ using namespace base;
 - (NSDate*)dateAdded {
   return [NSDate dateWithTimeIntervalSince1970:date_added_.ToDoubleT()];
 }
-
 @end
 
 @interface BraveHistoryAPI ()  {
   // History Service for adding and querying
   history::HistoryService* history_service_ ;
   // WebhistoryService for remove and elete operations
-  history::WebHistoryService* web_history_service;
+  history::WebHistoryService* web_history_service_;
   // Tracker for history requests.
   base::CancelableTaskTracker tracker_;
 }
@@ -127,7 +119,7 @@ using namespace base;
         browserStateManager->GetLastUsedBrowserState();
     history_service_ = ios::HistoryServiceFactory::GetForBrowserState(
               browserState, ServiceAccessType::EXPLICIT_ACCESS);
-    web_history_service = ios::WebHistoryServiceFactory::GetForBrowserState(browserState);
+    web_history_service_ = ios::WebHistoryServiceFactory::GetForBrowserState(browserState);
 
     DCHECK(history_service_);
   }
@@ -136,6 +128,7 @@ using namespace base;
 
 - (void)dealloc {
     history_service_ = nil;
+    web_history_service_ = nil;
 }
 
 - (bool)isLoaded {
@@ -164,13 +157,13 @@ using namespace base;
 
 - (void)removeHistory:(IOSHistoryNode*)history {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
-  history_service_->DeleteLocalAndRemoteUrl(web_history_service,
+  history_service_->DeleteLocalAndRemoteUrl(web_history_service_,
                                             net::GURLWithNSURL(history.url));
 }
 
 - (void)removeAllWithCompletion:(void(^)())completion {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
-  history_service_->DeleteLocalAndRemoteHistoryBetween(web_history_service, 
+  history_service_->DeleteLocalAndRemoteHistoryBetween(web_history_service_, 
                                                       base::Time(), 
                                                       base::Time::Max(),
                                                       base::BindOnce([](std::function<void()> completion){
@@ -195,7 +188,7 @@ using namespace base;
   options.duplicate_policy =
       fetchAllHistory ? history::QueryOptions::REMOVE_DUPLICATES_PER_DAY
                       : history::QueryOptions::REMOVE_ALL_DUPLICATES;
-  options.max_count = static_cast<int>(maxCount);;
+  options.max_count = fetchAllHistory ? 0 : static_cast<int>(maxCount);;
   options.matching_algorithm =
       query_parser::MatchingAlgorithm::ALWAYS_PREFIX_SEARCH;
 
@@ -216,10 +209,9 @@ using namespace base;
   NSMutableArray<IOSHistoryNode*>* historyNodes = [[NSMutableArray alloc] init];
 
   for (const auto& result : results) {
-    IOSHistoryNode *historyNode = [[IOSHistoryNode alloc] initWithTitle:base::SysUTF16ToNSString(result.title())
-                                                                   guid:[NSString stringWithFormat:@"%lld", result.id()] 
-                                                                    url:net::NSURLWithGURL(result.url()) 
-                                                              dateAdded:[NSDate dateWithTimeIntervalSince1970:
+    IOSHistoryNode *historyNode = [[IOSHistoryNode alloc] initWithURL:net::NSURLWithGURL(result.url()) 
+                                                                title:base::SysUTF16ToNSString(result.title())
+                                                            dateAdded:[NSDate dateWithTimeIntervalSince1970:
                                                                           result.last_visit().ToDoubleT()]];
     [historyNodes addObject:historyNode];
   }
