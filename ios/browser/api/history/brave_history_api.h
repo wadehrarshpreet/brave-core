@@ -17,8 +17,8 @@ NS_SWIFT_NAME(HistoryNode)
 OBJC_EXPORT
 @interface IOSHistoryNode : NSObject
 
-@property(nonatomic, copy) NSURL* url;
-@property(nonatomic, nullable, readonly) NSString* title;
+@property(nonatomic, strong, readonly) NSURL* url;
+@property(nonatomic, nullable, copy) NSString* title;
 @property(nonatomic, nullable, copy) NSDate* dateAdded;
 
 - (instancetype)initWithURL:(NSURL*)url
