@@ -3,13 +3,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
  
+#ifndef BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
+#define BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
+
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-// @protocol HistoryModelObserver;
-// @protocol HistoryModelListener;
+@protocol HistoryServiceObserver;
+@protocol HistoryServiceListener;
 
 @class IOSHistoryNode;
 
@@ -33,8 +36,8 @@ OBJC_EXPORT
 @property(class, readonly, getter = sharedHistoryAPI) BraveHistoryAPI* shared;
 @property(nonatomic, readonly) bool isLoaded;
 
-// - (id<BookmarkModelListener>)addObserver:(id<HistoryModelObserver>)observer;
-// - (void)removeObserver:(id<HistoryModelListener>)observer;
+- (id<HistoryServiceListener>)addObserver:(id<HistoryServiceObserver>)observer;
+- (void)removeObserver:(id<HistoryServiceListener>)observer;
 
 - (void)addHistory:(IOSHistoryNode*)history;
 - (void)removeHistory:(IOSHistoryNode*)history;
@@ -44,3 +47,5 @@ OBJC_EXPORT
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif // BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_

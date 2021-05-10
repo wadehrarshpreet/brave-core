@@ -11,7 +11,9 @@ source_set("history") {
 
   sources = [
     "brave_history_api.h",
-    "brave_history_api.mm"
+    "brave_history_api.mm",
+    "brave_history_observer.h",
+    "brave_history_observer.mm"
   ]
   
   deps = [

@@ -4,6 +4,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "brave/ios/browser/api/history/brave_history_api.h"
+#include "brave/ios/browser/api/history/brave_history_observer.h"
 
 #include "base/compiler_specific.h"
 #include "base/containers/adapters.h"
@@ -29,11 +30,9 @@
 #error "This file requires ARC support."
 #endif
 
-using namespace base;
-
 @interface IOSHistoryNode () {
-  string16 title_;
-  GUID guid_;
+  base::string16 title_;
+  base::GUID guid_;
   GURL gurl_;
   base::Time date_added_;
 }
@@ -74,7 +73,7 @@ using namespace base;
 }
 
 - (void)setTitle:(NSString*)title {
-  title_ = SysNSStringToUTF16(title);
+  title_ = base::SysNSStringToUTF16(title);
 }
 
 - (NSString*)title {
@@ -132,24 +131,24 @@ using namespace base;
 }
 
 - (bool)isLoaded {
-    return history_service_->backend_loaded();
+    return history_service_->BackendLoaded();
 }
 
-// - (id<HistoryModelListener>)addObserver:(id<HistoryModelObserver>)observer {
-// //   return [[HistoryModelListenerImpl alloc] init:observer
-// //                                    historyModel:history_model_];
-// }
+- (id<HistoryServiceListener>)addObserver:(id<HistoryServiceObserver>)observer {
+  return [[HistoryServiceListenerImpl alloc] init:observer
+                                   historyService:history_service_];
+}
 
-// - (void)removeObserver:(id<HistoryModelListener>)observer {
-// //   [observer destroy];
-// }
+- (void)removeObserver:(id<HistoryServiceListener>)observer {
+  [observer destroy];
+}
 
 - (void)addHistory:(IOSHistoryNode*)history {
   history::HistoryAddPageArgs args;
   args.url = net::GURLWithNSURL(history.url);
   args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
-  args.title = SysNSStringToUTF16(history.title);
+  args.title = base::SysNSStringToUTF16(history.title);
   args.floc_allowed = false; // Not allow tracking
 
   history_service_->AddPage(args);
