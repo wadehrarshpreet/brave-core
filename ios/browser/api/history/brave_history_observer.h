@@ -23,10 +23,10 @@ OBJC_EXPORT
 // Observing when user visits an URL.
 - (void)historyNodeVisited:(IOSHistoryNode* _Nonnull)historyNode;
 // Observing when a URL is added or modified
-- (void)historyNodesModified:(NSArray<IOSHistoryNode*>*)historyNode;
+- (void)historyNodesModified:(NSArray<IOSHistoryNode*>*)historyNodeList;
 // Observing when one or more URLs are deleted
-- (void)historyNodesDeleted:(NSArray<IOSHistoryNode*>*)historyNode 
-               isAllHistory:(bool)allHistory;
+- (void)historyNodesDeleted:(NSArray<IOSHistoryNode*>*)historyNodeList 
+               isAllHistory:(bool)isAllHistory;
 @end
 
 OBJC_EXPORT

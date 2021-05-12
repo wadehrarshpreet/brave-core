@@ -163,7 +163,7 @@
 - (void)removeAllWithCompletion:(void(^)())completion {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
   history_service_->DeleteLocalAndRemoteHistoryBetween(web_history_service_, 
-                                                      base::Time(), 
+                                                      base::Time::Min(), 
                                                       base::Time::Max(),
                                                       base::BindOnce([](std::function<void()> completion){
                                                         completion();
