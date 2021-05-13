@@ -13,7 +13,9 @@ source_set("history") {
     "brave_history_api.h",
     "brave_history_api.mm",
     "brave_history_observer.h",
-    "brave_history_observer.mm"
+    "brave_history_observer.mm",
+    "brave_browsing_history_driver.h",
+    "brave_browsing_history_driver.mm",
   ]
   
   deps = [
@@ -22,6 +24,7 @@ source_set("history") {
     "//ios/chrome/browser/browser_state",
     "//ios/chrome/browser/history",
     "//ios/chrome/browser",
+    "//ios/chrome/browser/sync",
     "//base",
     "//net",
     "//url"
