@@ -145,6 +145,7 @@
               sync_service);
     
     //web_history_service_ = ios::WebHistoryServiceFactory::GetForBrowserState(browser_state_);
+    DCHECK(history_service_);
     DCHECK(browsing_history_service_);
   }
   return self;
@@ -172,11 +173,11 @@
   history::HistoryAddPageArgs args;
   args.url = net::GURLWithNSURL(history.url);
   args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
-  args.context_id = nullptr;
+  args.context_id = nullptr; //reinterpret_cast<history::ContextID>(1)
   args.nav_entry_id = 0;
   args.referrer = GURL();
   args.redirects = history::RedirectList();
-  args.transition = ui::PAGE_TRANSITION_LINK;
+  args.transition = ui::PAGE_TRANSITION_TYPED;
   args.hidden = false;
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
   args.did_replace_entry = false;
