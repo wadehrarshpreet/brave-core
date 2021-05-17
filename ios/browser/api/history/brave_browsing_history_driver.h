@@ -7,13 +7,14 @@
 #define BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_BROWSING_HISTORY_DRIVER_H_
 
 #import <Foundation/Foundation.h>
-
 #include <vector>
 
 #include "base/macros.h"
 #include "base/memory/weak_ptr.h"
+
 #include "components/history/core/browser/browsing_history_driver.h"
 #include "components/history/core/browser/browsing_history_service.h"
+
 #include "url/gurl.h"
 
 class ChromeBrowserState;
@@ -24,7 +25,9 @@ class HistoryService;
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol BraveHistoryDriverDelegate
-// results - Results of the query
+
+// Tells the consumer that the result of a history query has been retrieved
+// results - Results of the query (Sorted)
 // continuationClosure - Pagination lambda.
 //                       If called, will continue fetching results where last left off.
 - (void)historyQueryWasCompletedWithResults:
@@ -32,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
                    queryResultsInfo:(const history::BrowsingHistoryService::
                                          QueryResultsInfo&)queryResultsInfo
                 continuationClosure:(base::OnceClosure)continuationClosure;
+// Tells the consumer that history entries have been deleted by a different client
 - (void)historyWasDeleted;
 - (void)showNoticeAboutOtherFormsOfBrowsingHistory:(BOOL)shouldShowNotice;
 @end
@@ -43,7 +47,7 @@ class BraveBrowsingHistoryDriver : public history::BrowsingHistoryDriver {
   ~BraveBrowsingHistoryDriver() override;
 
  private:
-  // history::BrowsingHistoryDriver implementation.
+  // history::BrowsingHistoryDriver Implementation.
   void OnQueryComplete(
       const std::vector<history::BrowsingHistoryService::HistoryEntry>& results,
       const history::BrowsingHistoryService::QueryResultsInfo&
@@ -66,7 +70,6 @@ class BraveBrowsingHistoryDriver : public history::BrowsingHistoryDriver {
 
   // The current browser state.
   ChromeBrowserState* browser_state_;  // weak
-  
   __weak id<BraveHistoryDriverDelegate> delegate_;
   
   DISALLOW_COPY_AND_ASSIGN(BraveBrowsingHistoryDriver);

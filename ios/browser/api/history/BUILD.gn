@@ -25,6 +25,7 @@ source_set("history") {
     "//ios/chrome/browser/history",
     "//ios/chrome/browser",
     "//ios/chrome/browser/sync",
+    "//ui/base",
     "//base",
     "//net",
     "//url"

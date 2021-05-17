@@ -4,13 +4,12 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "brave/ios/browser/api/bookmarks/brave_bookmarks_api.h"
+#include "brave/ios/browser/api/bookmarks/brave_bookmarks_observer.h"
 
 #include "base/compiler_specific.h"
 #include "base/containers/adapters.h"
 #include "base/guid.h"
 #include "base/strings/sys_string_conversions.h"
-
-#include "brave/ios/browser/api/bookmarks/brave_bookmarks_observer.h"
 
 #include "components/bookmarks/browser/bookmark_model.h"
 #include "components/bookmarks/browser/bookmark_node.h"

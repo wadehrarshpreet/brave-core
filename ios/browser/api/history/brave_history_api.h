@@ -11,6 +11,20 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, BraveHistoryTransitionType) {
+  BraveHistoryTransitionType_LINK               = 0,
+  BraveHistoryTransitionType_TYPED              = 1,
+  BraveHistoryTransitionType_AUTO_BOOKMARK      = 2,
+  BraveHistoryTransitionType_AUTO_SUBFRAME      = 3,
+  BraveHistoryTransitionType_MANUAL_SUBFRAME    = 4,
+  BraveHistoryTransitionType_GENERATED          = 5,
+  BraveHistoryTransitionType_TOPLEVEL           = 6,
+  BraveHistoryTransitionType_FORM_SUBMIT        = 7,
+  BraveHistoryTransitionType_RELOAD             = 8,
+  BraveHistoryTransitionType_KEYWORD            = 9,
+  BraveHistoryTransitionType_KEYWORD_GENERATED  = 10,
+};
+
 @protocol HistoryServiceObserver;
 @protocol HistoryServiceListener;
 

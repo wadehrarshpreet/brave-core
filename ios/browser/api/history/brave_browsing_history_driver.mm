@@ -8,7 +8,9 @@
 
 #include "base/check.h"
 #include "base/strings/utf_string_conversions.h"
+
 #include "components/browsing_data/core/history_notice_utils.h"
+
 #include "ios/chrome/browser/browser_state/chrome_browser_state.h"
 #include "ios/chrome/browser/history/history_utils.h"
 #include "ios/chrome/browser/history/web_history_service_factory.h"
