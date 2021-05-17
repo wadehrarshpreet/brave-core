@@ -7,8 +7,6 @@
 #include "brave/ios/browser/api/history/brave_history_observer.h"
 #include "brave/ios/browser/api/history/brave_browsing_history_driver.h"
 
-#include <unordered_map>
-
 #include "base/compiler_specific.h"
 #include "base/containers/adapters.h"
 #include "base/strings/sys_string_conversions.h"
@@ -40,50 +38,6 @@
 #if !defined(__has_feature) || !__has_feature(objc_arc)
 #error "This file requires ARC support."
 #endif
-
-# pragma mark - History Transtition Type-Mapping
-
-namespace brave_ios {
-namespace {
-std::unordered_map<ui::PageTransition, BraveHistoryTransitionType> mapping = {
-  {ui::PageTransition::PAGE_TRANSITION_LINK, BraveHistoryTransitionType_LINK},
-  {ui::PageTransition::PAGE_TRANSITION_TYPED, BraveHistoryTransitionType_TYPED},
-  {ui::PageTransition::PAGE_TRANSITION_AUTO_BOOKMARK, BraveHistoryTransitionType_AUTO_BOOKMARK},
-  {ui::PageTransition::PAGE_TRANSITION_AUTO_SUBFRAME, BraveHistoryTransitionType_AUTO_SUBFRAME},
-  {ui::PageTransition::PAGE_TRANSITION_MANUAL_SUBFRAME, BraveHistoryTransitionType_MANUAL_SUBFRAME},
-  {ui::PageTransition::PAGE_TRANSITION_GENERATED, BraveHistoryTransitionType_GENERATED},
-  {ui::PageTransition::PAGE_TRANSITION_AUTO_TOPLEVEL, BraveHistoryTransitionType_TOPLEVEL},
-  {ui::PageTransition::PAGE_TRANSITION_FORM_SUBMIT, BraveHistoryTransitionType_FORM_SUBMIT},
-  {ui::PageTransition::PAGE_TRANSITION_RELOAD, BraveHistoryTransitionType_RELOAD},
-  {ui::PageTransition::PAGE_TRANSITION_KEYWORD, BraveHistoryTransitionType_KEYWORD},
-  {ui::PageTransition::PAGE_TRANSITION_KEYWORD_GENERATED, BraveHistoryTransitionType_KEYWORD_GENERATED}
-};
-} // namespace
-
-// ui::PageTransition page_transition_from_type(BraveHistoryTransitionType type) {
-//   ui::PageTransition result = ui::PageTransition::PAGE_TRANSITION_TYPED;
-
-//   // for (auto it = mapping.begin(); it != mapping.end(); ++it) {
-//   //   if (it->second == type) {
-//   //     return it->first;
-//   //   }
-//   // }
-
-//   return result;
-// }
-
-// BraveHistoryTransitionType type_from_page_transition(const ui::PageTransition& page_transition) {
-//   BraveHistoryTransitionType result = BraveHistoryTransitionType_TYPED;
-
-//   // for (auto it = mapping.begin(); it != mapping.end(); ++it) {
-//   //   if (result == it->first) {
-//   //     return it->second;
-//   //   }
-//   // }
-
-//   return result;
-// }
-} // namespace brave_ios
 
 #pragma mark - IOSHistoryNode
 
@@ -226,7 +180,13 @@ std::unordered_map<ui::PageTransition, BraveHistoryTransitionType> mapping = {
   return history_service_->BackendLoaded();
 }
 
+/// Default Add History Method syncs typed URLS
+/// @param history object to be added
 - (void)addHistory:(IOSHistoryNode*)history {
+  [self addHistory: history pageTransition: BraveHistoryTransitionType_TYPED];
+}
+
+- (void)addHistory:(IOSHistoryNode*)history pageTransition:(NSUInteger)pageTransition {
   DCHECK_CURRENTLY_ON(web::WebThread::UI);
   DCHECK(history_service_->backend_loaded());
 
@@ -234,7 +194,8 @@ std::unordered_map<ui::PageTransition, BraveHistoryTransitionType> mapping = {
   args.url = net::GURLWithNSURL(history.url);
   args.time = base::Time::FromDoubleT([history.dateAdded timeIntervalSince1970]);
   args.redirects = history::RedirectList();
-  args.transition = ui::PAGE_TRANSITION_TYPED; // Important! Page Transition has to be typed or data will not be synced
+  // Important! Only Typed Transtion is being synced in core side
+  args.transition = pageTransition == BraveHistoryTransitionType_TYPED ? ui::PAGE_TRANSITION_TYPED : ui::PAGE_TRANSITION_LINK;
   args.hidden = false;
   args.visit_source = history::VisitSource::SOURCE_BROWSED;
   args.consider_for_ntp_most_visited = true;
