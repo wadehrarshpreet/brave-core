@@ -29,6 +29,10 @@ OBJC_EXPORT
 @property(nonatomic, nullable, copy) NSString* title;
 @property(nonatomic, nullable, copy) NSDate* dateAdded;
 
+/// History Node Constructor used with HistoryAPI
+/// @param url - Mandatory URL field for the history object
+/// @param title - Title used for the URL
+/// @param dateAdded - Date History Object is created
 - (instancetype)initWithURL:(NSURL*)url
                       title:(NSString* _Nullable)title
                   dateAdded:(NSDate* _Nullable)dateAdded;
@@ -44,12 +48,32 @@ OBJC_EXPORT
 - (id<HistoryServiceListener>)addObserver:(id<HistoryServiceObserver>)observer;
 - (void)removeObserver:(id<HistoryServiceListener>)observer;
 
+/// Default Add History Method which also syncs typed URLS
+/// @param history - History Object to be added
 - (void)addHistory:(IOSHistoryNode*)history;
+
+/// Add History Method which also allows to edit transition type
+/// @param history - History Object to be added
+/// @param pageTransition - History Object to be added
 - (void)addHistory:(IOSHistoryNode*)history pageTransition:(NSUInteger)pageTransition;
+
+/// Remove Specific History
+/// @param history - History Object to be removed from history
 - (void)removeHistory:(IOSHistoryNode*)history;
+
+/// Remove All History
+/// @param completion - Block that notifies removing is finished
 - (void)removeAllWithCompletion:(void(^)())completion;
-- (void)searchWithQuery:(NSString* _Nullable)query maxCount:(NSUInteger)maxCount
-                                       completion:(void(^)(NSArray<IOSHistoryNode*>* historyResults))completion;
+
+/// Query Function providing history items array in completion block
+/// @param query - Search Query (Empty Query returns all History)
+/// @param maxCount - Number of items requested
+/// @param completion - Block that notifies querying is finished with list of
+/// items
+- (void)searchWithQuery:(NSString* _Nullable)query
+               maxCount:(NSUInteger)maxCount
+             completion:
+                 (void (^)(NSArray<IOSHistoryNode*>* historyResults))completion;
 @end
 
 NS_ASSUME_NONNULL_END

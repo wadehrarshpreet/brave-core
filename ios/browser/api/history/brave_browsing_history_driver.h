@@ -18,6 +18,7 @@
 #include "url/gurl.h"
 
 class ChromeBrowserState;
+
 namespace history {
 class HistoryService;
 }
@@ -26,18 +27,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol BraveHistoryDriverDelegate
 
-// Tells the consumer that the result of a history query has been retrieved
-// results - Results of the query (Sorted)
-// continuationClosure - Pagination lambda.
-//                       If called, will continue fetching results where last left off.
+/// Tells the consumer that the result of a history query has been retrieved
+/// @param results - Results of the query (Sorted)
+/// @param queryResultsInfo - Detailed Query Results
+/// @param continuationClosure - Pagination lambda
+/// If called, will continue fetching results where last left off.
 - (void)historyQueryWasCompletedWithResults:
     (const std::vector<history::BrowsingHistoryService::HistoryEntry>&)results
                    queryResultsInfo:(const history::BrowsingHistoryService::
                                          QueryResultsInfo&)queryResultsInfo
                 continuationClosure:(base::OnceClosure)continuationClosure;
-// Tells the consumer that history entries have been deleted by a different client
+
+/// Tells the consumer that history entries
+/// have been deleted from a different client
 - (void)historyWasDeleted;
-- (void)showNoticeAboutOtherFormsOfBrowsingHistory:(BOOL)shouldShowNotice;
+
 @end
 
 class BraveBrowsingHistoryDriver : public history::BrowsingHistoryDriver {
@@ -71,7 +75,7 @@ class BraveBrowsingHistoryDriver : public history::BrowsingHistoryDriver {
   // The current browser state.
   ChromeBrowserState* browser_state_;  // weak
   __weak id<BraveHistoryDriverDelegate> delegate_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(BraveBrowsingHistoryDriver);
 };
 

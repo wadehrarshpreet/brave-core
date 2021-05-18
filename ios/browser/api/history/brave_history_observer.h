@@ -16,15 +16,25 @@ OBJC_EXPORT
 @protocol HistoryServiceObserver <NSObject>
 @optional
 
-// Notifying when `history_service` has finished loading.
+/// Notifying when `history_service` has finished loading.
 - (void)historyServiceLoaded;
-// Notifying when `history_service` is being deleted.
+
+/// Notifying when `history_service` is being deleted.
 - (void)historyServiceBeingDeleted;
-// Observing when user visits an URL.
+
+/// Observing when user visits an URL.
+/// @param historyNode - History object which has been visited
 - (void)historyNodeVisited:(IOSHistoryNode* _Nonnull)historyNode;
-// Observing when a URL is added or modified
+
+/// Observing when a URL is added or modified
+/// @param historyNodeList - History object list which has been modified
 - (void)historyNodesModified:(NSArray<IOSHistoryNode*>*)historyNodeList;
-// Observing when one or more URLs are deleted
+
+/// Observing when one or more URLs are deleted
+/// @param historyNodeList - History object list which has been deleted
+///                          historyNodeList will be empty is all history is
+///                          deleted
+/// @param isAllHistory - Boolean that notifies all history is deleted
 - (void)historyNodesDeleted:(NSArray<IOSHistoryNode*>*)historyNodeList 
                isAllHistory:(bool)isAllHistory;
 @end
@@ -37,7 +47,7 @@ OBJC_EXPORT
 OBJC_EXPORT
 @interface HistoryServiceListenerImpl : NSObject <HistoryServiceListener>
 - (instancetype)init:(id<HistoryServiceObserver>)observer
-       historyService:(void*)service;
+      historyService:(void*)service;
 @end
 
 NS_ASSUME_NONNULL_END

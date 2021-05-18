@@ -9,7 +9,6 @@
 #include "ios/chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "ios/chrome/browser/favicon/favicon_service_factory.h"
 #include "ios/chrome/browser/history/history_service_factory.h"
-#include "ios/chrome/browser/history/top_sites_factory.h"
 #include "ios/chrome/browser/history/web_history_service_factory.h"
 #include "ios/chrome/browser/invalidation/ios_chrome_profile_invalidation_provider_factory.h"
 #include "ios/chrome/browser/passwords/ios_chrome_password_store_factory.h"
@@ -39,7 +38,6 @@ void EnsureBrowserStateKeyedServiceFactoriesBuilt() {
   ios::FaviconServiceFactory::GetInstance();
   ios::HistoryServiceFactory::GetInstance();
   ios::TemplateURLServiceFactory::GetInstance();
-  ios::TopSitesFactory::GetInstance();
   ios::WebDataServiceFactory::GetInstance();
   ios::WebHistoryServiceFactory::GetInstance();
   IdentityManagerFactory::GetInstance();

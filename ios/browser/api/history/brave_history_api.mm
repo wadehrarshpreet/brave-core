@@ -50,10 +50,6 @@
 
 @implementation IOSHistoryNode
 
-/// History Node Constructor used with HistoryAPI
-/// @param url Mandatory URL field for the history object
-/// @param title Title used for the URL
-/// @param dateAdded Date History Object is created
 - (instancetype)initWithURL:(NSURL*)url
                       title:(NSString* _Nullable)title
                   dateAdded:(NSDate* _Nullable)dateAdded {
@@ -180,9 +176,9 @@
   return history_service_->BackendLoaded();
 }
 
-/// Default Add History Method syncs typed URLS
-/// @param history object to be added
 - (void)addHistory:(IOSHistoryNode*)history {
+  // Default Add History method with Typed Transition Type
+  // Add History is only called when a tyoped_url is added on iOS side
   [self addHistory: history pageTransition: BraveHistoryTransitionType_TYPED];
 }
 
@@ -284,5 +280,4 @@
 
 - (void)historyWasDeleted {}
 
-- (void)showNoticeAboutOtherFormsOfBrowsingHistory:(BOOL)shouldShowNotice {}
 @end

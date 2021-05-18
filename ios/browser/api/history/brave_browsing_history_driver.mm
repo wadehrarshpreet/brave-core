@@ -66,7 +66,7 @@ void BraveBrowsingHistoryDriver::HistoryDeleted() {
 void BraveBrowsingHistoryDriver::HasOtherFormsOfBrowsingHistory(
     bool has_other_forms,
     bool has_synced_results) {
-  [delegate_ showNoticeAboutOtherFormsOfBrowsingHistory:has_other_forms];
+  // Ignored.
 }
 
 bool BraveBrowsingHistoryDriver::AllowHistoryDeletions() {

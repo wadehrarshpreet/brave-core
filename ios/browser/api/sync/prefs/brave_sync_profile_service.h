@@ -30,14 +30,18 @@ OBJC_EXPORT
 @property(class, readonly, getter = sharedBraveProfileSyncService)
     BraveSyncProfileService* shared;
 
+/// Sync Profile Properties
 @property(nonatomic, assign, readonly) bool isSyncRequested;
 @property(nonatomic, assign, readonly) bool isSyncAllowedByPlatform;
 @property(nonatomic, assign, readonly) bool isSyncFeatureActive;
 @property(nonatomic, assign, readonly) bool isSyncEngineInitialized;
 @property(nonatomic, assign, readonly) bool isTransportStateActive;
 
+/// Active Selectable Types for the Sync User
+/// Used for opting in/out on iOS side
 @property(nonatomic, assign, readonly) BraveSyncUserSelectableTypes activeSelectableTypes;
-@property(nonatomic, assign, getter=getUserSelectedTypes) BraveSyncUserSelectableTypes userSelectedTypes;
+@property(nonatomic, assign, getter=getUserSelectedTypes)
+    BraveSyncUserSelectableTypes userSelectedTypes;
 @end
 
 NS_ASSUME_NONNULL_END
