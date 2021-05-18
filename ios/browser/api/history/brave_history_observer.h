@@ -35,7 +35,7 @@ OBJC_EXPORT
 ///                          historyNodeList will be empty is all history is
 ///                          deleted
 /// @param isAllHistory - Boolean that notifies all history is deleted
-- (void)historyNodesDeleted:(NSArray<IOSHistoryNode*>*)historyNodeList 
+- (void)historyNodesDeleted:(NSArray<IOSHistoryNode*>*)historyNodeList
                isAllHistory:(bool)isAllHistory;
 @end
 
@@ -52,4 +52,4 @@ OBJC_EXPORT
 
 NS_ASSUME_NONNULL_END
 
-#endif /* BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_OBSERVER_H_ */
+#endif  // BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_OBSERVER_H_

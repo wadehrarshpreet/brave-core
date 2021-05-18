@@ -2,7 +2,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
+
 #ifndef BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
 #define BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
 
@@ -55,7 +55,8 @@ OBJC_EXPORT
 /// Add History Method which also allows to edit transition type
 /// @param history - History Object to be added
 /// @param pageTransition - History Object to be added
-- (void)addHistory:(IOSHistoryNode*)history pageTransition:(NSUInteger)pageTransition;
+- (void)addHistory:(IOSHistoryNode*)history
+    pageTransition:(NSUInteger)pageTransition;
 
 /// Remove Specific History
 /// @param history - History Object to be removed from history
@@ -78,4 +79,4 @@ OBJC_EXPORT
 
 NS_ASSUME_NONNULL_END
 
-#endif // BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
+#endif  // BRAVE_IOS_BROWSER_API_HISTORY_BRAVE_HISTORY_API_H_
