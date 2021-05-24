@@ -323,7 +323,20 @@ void BraveRenderViewContextMenu::InitMenu() {
   // Only show the translate item when go-translate is enabled.
 #if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
   index = menu_model_.GetIndexOfCommandId(IDC_CONTENT_CONTEXT_TRANSLATE);
-  if (index != -1)
+  if (index != -1) {
     menu_model_.RemoveItemAt(index);
+
+    // Separator always precedes translate item,
+    // see RenderViewContextMenu::AppendPageItems.
+    // Remove separator if it is duplicated by any reason.
+    if (index < menu_model_.GetItemCount() &&
+        menu_model_.GetTypeAt(index) ==
+            ui::MenuModel::ItemType::TYPE_SEPARATOR &&
+        index > 0 &&
+        menu_model_.GetTypeAt(index - 1) ==
+            ui::MenuModel::ItemType::TYPE_SEPARATOR) {
+      menu_model_.RemoveItemAt(index);
+    }
+  }
 #endif
 }
