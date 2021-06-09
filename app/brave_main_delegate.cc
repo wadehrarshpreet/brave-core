@@ -16,6 +16,7 @@
 #include "base/time/time.h"
 #include "brave/app/brave_command_line_helper.h"
 #include "brave/browser/brave_content_browser_client.h"
+#include "brave/browser/translate/buildflags/buildflags.h"
 #include "brave/common/brave_switches.h"
 #include "brave/common/resource_bundle_helper.h"
 #include "brave/components/brave_ads/browser/buildflags/buildflags.h"
@@ -240,6 +241,9 @@ bool BraveMainDelegate::BasicStartupComplete(int* exit_code) {
     translate::kTranslate.name,
 #else
     kEnableProfilePickerOnStartupFeature.name,
+#if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
+    translate::kTranslate.name,
+#endif
 #endif
   };
 

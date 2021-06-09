@@ -8,7 +8,6 @@
 #include "brave/browser/ipfs/import/ipfs_import_controller.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/renderer_context_menu/brave_spelling_options_submenu_observer.h"
-#include "brave/browser/translate/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "brave/grit/brave_theme_resources.h"
@@ -294,10 +293,8 @@ void BraveRenderViewContextMenu::BuildIPFSMenu() {
 void BraveRenderViewContextMenu::InitMenu() {
   RenderViewContextMenu_Chromium::InitMenu();
 
-#if BUILDFLAG(ENABLE_TOR) || !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  int index = -1;
-#endif
 #if BUILDFLAG(ENABLE_TOR)
+  int index = -1;
   // Add Open Link with Tor
   if (!TorProfileServiceFactory::IsTorDisabled() &&
       !params_.link_url.is_empty()) {
@@ -319,27 +316,4 @@ void BraveRenderViewContextMenu::InitMenu() {
 #if BUILDFLAG(IPFS_ENABLED)
   BuildIPFSMenu();
 #endif
-
-  // Only show the translate item when go-translate is enabled.
-#if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  // Separator always precedes translate item,
-  // see RenderViewContextMenu::AppendPageItems.
-  // Remove separator because it will be duplicated after removing menu item.
-  RemoveSeparatorBeforeMenuItemOnPreInit(IDC_CONTENT_CONTEXT_TRANSLATE);
-
-  index = menu_model_.GetIndexOfCommandId(IDC_CONTENT_CONTEXT_TRANSLATE);
-  if (index != -1) {
-    menu_model_.RemoveItemAt(index);
-  }
-#endif
-}
-
-void BraveRenderViewContextMenu::RemoveSeparatorBeforeMenuItemOnPreInit(
-    int command_id) {
-  // toolkit_delegate_ will be initialized after
-  // RenderViewContextMenuBase::Init(), but RemoveSeparatorBeforeMenuItem uses
-  // it, so hide and revert toolkit_delegate_  to avoid nullptr crash.
-  auto toolkit_delegate = std::move(toolkit_delegate_);
-  RemoveSeparatorBeforeMenuItem(command_id);
-  toolkit_delegate_ = std::move(toolkit_delegate);
 }
