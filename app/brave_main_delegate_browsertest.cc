@@ -3,7 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "brave/browser/translate/buildflags/buildflags.h"
 #include "chrome/browser/domain_reliability/service_factory.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/profile_picker.h"
@@ -21,7 +20,6 @@
 #include "components/omnibox/common/omnibox_features.h"
 #include "components/password_manager/core/common/password_manager_features.h"
 #include "components/security_state/core/features.h"
-#include "components/translate/core/browser/translate_prefs.h"
 #include "content/public/browser/render_view_host.h"
 #include "content/public/common/content_features.h"
 #include "content/public/test/browser_test.h"
@@ -91,9 +89,6 @@ IN_PROC_BROWSER_TEST_F(BraveMainDelegateBrowserTest, DisabledFeatures) {
       &net::features::kFirstPartySets,
       &network::features::kTrustTokens,
       &network_time::kNetworkTimeServiceQuerying,
-#if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-      &translate::kTranslate,
-#endif
   };
 
   for (const auto* feature : disabled_features)

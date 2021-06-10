@@ -48,6 +48,8 @@ class BraveRenderViewContextMenu : public RenderViewContextMenu_Chromium {
   void ExecuteIPFSCommand(int id, int event_flags);
   bool IsIPFSCommandIdEnabled(int command) const;
 
+  void RemoveSeparatorBeforeMenuItemOnPreInit(int command_id);
+
   ui::SimpleMenuModel ipfs_submenu_model_;
 #endif
 };
