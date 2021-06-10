@@ -322,24 +322,21 @@ void BraveRenderViewContextMenu::InitMenu() {
 
   // Only show the translate item when go-translate is enabled.
 #if !BUILDFLAG(ENABLE_BRAVE_TRANSLATE_GO)
-  // Separator always precedes translate item,
-  // see RenderViewContextMenu::AppendPageItems.
-  // Remove separator because it will be duplicated after removing menu item.
-  RemoveSeparatorBeforeMenuItemOnPreInit(IDC_CONTENT_CONTEXT_TRANSLATE);
-
   index = menu_model_.GetIndexOfCommandId(IDC_CONTENT_CONTEXT_TRANSLATE);
   if (index != -1) {
     menu_model_.RemoveItemAt(index);
+
+    // Separator always precedes translate item,
+    // see RenderViewContextMenu::AppendPageItems.
+    // Remove separator if it is duplicated by any reason.
+    if (index < menu_model_.GetItemCount() &&
+        menu_model_.GetTypeAt(index) ==
+            ui::MenuModel::ItemType::TYPE_SEPARATOR &&
+        index > 0 &&
+        menu_model_.GetTypeAt(index - 1) ==
+            ui::MenuModel::ItemType::TYPE_SEPARATOR) {
+      menu_model_.RemoveItemAt(index);
+    }
   }
 #endif
-}
-
-void BraveRenderViewContextMenu::RemoveSeparatorBeforeMenuItemOnPreInit(
-    int command_id) {
-  // toolkit_delegate_ will be initialized after
-  // RenderViewContextMenuBase::Init(), but RemoveSeparatorBeforeMenuItem uses
-  // it, so hide and revert toolkit_delegate_  to avoid nullptr crash.
-  auto toolkit_delegate = std::move(toolkit_delegate_);
-  RemoveSeparatorBeforeMenuItem(command_id);
-  toolkit_delegate_ = std::move(toolkit_delegate);
 }
