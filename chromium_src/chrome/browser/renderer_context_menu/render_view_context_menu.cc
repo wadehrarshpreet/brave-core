@@ -327,8 +327,3 @@ void BraveRenderViewContextMenu::InitMenu() {
     menu_model_.RemoveItemAt(index);
 #endif
 }
-
-void BraveRenderViewContextMenu::Show() {
-  RemoveAdjacentSeparators();
-  RenderViewContextMenu_Chromium::Show();
-}
