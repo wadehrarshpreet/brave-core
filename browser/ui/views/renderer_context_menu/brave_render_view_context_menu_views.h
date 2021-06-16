@@ -21,11 +21,23 @@ class BraveRenderViewContextMenuViews : public RenderViewContextMenuViews {
       content::RenderFrameHost* render_frame_host,
       const content::ContextMenuParams& params);
 
+  // RenderViewContextMenuBase:
   void Show() override;
+  bool IsCommandIdEnabled(int command_id) const override;
 
  protected:
   BraveRenderViewContextMenuViews(content::RenderFrameHost* render_frame_host,
                                   const content::ContextMenuParams& params);
+
+ private:
+  // RenderViewContextMenuBase:
+  void InitMenu() override;
+#if BUILDFLAG(IPFS_ENABLED)
+  void SeIpfsIconAt(int index);
+  void BuildIPFSMenu();
+  bool IsIPFSCommandIdEnabled(int command) const;
+  ui::SimpleMenuModel ipfs_submenu_model_;
+#endif
 };
 
 #endif  // BRAVE_BROWSER_UI_VIEWS_RENDERER_CONTEXT_MENU_BRAVE_RENDER_VIEW_CONTEXT_MENU_VIEWS_H_

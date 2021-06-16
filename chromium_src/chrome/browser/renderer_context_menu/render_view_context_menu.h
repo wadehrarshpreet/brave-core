@@ -7,10 +7,12 @@
 
 #include "brave/components/ipfs/buildflags/buildflags.h"
 
-#define BRAVE_RENDER_VIEW_CONTEXT_MENU_H_ \
-  private: \
-    friend class BraveRenderViewContextMenu; \
-  public:
+#define BRAVE_RENDER_VIEW_CONTEXT_MENU_H_       \
+ private:                                       \
+  friend class BraveRenderViewContextMenu;      \
+  friend class BraveRenderViewContextMenuViews; \
+                                                \
+ public:
 // define BRAVE_RENDER_VIEW_CONTEXT_MENU_H_
 
 // Get the Chromium declaration.
@@ -32,7 +34,6 @@ class BraveRenderViewContextMenu : public RenderViewContextMenu_Chromium {
   BraveRenderViewContextMenu(content::RenderFrameHost* render_frame_host,
                              const content::ContextMenuParams& params);
   // RenderViewContextMenuBase:
-  bool IsCommandIdEnabled(int command_id) const override;
   void ExecuteCommand(int id, int event_flags) override;
   void AddSpellCheckServiceItem(bool is_checked) override;
   // Hide base class implementation.
@@ -41,14 +42,9 @@ class BraveRenderViewContextMenu : public RenderViewContextMenu_Chromium {
 
  private:
   // RenderViewContextMenuBase:
-  void InitMenu() override;
 #if BUILDFLAG(IPFS_ENABLED)
-  void SeIpfsIconAt(int index);
-  void BuildIPFSMenu();
   void ExecuteIPFSCommand(int id, int event_flags);
   bool IsIPFSCommandIdEnabled(int command) const;
-
-  ui::SimpleMenuModel ipfs_submenu_model_;
 #endif
 };
 
