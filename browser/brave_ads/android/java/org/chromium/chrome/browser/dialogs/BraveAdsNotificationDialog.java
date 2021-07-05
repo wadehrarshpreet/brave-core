@@ -29,6 +29,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.BraveAdsNativeHelper;
 import org.chromium.chrome.browser.ChromeTabbedActivity;
 import org.chromium.chrome.browser.app.BraveActivity;
+import org.chromium.chrome.browser.night_mode.GlobalNightModeStateProviderHolder;
 import org.chromium.chrome.browser.notifications.BraveOnboardingNotification;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.tab.TabLaunchType;
@@ -41,7 +42,7 @@ public class BraveAdsNotificationDialog {
     static final int MAX_DISTANCE_FOR_TAP = 5;
 
     // Track when touch events on the dialog are down and when they are up
-    static float mYDown;
+    static float mXDown;
 
     public static void showAdNotification(Context context, final String notificationId,
             final String origin, final String title, final String body) {
@@ -57,7 +58,11 @@ public class BraveAdsNotificationDialog {
         mNotificationId = notificationId;
 
         LayoutInflater inflater = LayoutInflater.from(context);
-        b.setView(inflater.inflate(R.layout.brave_ads_custom_notification, null));
+        if (GlobalNightModeStateProviderHolder.getInstance().isInNightMode()) {
+            b.setView(inflater.inflate(R.layout.brave_ads_custom_notification_dark, null));
+        } else {
+            b.setView(inflater.inflate(R.layout.brave_ads_custom_notification, null));
+        }
         mAdsDialog = b.create();
 
         if (mNotificationId != null) {
@@ -90,36 +95,34 @@ public class BraveAdsNotificationDialog {
                 .setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
-                        float deltaY;
-                        float deltaYDp;
-                        float y;
+                        float deltaX;
+                        float deltaXDp;
+                        float x;
                         switch (event.getAction()) {
                             case MotionEvent.ACTION_DOWN:
-                                mYDown = v.getY() - event.getRawY();
+                                mXDown = v.getX() - event.getRawX();
                                 break;
                             case MotionEvent.ACTION_MOVE:
-                                deltaY = event.getRawY() + mYDown;
-                                if (deltaY > 0) {
-                                    deltaY = 0;
-                                }
-                                v.animate().y(deltaY).setDuration(0).start();
+                                deltaX = event.getRawX() + mXDown;
+                                v.animate().x(deltaX).setDuration(0).start();
                                 break;
                             case MotionEvent.ACTION_UP:
-                                if (mYDown != 0.0f) {
-                                    deltaYDp = pxToDp(event.getRawY() + mYDown,
+                                if (mXDown != 0.0f) {
+                                    deltaXDp = pxToDp(event.getRawX() + mXDown,
                                             context.getResources().getDisplayMetrics());
                                 } else {
                                     return false;
                                 }
-                                if (deltaYDp < -1 * MIN_DISTANCE_FOR_DISMISS) {
+                                if (deltaXDp < -1 * MIN_DISTANCE_FOR_DISMISS ||
+                                    deltaXDp > MIN_DISTANCE_FOR_DISMISS) {
                                     mAdsDialog.dismiss();
                                     mAdsDialog = null;
                                     BraveAdsNativeHelper.nativeOnCloseAdNotification(
                                             Profile.getLastUsedRegularProfile(), mNotificationId,
                                             true);
                                     mNotificationId = null;
-                                } else if (deltaYDp <= MAX_DISTANCE_FOR_TAP
-                                        && deltaYDp >= (-1 * MAX_DISTANCE_FOR_TAP)) {
+                                } else if (deltaXDp <= MAX_DISTANCE_FOR_TAP &&
+                                           deltaXDp >= (-1 * MAX_DISTANCE_FOR_TAP)) {
                                     adsDialogTapped(origin);
                                 } else {
                                     v.animate().translationY(0);
