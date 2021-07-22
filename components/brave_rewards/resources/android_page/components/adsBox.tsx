@@ -95,7 +95,15 @@ class AdsBox extends React.Component<Props, {}> {
       ['US-WA', 'Washington'],
       ['US-WV', 'West Virginia'],
       ['US-WI', 'Wisconsin'],
-      ['US-WY', 'Wyoming']
+      ['US-WY', 'Wyoming'],
+      ['CA-AB', 'Alberta'],
+      ['CA-BC', 'British Columbia'],
+      ['CA-MB', 'Manitoba'],
+      ['CA-NB', 'New Brunswick'],
+      ['CA-NS', 'Nova Scotia'],
+      ['CA-ON', 'Ontario'],
+      ['CA-QC', 'Quebec'],
+      ['CA-SK', 'Saskatchewan']
     ]
 
     if (adsSubdivisionTargeting === 'DISABLED') {
