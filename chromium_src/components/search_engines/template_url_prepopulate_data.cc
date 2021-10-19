@@ -79,6 +79,13 @@ const std::vector<BravePrepopulatedEngineID> brave_engines_AU_IE = {
     PREPOPULATED_ENGINE_ID_ECOSIA,
 };
 
+const std::vector<BravePrepopulatedEngineID> brave_engines_KR = {
+    PREPOPULATED_ENGINE_ID_BRAVE,
+    PREPOPULATED_ENGINE_ID_NAVER,
+    PREPOPULATED_ENGINE_ID_DAUM,
+    PREPOPULATED_ENGINE_ID_GOOGLE,
+};
+
 const std::vector<BravePrepopulatedEngineID> brave_engines_NZ = {
     PREPOPULATED_ENGINE_ID_BRAVE,  PREPOPULATED_ENGINE_ID_DUCKDUCKGO_AU_NZ_IE,
     PREPOPULATED_ENGINE_ID_GOOGLE, PREPOPULATED_ENGINE_ID_QWANT,
@@ -125,6 +132,7 @@ const std::map<int, const std::vector<BravePrepopulatedEngineID>*>
          &brave_engines_with_ecosia},
         {country_codes::CountryCharsToCountryID('K', 'G'),
          &brave_engines_with_yandex},
+        {country_codes::CountryCharsToCountryID('K', 'R'), &brave_engines_KR},
         {country_codes::CountryCharsToCountryID('K', 'Z'),
          &brave_engines_with_yandex},
         {country_codes::CountryCharsToCountryID('L', 'U'),
@@ -247,6 +255,8 @@ BravePrepopulatedEngineID GetDefaultSearchEngine(int country_id, int version) {
            PREPOPULATED_ENGINE_ID_BRAVE},
           {country_codes::CountryCharsToCountryID('K', 'G'),
            PREPOPULATED_ENGINE_ID_YANDEX},
+          {country_codes::CountryCharsToCountryID('K', 'R'),
+           PREPOPULATED_ENGINE_ID_NAVER},
           {country_codes::CountryCharsToCountryID('K', 'Z'),
            PREPOPULATED_ENGINE_ID_YANDEX},
           {country_codes::CountryCharsToCountryID('M', 'D'),
