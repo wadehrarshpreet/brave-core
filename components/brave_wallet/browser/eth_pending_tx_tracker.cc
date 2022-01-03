@@ -26,40 +26,85 @@ EthPendingTxTracker::EthPendingTxTracker(EthTxStateManager* tx_state_manager,
       weak_factory_(this) {}
 EthPendingTxTracker::~EthPendingTxTracker() = default;
 
-bool EthPendingTxTracker::UpdatePendingTransactions(size_t* num_pending) {
+void EthPendingTxTracker::UpdatePendingTransactions(
+    UpdatePendingTransactionsCallback callback) {
   base::Lock* nonce_lock = nonce_tracker_->GetLock();
-  if (!nonce_lock->Try())
-    return false;
+  if (!nonce_lock->Try()) {
+    std::move(callback).Run(false, 0);
+    return;
+  }
 
-  auto pending_transactions = tx_state_manager_->GetTransactionsByStatus(
-      mojom::TransactionStatus::Submitted, absl::nullopt);
-  for (const auto& pending_transaction : pending_transactions) {
-    if (IsNonceTaken(*pending_transaction)) {
-      DropTransaction(pending_transaction.get());
-      continue;
+  tx_state_manager_->GetTransactionsByStatus(
+      mojom::TransactionStatus::Confirmed, absl::nullopt,
+      base::BindOnce(&EthPendingTxTracker::ContinueUpdatePendingTransactions,
+                     weak_factory_.GetWeakPtr(), std::move(callback)));
+
+  nonce_lock->Release();
+}
+
+void EthPendingTxTracker::ContinueUpdatePendingTransactions(
+    UpdatePendingTransactionsCallback callback,
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs) {
+  base::Lock* nonce_lock = nonce_tracker_->GetLock();
+  if (!nonce_lock->Try()) {
+    std::move(callback).Run(false, 0);
+    return;
+  }
+  tx_state_manager_->GetTransactionsByStatus(
+      mojom::TransactionStatus::Submitted, absl::nullopt,
+      base::BindOnce(&EthPendingTxTracker::FinalizeUpdatePendingTransactions,
+                     weak_factory_.GetWeakPtr(), std::move(callback),
+                     std::move(confirmed_txs)));
+  nonce_lock->Release();
+}
+
+void EthPendingTxTracker::FinalizeUpdatePendingTransactions(
+    UpdatePendingTransactionsCallback callback,
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs,
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs) {
+  base::Lock* nonce_lock = nonce_tracker_->GetLock();
+  if (!nonce_lock->Try()) {
+    std::move(callback).Run(false, 0);
+    return;
+  }
+
+  for (const auto& pending_tx : pending_txs) {
+    bool is_nonce_taken = false;
+    for (const auto& confirmed_tx : confirmed_txs) {
+      if (confirmed_tx->tx->nonce() == pending_tx->tx->nonce() &&
+          confirmed_tx->id != pending_tx->id) {
+        DropTransaction(pending_tx.get());
+        is_nonce_taken = true;
+      }
     }
-    std::string id = pending_transaction->id;
+    if (is_nonce_taken)
+      continue;
+    std::string id = pending_tx->id;
     rpc_controller_->GetTransactionReceipt(
-        pending_transaction->tx_hash,
+        pending_tx->tx_hash,
         base::BindOnce(&EthPendingTxTracker::OnGetTxReceipt,
                        weak_factory_.GetWeakPtr(), std::move(id)));
   }
-
   nonce_lock->Release();
-  *num_pending = pending_transactions.size();
-  return true;
+  std::move(callback).Run(true, pending_txs.size());
 }
 
 void EthPendingTxTracker::ResubmitPendingTransactions() {
   // TODO(darkdh): limit the rate of tx publishing
-  auto pending_transactions = tx_state_manager_->GetTransactionsByStatus(
-      mojom::TransactionStatus::Submitted, absl::nullopt);
-  for (const auto& pending_transaction : pending_transactions) {
-    if (!pending_transaction->tx->IsSigned()) {
+  tx_state_manager_->GetTransactionsByStatus(
+      mojom::TransactionStatus::Submitted, absl::nullopt,
+      base::BindOnce(&EthPendingTxTracker::ContinueResubmitPendingTransactions,
+                     weak_factory_.GetWeakPtr()));
+}
+
+void EthPendingTxTracker::ContinueResubmitPendingTransactions(
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs) {
+  for (const auto& pending_tx : pending_txs) {
+    if (!pending_tx->tx->IsSigned()) {
       continue;
     }
     rpc_controller_->SendRawTransaction(
-        pending_transaction->tx->GetSignedTransaction(),
+        pending_tx->tx->GetSignedTransaction(),
         base::BindOnce(&EthPendingTxTracker::OnSendRawTransaction,
                        weak_factory_.GetWeakPtr()));
   }
@@ -76,27 +121,33 @@ void EthPendingTxTracker::OnGetTxReceipt(std::string id,
                                          const std::string& error_message) {
   if (error != mojom::ProviderError::kSuccess)
     return;
-  base::Lock* nonce_lock = nonce_tracker_->GetLock();
-  if (!nonce_lock->Try())
-    return;
 
-  std::unique_ptr<EthTxStateManager::TxMeta> meta =
-      tx_state_manager_->GetTx(id);
-  if (!meta) {
-    nonce_lock->Release();
+  tx_state_manager_->GetTx(
+      id,
+      base::BindOnce(&EthPendingTxTracker::ContinueOnGetTxReceipt,
+                     weak_factory_.GetWeakPtr(), error, std::move(receipt)));
+}
+
+void EthPendingTxTracker::ContinueOnGetTxReceipt(
+    mojom::ProviderError error,
+    TransactionReceipt receipt,
+    std::unique_ptr<EthTxStateManager::TxMeta> meta) {
+  base::Lock* nonce_lock = nonce_tracker_->GetLock();
+
+  if (!meta || !nonce_lock->Try()) {
     return;
   }
   if (receipt.status) {
     meta->tx_receipt = receipt;
     meta->status = mojom::TransactionStatus::Confirmed;
     meta->confirmed_time = base::Time::Now();
-    tx_state_manager_->AddOrUpdateTx(*meta);
+    tx_state_manager_->AddOrUpdateTx(std::move(meta));
   } else if (ShouldTxDropped(*meta)) {
     DropTransaction(meta.get());
   }
 
   nonce_lock->Release();
-}
+}  // namespace brave_wallet
 
 void EthPendingTxTracker::OnGetNetworkNonce(std::string address,
                                             uint256_t result,
@@ -112,17 +163,6 @@ void EthPendingTxTracker::OnSendRawTransaction(
     const std::string& tx_hash,
     mojom::ProviderError error,
     const std::string& error_message) {}
-
-bool EthPendingTxTracker::IsNonceTaken(const EthTxStateManager::TxMeta& meta) {
-  auto confirmed_transactions = tx_state_manager_->GetTransactionsByStatus(
-      mojom::TransactionStatus::Confirmed, absl::nullopt);
-  for (const auto& confirmed_transaction : confirmed_transactions) {
-    if (confirmed_transaction->tx->nonce() == meta.tx->nonce() &&
-        confirmed_transaction->id != meta.id)
-      return true;
-  }
-  return false;
-}
 
 bool EthPendingTxTracker::ShouldTxDropped(
     const EthTxStateManager::TxMeta& meta) {

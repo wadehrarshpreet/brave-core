@@ -11,6 +11,7 @@
 #include "base/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/synchronization/lock.h"
+#include "brave/components/brave_wallet/browser/eth_tx_state_manager.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/brave_wallet_types.h"
 
@@ -18,7 +19,6 @@ namespace brave_wallet {
 
 class EthAddress;
 class EthJsonRpcController;
-class EthTxStateManager;
 
 class EthNonceTracker {
  public:
@@ -40,6 +40,18 @@ class EthNonceTracker {
                          uint256_t result,
                          mojom::ProviderError error,
                          const std::string& error_message);
+  void OnGetConfirmedTxs(
+      EthAddress from,
+      GetNextNonceCallback,
+      uint256_t network_nonce,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs);
+
+  void OnGetPendingTxs(
+      EthAddress from,
+      GetNextNonceCallback,
+      uint256_t network_nonce,
+      uint256_t highest_confirmed,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs);
 
   EthTxStateManager* tx_state_manager_;
   EthJsonRpcController* rpc_controller_;

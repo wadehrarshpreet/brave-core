@@ -7,12 +7,15 @@
 
 #include <utility>
 
+#include "base/files/file_path.h"
 #include "base/guid.h"
 #include "base/json/values_util.h"
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
+#include "base/task/thread_pool.h"
 #include "base/values.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/browser/eip1559_transaction.h"
 #include "brave/components/brave_wallet/browser/eip2930_transaction.h"
@@ -23,17 +26,24 @@
 #include "brave/components/brave_wallet/common/hex_utils.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/scoped_user_pref_update.h"
+#include "components/value_store/value_store_factory_impl.h"
+#include "components/value_store/value_store_frontend.h"
 
 namespace brave_wallet {
-namespace {
-constexpr size_t kMaxConfirmedTxNum = 10;
-constexpr size_t kMaxRejectedTxNum = 10;
-}  // namespace
 
 EthTxStateManager::EthTxStateManager(PrefService* prefs,
+                                     const base::FilePath context_path,
                                      EthJsonRpcController* rpc_controller)
     : prefs_(prefs), rpc_controller_(rpc_controller), weak_factory_(this) {
   DCHECK(rpc_controller_);
+  store_task_runner_ = base::ThreadPool::CreateSequencedTaskRunner(
+      {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
+       base::TaskShutdownBehavior::BLOCK_SHUTDOWN});
+  store_factory_ =
+      base::MakeRefCounted<value_store::ValueStoreFactoryImpl>(context_path);
+  store_ = std::make_unique<value_store::ValueStoreFrontend>(
+      store_factory_, base::FilePath(FILE_PATH_LITERAL(kWalletStorage)),
+      kWalletStorage, store_task_runner_);
   rpc_controller_->AddObserver(observer_receiver_.BindNewPipeAndPassRemote());
   chain_id_ = rpc_controller_->GetChainId();
   network_url_ = rpc_controller_->GetNetworkUrl();
@@ -222,61 +232,101 @@ std::unique_ptr<EthTxStateManager::TxMeta> EthTxStateManager::ValueToTxMeta(
   return meta;
 }
 
-void EthTxStateManager::AddOrUpdateTx(const TxMeta& meta) {
-  DictionaryPrefUpdate update(prefs_, kBraveWalletTransactions);
-  base::DictionaryValue* dict = update.Get();
-  const std::string path = GetNetworkId(prefs_, chain_id_) + "." + meta.id;
-  bool is_add = dict->FindPath(path) == nullptr;
-  dict->SetPath(path, TxMetaToValue(meta));
+void EthTxStateManager::AddOrUpdateTx(std::unique_ptr<TxMeta> meta) {
+  store_->Get(kBraveWalletTransactions,
+              base::BindOnce(&EthTxStateManager::ContinueAddOrUpdateTx,
+                             weak_factory_.GetWeakPtr(), std::move(meta)));
+}
+
+void EthTxStateManager::ContinueAddOrUpdateTx(
+    std::unique_ptr<TxMeta> meta,
+    std::unique_ptr<base::Value> value) {
+  if (!value) {
+    value = std::make_unique<base::Value>(base::Value::Type::DICTIONARY);
+  }
+  const std::string path = GetNetworkId(prefs_, chain_id_) + "." + meta->id;
+  bool is_add = value->FindPath(path) == nullptr;
+  value->SetPath(path, TxMetaToValue(*meta));
+  store_->Set(kBraveWalletTransactions, std::move(value));
   if (!is_add) {
     for (auto& observer : observers_)
-      observer.OnTransactionStatusChanged(TxMetaToTransactionInfo(meta));
+      observer.OnTransactionStatusChanged(TxMetaToTransactionInfo(*meta));
     return;
   }
 
   for (auto& observer : observers_)
-    observer.OnNewUnapprovedTx(TxMetaToTransactionInfo(meta));
-
-  // We only keep most recent 10 confirmed and rejected tx metas per network
-  RetireTxByStatus(mojom::TransactionStatus::Confirmed, kMaxConfirmedTxNum);
-  RetireTxByStatus(mojom::TransactionStatus::Rejected, kMaxRejectedTxNum);
+    observer.OnNewUnapprovedTx(TxMetaToTransactionInfo(*meta));
 }
 
-std::unique_ptr<EthTxStateManager::TxMeta> EthTxStateManager::GetTx(
-    const std::string& id) {
-  const base::DictionaryValue* dict =
-      prefs_->GetDictionary(kBraveWalletTransactions);
-  if (!dict)
-    return nullptr;
-  const base::Value* value =
-      dict->FindPath(GetNetworkId(prefs_, chain_id_) + "." + id);
-  if (!value)
-    return nullptr;
+void EthTxStateManager::GetTx(const std::string& id, GetTxCallback callback) {
+  store_->Get(
+      kBraveWalletTransactions,
+      base::BindOnce(&EthTxStateManager::ContinueGetTx,
+                     weak_factory_.GetWeakPtr(), id, std::move(callback)));
+}
 
-  return ValueToTxMeta(*value);
+void EthTxStateManager::ContinueGetTx(const std::string& id,
+                                      GetTxCallback callback,
+                                      std::unique_ptr<base::Value> value) {
+  if (!value) {
+    std::move(callback).Run(nullptr);
+    return;
+  }
+  const base::Value* meta_value =
+      value->FindPath(GetNetworkId(prefs_, chain_id_) + "." + id);
+  if (!meta_value) {
+    std::move(callback).Run(nullptr);
+    return;
+  }
+
+  std::move(callback).Run(ValueToTxMeta(*meta_value));
 }
 
 void EthTxStateManager::DeleteTx(const std::string& id) {
-  DictionaryPrefUpdate update(prefs_, kBraveWalletTransactions);
-  base::DictionaryValue* dict = update.Get();
-  dict->RemovePath(GetNetworkId(prefs_, chain_id_) + "." + id);
+  store_->Get(kBraveWalletTransactions,
+              base::BindOnce(&EthTxStateManager::ContinueDeleteTx,
+                             weak_factory_.GetWeakPtr(), id));
+}
+
+void EthTxStateManager::ContinueDeleteTx(const std::string& id,
+                                         std::unique_ptr<base::Value> value) {
+  if (!value)
+    return;
+  value->RemovePath(GetNetworkId(prefs_, chain_id_) + "." + id);
+  store_->Set(kBraveWalletTransactions, std::move(value));
 }
 
 void EthTxStateManager::WipeTxs() {
-  prefs_->ClearPref(kBraveWalletTransactions);
+  store_->Remove(kBraveWalletTransactions);
 }
 
-std::vector<std::unique_ptr<EthTxStateManager::TxMeta>>
-EthTxStateManager::GetTransactionsByStatus(
+void EthTxStateManager::GetTransactionsByStatus(
     absl::optional<mojom::TransactionStatus> status,
-    absl::optional<EthAddress> from) {
+    absl::optional<EthAddress> from,
+    GetTxsByStatusCallback callback) {
+  store_->Get(
+      kBraveWalletTransactions,
+      base::BindOnce(&EthTxStateManager::ContinueGetTransactionsByStatus,
+                     weak_factory_.GetWeakPtr(), status, from,
+                     std::move(callback)));
+}
+
+void EthTxStateManager::ContinueGetTransactionsByStatus(
+    absl::optional<mojom::TransactionStatus> status,
+    absl::optional<EthAddress> from,
+    GetTxsByStatusCallback callback,
+    std::unique_ptr<base::Value> value) {
   std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> result;
-  const base::DictionaryValue* dict =
-      prefs_->GetDictionary(kBraveWalletTransactions);
+  if (!value) {
+    std::move(callback).Run(std::move(result));
+    return;
+  }
   const base::Value* network_dict =
-      dict->FindKey(GetNetworkId(prefs_, chain_id_));
-  if (!network_dict)
-    return result;
+      value->FindKey(GetNetworkId(prefs_, chain_id_));
+  if (!network_dict) {
+    std::move(callback).Run(std::move(result));
+    return;
+  }
 
   for (const auto it : network_dict->DictItems()) {
     std::unique_ptr<EthTxStateManager::TxMeta> meta = ValueToTxMeta(it.second);
@@ -289,7 +339,7 @@ EthTxStateManager::GetTransactionsByStatus(
       result.push_back(std::move(meta));
     }
   }
-  return result;
+  std::move(callback).Run(std::move(result));
 }
 
 void EthTxStateManager::ChainChangedEvent(const std::string& chain_id) {
@@ -300,31 +350,6 @@ void EthTxStateManager::ChainChangedEvent(const std::string& chain_id) {
 void EthTxStateManager::OnAddEthereumChainRequestCompleted(
     const std::string& chain_id,
     const std::string& error) {}
-
-void EthTxStateManager::RetireTxByStatus(mojom::TransactionStatus status,
-                                         size_t max_num) {
-  if (status != mojom::TransactionStatus::Confirmed &&
-      status != mojom::TransactionStatus::Rejected)
-    return;
-  auto tx_metas = GetTransactionsByStatus(status, absl::nullopt);
-  if (tx_metas.size() > max_num) {
-    EthTxStateManager::TxMeta* oldest_meta = nullptr;
-    for (const auto& tx_meta : tx_metas) {
-      if (!oldest_meta) {
-        oldest_meta = tx_meta.get();
-      } else {
-        if (tx_meta->status == mojom::TransactionStatus::Confirmed &&
-            tx_meta->confirmed_time < oldest_meta->confirmed_time) {
-          oldest_meta = tx_meta.get();
-        } else if (tx_meta->status == mojom::TransactionStatus::Rejected &&
-                   tx_meta->created_time < oldest_meta->created_time) {
-          oldest_meta = tx_meta.get();
-        }
-      }
-    }
-    DeleteTx(oldest_meta->id);
-  }
-}
 
 void EthTxStateManager::AddObserver(EthTxStateManager::Observer* observer) {
   observers_.AddObserver(observer);

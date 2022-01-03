@@ -7,6 +7,7 @@
 
 #include <utility>
 
+#include "base/files/file_path.h"
 #include "brave/components/brave_wallet/browser/eth_nonce_tracker.h"
 #include "brave/components/brave_wallet/browser/eth_tx_controller.h"
 #include "brave/components/brave_wallet/browser/eth_tx_state_manager.h"
@@ -18,9 +19,10 @@ std::unique_ptr<EthTxController> BuildEthTxController(
     EthJsonRpcController* rpc_controller,
     KeyringController* keyring_controller,
     AssetRatioController* asset_ratio_controller,
-    PrefService* prefs) {
+    PrefService* prefs,
+    const base::FilePath& context_path) {
   auto tx_state_manager =
-      std::make_unique<EthTxStateManager>(prefs, rpc_controller);
+      std::make_unique<EthTxStateManager>(prefs, context_path, rpc_controller);
   auto eth_nonce_tracker =
       std::make_unique<EthNonceTracker>(tx_state_manager.get(), rpc_controller);
   auto eth_pending_tx_tracker = std::make_unique<EthPendingTxTracker>(

@@ -19,7 +19,6 @@ void RegisterProfilePrefsForMigration(
     user_prefs::PrefRegistrySyncable* registry);
 void ClearEthJsonRpcControllerProfilePrefs(PrefService* prefs);
 void ClearKeyringControllerProfilePrefs(PrefService* prefs);
-void ClearEthTxControllerProfilePrefs(PrefService* prefs);
 void ClearBraveWalletServicePrefs(PrefService* prefs);
 void MigrateObsoleteProfilePrefs(PrefService* prefs);
 

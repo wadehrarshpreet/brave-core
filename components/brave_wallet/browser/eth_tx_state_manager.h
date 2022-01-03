@@ -19,11 +19,19 @@
 #include "brave/components/brave_wallet/common/eth_address.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
+#include "base/memory/scoped_refptr.h"
+#include "base/task/sequenced_task_runner.h"
+
 class PrefService;
 
 namespace base {
 class Value;
 }  // namespace base
+
+namespace value_store {
+class ValueStoreFactory;
+class ValueStoreFrontend;
+}  // namespace value_store
 
 namespace brave_wallet {
 
@@ -35,6 +43,7 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
     TxMeta();
     explicit TxMeta(std::unique_ptr<EthTransaction> tx);
     TxMeta(const TxMeta&) = delete;
+    TxMeta& operator=(const TxMeta&) = delete;
     ~TxMeta();
     bool operator==(const TxMeta&) const;
 
@@ -48,9 +57,13 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
     std::string tx_hash;
     std::unique_ptr<EthTransaction> tx;
   };
+  using GetTxCallback = base::OnceCallback<void(std::unique_ptr<TxMeta>)>;
+  using GetTxsByStatusCallback = base::OnceCallback<void(
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>>)>;
 
-  explicit EthTxStateManager(PrefService* prefs,
-                             EthJsonRpcController* rpc_controller);
+  EthTxStateManager(PrefService* prefs,
+                    const base::FilePath context_path,
+                    EthJsonRpcController* rpc_controller);
   ~EthTxStateManager() override;
   EthTxStateManager(const EthTxStateManager&) = delete;
   EthTxStateManager operator=(const EthTxStateManager&) = delete;
@@ -60,14 +73,14 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
   static mojom::TransactionInfoPtr TxMetaToTransactionInfo(const TxMeta& meta);
   static std::unique_ptr<TxMeta> ValueToTxMeta(const base::Value& value);
 
-  void AddOrUpdateTx(const TxMeta& meta);
-  std::unique_ptr<TxMeta> GetTx(const std::string& id);
+  void AddOrUpdateTx(std::unique_ptr<TxMeta> meta);
+  void GetTx(const std::string& id, GetTxCallback);
   void DeleteTx(const std::string& id);
   void WipeTxs();
 
-  std::vector<std::unique_ptr<TxMeta>> GetTransactionsByStatus(
-      absl::optional<mojom::TransactionStatus> status,
-      absl::optional<EthAddress> from);
+  void GetTransactionsByStatus(absl::optional<mojom::TransactionStatus> status,
+                               absl::optional<EthAddress> from,
+                               GetTxsByStatusCallback);
 
   // mojom::EthJsonRpcControllerObserver
   void ChainChangedEvent(const std::string& chain_id) override;
@@ -86,8 +99,22 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
   void RemoveObserver(Observer* observer);
 
  private:
+#if 0
   // only support REJECTED and CONFIRMED
   void RetireTxByStatus(mojom::TransactionStatus status, size_t max_num);
+#endif
+
+  void ContinueAddOrUpdateTx(std::unique_ptr<TxMeta>,
+                             std::unique_ptr<base::Value>);
+  void ContinueGetTx(const std::string& id,
+                     GetTxCallback,
+                     std::unique_ptr<base::Value>);
+  void ContinueDeleteTx(const std::string& id, std::unique_ptr<base::Value>);
+  void ContinueGetTransactionsByStatus(
+      absl::optional<mojom::TransactionStatus> status,
+      absl::optional<EthAddress> from,
+      GetTxsByStatusCallback callback,
+      std::unique_ptr<base::Value>);
 
   base::ObserverList<Observer> observers_;
   PrefService* prefs_;
@@ -95,6 +122,9 @@ class EthTxStateManager : public mojom::EthJsonRpcControllerObserver {
   mojo::Receiver<mojom::EthJsonRpcControllerObserver> observer_receiver_{this};
   std::string chain_id_;
   std::string network_url_;
+  scoped_refptr<base::SequencedTaskRunner> store_task_runner_;
+  scoped_refptr<value_store::ValueStoreFactory> store_factory_;
+  std::unique_ptr<value_store::ValueStoreFrontend> store_;
   base::WeakPtrFactory<EthTxStateManager> weak_factory_;
 };
 

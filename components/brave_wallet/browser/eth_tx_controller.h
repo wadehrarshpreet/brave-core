@@ -146,9 +146,45 @@ class EthTxController : public KeyedService,
                       ApproveTransactionCallback callback,
                       bool success,
                       uint256_t nonce);
+  void ContinueSetGasPriceAndLimitForUnapprovedTransaction(
+      const std::string& gas_price,
+      const std::string& gas_limit,
+      SetGasPriceAndLimitForUnapprovedTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueSetGasFeeAndLimitForUnapprovedTransaction(
+      const std::string& max_priority_fee_per_gas,
+      const std::string& max_fee_per_gas,
+      const std::string& gas_limit,
+      SetGasFeeAndLimitForUnapprovedTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueSetDataForUnapprovedTransaction(
+      const std::vector<uint8_t>& data,
+      SetDataForUnapprovedTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueSetNonceForUnapprovedTransaction(
+      const std::string& nonce,
+      SetNonceForUnapprovedTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+
+  void ContinueGetTransactionMessageToSign(
+      const std::string& tx_meta_id,
+      GetTransactionMessageToSignCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueApproveTransaction(ApproveTransactionCallback,
+                                  std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueProcessHardwareSignature(
+      const std::string& tx_meta_id,
+      const std::string& v,
+      const std::string& r,
+      const std::string& s,
+      ProcessHardwareSignatureCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueGetNonceForHardwareTransaction(
+      GetNonceForHardwareTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
   void OnGetNextNonceForHardware(
       std::unique_ptr<EthTxStateManager::TxMeta> meta,
-      GetNonceForHardwareTransactionCallback callback,
+      GetNonceForHardwareTransactionCallback,
       bool success,
       uint256_t nonce);
   void PublishTransaction(const std::string& tx_meta_id,
@@ -159,6 +195,11 @@ class EthTxController : public KeyedService,
                             const std::string& tx_hash,
                             mojom::ProviderError error,
                             const std::string& error_message);
+  void ContinueOnPublishTransaction(ApproveTransactionCallback,
+                                    const std::string& tx_hash,
+                                    mojom::ProviderError error,
+                                    const std::string& error_message,
+                                    std::unique_ptr<EthTxStateManager::TxMeta>);
   void OnGetGasPrice(const std::string& from,
                      const std::string& to,
                      const std::string& value,
@@ -186,7 +227,12 @@ class EthTxController : public KeyedService,
                       mojom::GasEstimation1559Ptr gas_estimation);
   void CheckIfBlockTrackerShouldRun();
   void UpdatePendingTransactions();
+  void ContinueUpdatePendingTransactions(bool success, size_t num_pending);
 
+  void OnGetTxForSpeedupOrCancelTransaction(
+      bool cancel,
+      SpeedupOrCancelTransactionCallback,
+      std::unique_ptr<EthTxStateManager::TxMeta>);
   void ContinueSpeedupOrCancelTransaction(
       const std::string& from,
       const std::string& gas_limit,
@@ -201,6 +247,13 @@ class EthTxController : public KeyedService,
       std::unique_ptr<Eip1559Transaction> tx,
       SpeedupOrCancelTransactionCallback callback,
       mojom::GasEstimation1559Ptr gas_estimation);
+  void ContinueRejectTransaction(RejectTransactionCallback,
+                                 std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueRetryTransaction(RetryTransactionCallback,
+                                std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueGetAllTransactionInfo(
+      GetAllTransactionInfoCallback,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> txs);
 
   void ContinueMakeERC721TransferFromData(
       const std::string& from,
@@ -238,7 +291,7 @@ class EthTxController : public KeyedService,
   std::unique_ptr<EthNonceTracker> nonce_tracker_;
   std::unique_ptr<EthPendingTxTracker> pending_tx_tracker_;
   std::unique_ptr<EthBlockTracker> eth_block_tracker_;
-  bool known_no_pending_tx = false;
+  bool known_no_pending_tx_ = false;
 
   mojo::RemoteSet<mojom::EthTxControllerObserver> observers_;
   mojo::ReceiverSet<mojom::EthTxController> receivers_;

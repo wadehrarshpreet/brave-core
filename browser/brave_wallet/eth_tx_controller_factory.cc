@@ -67,7 +67,7 @@ KeyedService* EthTxControllerFactory::BuildServiceInstanceFor(
              RpcControllerFactory::GetControllerForContext(context),
              KeyringControllerFactory::GetControllerForContext(context),
              AssetRatioControllerFactory::GetControllerForContext(context),
-             user_prefs::UserPrefs::Get(context))
+             user_prefs::UserPrefs::Get(context), context->GetPath())
       .release();
 }
 

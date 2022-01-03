@@ -28,7 +28,9 @@ class EthPendingTxTracker {
   EthPendingTxTracker(const EthPendingTxTracker&) = delete;
   EthPendingTxTracker operator=(const EthPendingTxTracker&) = delete;
 
-  bool UpdatePendingTransactions(size_t* num_pending);
+  using UpdatePendingTransactionsCallback =
+      base::OnceCallback<void(bool success, size_t num_pending)>;
+  void UpdatePendingTransactions(UpdatePendingTransactionsCallback);
   void ResubmitPendingTransactions();
   void Reset();
 
@@ -41,6 +43,18 @@ class EthPendingTxTracker {
                       TransactionReceipt receipt,
                       mojom::ProviderError error,
                       const std::string& error_message);
+  void ContinueOnGetTxReceipt(mojom::ProviderError,
+                              TransactionReceipt,
+                              std::unique_ptr<EthTxStateManager::TxMeta>);
+  void ContinueUpdatePendingTransactions(
+      UpdatePendingTransactionsCallback callback,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs);
+  void FinalizeUpdatePendingTransactions(
+      UpdatePendingTransactionsCallback callback,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs,
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs);
+  void ContinueResubmitPendingTransactions(
+      std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs);
   void OnGetNetworkNonce(std::string address,
                          uint256_t result,
                          mojom::ProviderError error,
@@ -49,7 +63,6 @@ class EthPendingTxTracker {
                             mojom::ProviderError error,
                             const std::string& error_message);
 
-  bool IsNonceTaken(const EthTxStateManager::TxMeta&);
   bool ShouldTxDropped(const EthTxStateManager::TxMeta&);
 
   void DropTransaction(EthTxStateManager::TxMeta*);

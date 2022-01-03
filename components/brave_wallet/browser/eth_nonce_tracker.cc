@@ -12,7 +12,6 @@
 
 #include "base/bind.h"
 #include "brave/components/brave_wallet/browser/eth_json_rpc_controller.h"
-#include "brave/components/brave_wallet/browser/eth_tx_state_manager.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/eth_address.h"
 
@@ -69,20 +68,51 @@ void EthNonceTracker::OnGetNetworkNonce(EthAddress from,
     std::move(callback).Run(false, network_nonce);
     return;
   }
-  auto confirmed_transactions = tx_state_manager_->GetTransactionsByStatus(
-      mojom::TransactionStatus::Confirmed, from);
-  uint256_t local_highest = GetHighestLocallyConfirmed(confirmed_transactions);
+  // TODO(darkdh): check status
+  tx_state_manager_->GetTransactionsByStatus(
+      mojom::TransactionStatus::Confirmed, from,
+      base::BindOnce(&EthNonceTracker::OnGetConfirmedTxs,
+                     weak_factory_.GetWeakPtr(), from, std::move(callback),
+                     network_nonce));
+
+  nonce_lock_.Release();
+}
+
+void EthNonceTracker::OnGetConfirmedTxs(
+    EthAddress from,
+    GetNextNonceCallback callback,
+    uint256_t network_nonce,
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> confirmed_txs) {
+  if (!nonce_lock_.Try()) {
+    std::move(callback).Run(false, network_nonce);
+    return;
+  }
+  uint256_t local_highest = GetHighestLocallyConfirmed(confirmed_txs);
 
   uint256_t highest_confirmed = std::max(network_nonce, local_highest);
 
-  auto pending_transactions = tx_state_manager_->GetTransactionsByStatus(
-      mojom::TransactionStatus::Submitted, from);
+  tx_state_manager_->GetTransactionsByStatus(
+      mojom::TransactionStatus::Submitted, from,
+      base::BindOnce(&EthNonceTracker::OnGetPendingTxs,
+                     weak_factory_.GetWeakPtr(), from, std::move(callback),
+                     network_nonce, highest_confirmed));
+  nonce_lock_.Release();
+}
 
+void EthNonceTracker::OnGetPendingTxs(
+    EthAddress from,
+    GetNextNonceCallback callback,
+    uint256_t network_nonce,
+    uint256_t highest_confirmed,
+    std::vector<std::unique_ptr<EthTxStateManager::TxMeta>> pending_txs) {
+  if (!nonce_lock_.Try()) {
+    std::move(callback).Run(false, network_nonce);
+    return;
+  }
   uint256_t highest_continuous_from =
-      GetHighestContinuousFrom(pending_transactions, highest_confirmed);
+      GetHighestContinuousFrom(pending_txs, highest_confirmed);
 
   uint256_t nonce = std::max(network_nonce, highest_continuous_from);
-
   nonce_lock_.Release();
   std::move(callback).Run(true, nonce);
 }

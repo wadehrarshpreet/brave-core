@@ -117,11 +117,6 @@ void ClearKeyringControllerProfilePrefs(PrefService* prefs) {
   prefs->ClearPref(kBraveWalletSelectedAccount);
 }
 
-void ClearEthTxControllerProfilePrefs(PrefService* prefs) {
-  DCHECK(prefs);
-  prefs->ClearPref(kBraveWalletTransactions);
-}
-
 void ClearBraveWalletServicePrefs(PrefService* prefs) {
   DCHECK(prefs);
   prefs->ClearPref(kBraveWalletUserAssets);
