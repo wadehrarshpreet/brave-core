@@ -106,7 +106,7 @@ pipeline {
                                                 github('brave/devops', 'https')
                                             }
                                             //branch('${params.DEVOPS_BRANCH}')
-                                            branch('wknapik-no-git-cache-in-noplatform')
+                                            branch('wknapik-sync-instead-of-init')
                                         }
                                     }
                                     scriptPath("jenkins/jobs/browser/pr-brave-browser-${PLATFORM}.Jenkinsfile")
