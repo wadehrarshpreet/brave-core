@@ -105,6 +105,7 @@ pipeline {
                                                 credentials('brave-builds-github-token-for-pr-builder')
                                                 github('brave/devops', 'https')
                                             }
+
                                             //branch('${params.DEVOPS_BRANCH}')
                                             branch('wknapik-sync-instead-of-init')
                                         }
