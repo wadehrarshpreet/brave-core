@@ -1399,9 +1399,6 @@ Are you sure you want to do this?
         <message name="IDS_SIDEBAR_SHOW_OPTION_MOUSEOVER" desc="Label for show sidebar on mousee over option">
           On mouseover
         </message>
-        <message name="IDS_SIDEBAR_SHOW_OPTION_ONCLICK" desc="Label for show sidebar on click option">
-          On click
-        </message>
         <message name="IDS_SIDEBAR_SHOW_OPTION_NEVER" desc="Label for show sidebar on click option">
           Never
         </message>

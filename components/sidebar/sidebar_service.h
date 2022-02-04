@@ -25,7 +25,6 @@ class SidebarService : public KeyedService {
   enum class ShowSidebarOption {
     kShowAlways = 0,
     kShowOnMouseOver,
-    kShowOnClick,
     kShowNever,
   };
 

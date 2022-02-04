@@ -5,9 +5,7 @@
 
 #include "brave/browser/ui/sidebar/sidebar_utils.h"
 
-#include "base/feature_list.h"
 #include "brave/browser/ui/sidebar/sidebar_service_factory.h"
-#include "brave/components/sidebar/features.h"
 #include "brave/components/sidebar/sidebar_item.h"
 #include "brave/components/sidebar/sidebar_service.h"
 #include "chrome/browser/profiles/profile.h"
@@ -54,9 +52,6 @@ bool IsActiveTabAlreadyAddedToSidebar(Browser* browser) {
 }  // namespace
 
 bool CanUseSidebar(Profile* profile) {
-  if (!base::FeatureList::IsEnabled(sidebar::kSidebarFeature))
-    return false;
-
   if (!profile)
     return false;
 

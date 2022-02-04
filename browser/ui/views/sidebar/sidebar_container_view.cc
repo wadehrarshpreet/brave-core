@@ -206,8 +206,7 @@ bool SidebarContainerView::ShouldShowSidebar() const {
 void SidebarContainerView::OnMouseEntered(const ui::MouseEvent& event) {
   const auto show_option = GetSidebarService(browser_)->GetSidebarShowOption();
   const bool autohide_sidebar =
-      show_option == ShowSidebarOption::kShowOnMouseOver ||
-      show_option == ShowSidebarOption::kShowOnClick;
+      show_option == ShowSidebarOption::kShowOnMouseOver;
 
   // When user select to non-autohide option like "Never" option,
   // hide timer is scheduled but this view can get mouse event when context
@@ -227,8 +226,7 @@ void SidebarContainerView::OnMouseExited(const ui::MouseEvent& event) {
 
   const auto show_option = GetSidebarService(browser_)->GetSidebarShowOption();
   const bool autohide_sidebar =
-      show_option == ShowSidebarOption::kShowOnMouseOver ||
-      show_option == ShowSidebarOption::kShowOnClick;
+      show_option == ShowSidebarOption::kShowOnMouseOver;
 
   if (!autohide_sidebar)
     return;

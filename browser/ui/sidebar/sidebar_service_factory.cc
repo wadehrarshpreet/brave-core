@@ -5,8 +5,6 @@
 
 #include "brave/browser/ui/sidebar/sidebar_service_factory.h"
 
-#include "base/feature_list.h"
-#include "brave/components/sidebar/features.h"
 #include "brave/components/sidebar/sidebar_service.h"
 #include "chrome/browser/profiles/incognito_helpers.h"
 #include "chrome/browser/profiles/profile.h"
@@ -20,9 +18,6 @@ SidebarServiceFactory* SidebarServiceFactory::GetInstance() {
 }
 
 SidebarService* SidebarServiceFactory::GetForProfile(Profile* profile) {
-  if (!base::FeatureList::IsEnabled(kSidebarFeature))
-    return nullptr;
-
   if (profile->IsOffTheRecord()) {
     // Temporarily disable sidebar except normal window.
     return nullptr;

@@ -8,11 +8,9 @@
 #include <algorithm>
 #include <utility>
 
-#include "base/feature_list.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/values.h"
 #include "brave/components/sidebar/constants.h"
-#include "brave/components/sidebar/features.h"
 #include "brave/components/sidebar/pref_names.h"
 #include "components/grit/brave_components_strings.h"
 #include "components/prefs/pref_registry_simple.h"
@@ -97,12 +95,9 @@ std::vector<SidebarItem> GetDefaultSidebarItems() {
 
 // static
 void SidebarService::RegisterProfilePrefs(PrefRegistrySimple* registry) {
-  if (!base::FeatureList::IsEnabled(kSidebarFeature))
-    return;
-
   registry->RegisterListPref(kSidebarItems);
   registry->RegisterIntegerPref(
-      kSidebarShowOption, static_cast<int>(ShowSidebarOption::kShowAlways));
+      kSidebarShowOption, static_cast<int>(ShowSidebarOption::kShowNever));
   registry->RegisterIntegerPref(kSidebarItemAddedFeedbackBubbleShowCount, 0);
 }
 
