@@ -13,6 +13,8 @@
 #include "brave/components/brave_shields/common/features.h"
 #include "brave/components/brave_wallet/common/features.h"
 #include "brave/components/cosmetic_filters/renderer/cosmetic_filters_js_render_frame_observer.h"
+#include "brave/components/playlist/common/features.h"
+#include "brave/components/playlist/renderer/playlist_js_render_frame_observer.h"
 #include "brave/components/skus/common/features.h"
 #include "brave/components/skus/renderer/skus_render_frame_observer.h"
 #include "brave/renderer/brave_render_thread_observer.h"
@@ -66,6 +68,11 @@ void BraveContentRendererClient::RenderFrameCreated(
         render_frame, ISOLATED_WORLD_ID_BRAVE_INTERNAL);
   }
 
+  if (base::FeatureList::IsEnabled(playlist::features::kPlaylistFeature)) {
+    new playlist::PlaylistJsRenderFrameObserver(
+        render_frame, ISOLATED_WORLD_ID_BRAVE_INTERNAL);
+  }
+
   if (base::FeatureList::IsEnabled(
           brave_wallet::features::kNativeBraveWalletFeature)) {
     new brave_wallet::BraveWalletRenderFrameObserver(
@@ -96,6 +103,11 @@ void BraveContentRendererClient::RunScriptsAtDocumentStart(
   // Run this before any extensions
   if (observer)
     observer->RunScriptsAtDocumentStart();
+
+  auto* observer2 =
+      playlist::PlaylistJsRenderFrameObserver::Get(render_frame);
+  if (observer2)
+    observer2->RunScriptsAtDocumentStart();
 
   ChromeContentRendererClient::RunScriptsAtDocumentStart(render_frame);
 }

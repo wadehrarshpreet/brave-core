@@ -1,0 +1,29 @@
+import("//build/config/features.gni")
+
+source_set("renderer") {
+  visibility = [
+    "//brave:child_dependencies",
+    "//brave/renderer/*",
+    "//chrome/renderer/*",
+    "//components/content_settings/renderer/*",
+  ]
+
+  sources = [
+    "playlist_js_handler.cc",
+    "playlist_js_handler.h",
+    "playlist_js_render_frame_observer.cc",
+    "playlist_js_render_frame_observer.h",
+  ]
+
+  deps = [
+    "//base",
+    "//brave/components/playlist/common",
+    "//content/public/renderer",
+    "//gin",
+    "//mojo/public/cpp/bindings",
+    "//net",
+    "//third_party/blink/public/common",
+    "//third_party/blink/public:blink",
+    "//v8",
+  ]
+}

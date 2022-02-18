@@ -16,6 +16,7 @@ brave_chrome_renderer_public_deps = [
   "//brave/components/brave_shields/common",
   "//brave/components/brave_wallet/renderer",
   "//brave/components/cosmetic_filters/renderer",
+  "//brave/components/playlist/renderer",
   "//brave/components/skus/renderer",
   "//brave/renderer/brave_wallet",
   "//mojo/public/cpp/bindings",
