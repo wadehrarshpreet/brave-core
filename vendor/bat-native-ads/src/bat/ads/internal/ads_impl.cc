@@ -408,7 +408,7 @@ void AdsImpl::PurgeOrphanedAdEventsForType(
 
     BLOG(1, "Successfully purged orphaned ad events for " << ad_type);
 
-    callback();
+    callback(success);
   });
 }
 

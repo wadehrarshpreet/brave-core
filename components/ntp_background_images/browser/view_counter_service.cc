@@ -170,9 +170,9 @@ base::Value ViewCounterService::GetCurrentBrandedWallpaper() const {
     return base::Value();
   }
 
-  const bool should_ads_frequency_cap =
+  const bool should_frequency_cap_ads =
       ads_service_ && ads_service_->IsEnabled();
-  if (should_ads_frequency_cap && !images_data->IsSuperReferral()) {
+  if (should_frequency_cap_ads && !images_data->IsSuperReferral()) {
     return GetCurrentBrandedWallpaperByAdInfo();
   }
 
