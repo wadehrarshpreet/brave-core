@@ -18,6 +18,7 @@ function SellPanel () {
 
   const handleClick = () => {
     if (!productUrls) return
+    // TODO: this may need to be tabs.create
     const url = new URL('?intent=checkout&product=vpn', productUrls.manage)
     window.open(url, '_blank')
   }

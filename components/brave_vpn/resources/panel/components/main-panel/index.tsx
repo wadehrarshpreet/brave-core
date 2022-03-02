@@ -31,16 +31,16 @@ function MainPanel () {
   const showContactSupport = () => setContactSupportVisible(true)
   const closeContactSupport = () => setContactSupportVisible(false)
 
+  if (isContactSupportVisible) {
+    return (<ContactSupport
+      closeContactSupport={closeContactSupport}
+    />)
+  }
+
   if (isSettingsPanelVisible) {
     return (<SettingsPanel
       closeSettingsPanel={closeSettingsPanel}
       showContactSupport={showContactSupport}
-    />)
-  }
-
-  if (isContactSupportVisible) {
-    return (<ContactSupport
-      closeContactSupport={closeContactSupport}
     />)
   }
 
