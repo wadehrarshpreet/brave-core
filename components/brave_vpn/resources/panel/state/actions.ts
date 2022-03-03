@@ -39,8 +39,10 @@ export const showSellView = createAction('showSellView')
 export const showLoadingView = createAction('showLoadingView')
 export const showSubscriptionExpiredView = createAction('showSubscriptionExpiredView')
 
+
 export const initialized = createAction<initializedPayload>('initialized')
 export const showMainView = createAction<showMainViewPayload>('showMainView')
 export const toggleRegionSelector = createAction<ToggleRegionSelectorPayload>('toggleRegionSelector', (isSelectingRegion) => ({ isSelectingRegion }))
 export const connectionStateChanged = createAction<ConnectionStatePayload>('connectionStateChanged')
 export const connectToNewRegion = createAction<ConnectToNewRegionPayload>('connectToNewRegion', (region) => ({ region }))
+
