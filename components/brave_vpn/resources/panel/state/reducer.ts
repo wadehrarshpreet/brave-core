@@ -5,7 +5,7 @@
 
 import { createReducer } from 'redux-act'
 
-import { ConnectionState, Region, ProductUrls } from '../api/panel_browser_api'
+import { ConnectionState, Region, ProductUrls, SupportData } from '../api/panel_browser_api'
 import * as Actions from './actions'
 import { ViewType } from './component_types'
 
@@ -16,6 +16,7 @@ type RootState = {
   regions?: Region[]
   currentRegion?: Region
   productUrls?: ProductUrls
+  supportData?: SupportData
   currentView: ViewType | null
 }
 

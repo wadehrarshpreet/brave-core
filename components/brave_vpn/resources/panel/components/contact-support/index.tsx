@@ -4,7 +4,7 @@ import { Button } from 'brave-ui'
 import { getLocale } from '../../../../../common/locale'
 //import { useSelector } from '../../state/hooks'
 import * as S from './style'
-import getPanelBrowserAPI from '../../api/panel_browser_api'
+import getPanelBrowserAPI, { SupportData } from '../../api/panel_browser_api'
 import { CaratStrongLeftIcon } from 'brave-ui/components/icons'
 
 interface Props {
@@ -21,10 +21,21 @@ interface ContactSupportState {
 }
 
 function ContactSupport (props: Props) {
-  const [supportData, setSupportData] = React.useState('TODO: fill me in')
+  //const [supportData, setSupportData] = React.useState<SupportData>({
+  const [supportData] = React.useState<SupportData>({
+    appVersion: '',
+    osVersion: '',
+    hostname: ''
+  })
 
-  React.useEffect(async () => {
-    setSupportData(await getPanelBrowserAPI().getSupportData())
+  React.useEffect(() => {
+    getPanelBrowserAPI().serviceHandler.getSupportData().then((sd) => {
+      // setSupportData({
+      //   appVersion: sd.appVersion,
+      //   osVersion: sd.osVersion,
+      //   hostname: sd.hostname
+      // })
+    })
   })
 
   const [formData, setFormData] = React.useState<ContactSupportState>({
@@ -41,20 +52,15 @@ function ContactSupport (props: Props) {
   }, [formData])
 
   const handleSubmit = () => {
-    // Build submit data
+    getPanelBrowserAPI().serviceHandler.createSupportTicket(
+      formData?.contactEmail,
+      formData?.problemSubject,
+      formData?.problemBody)
 
-    // TODO(bsclifton): make call out to Guardian API
-    // more info TBD
-    // service.sendContactEmail(email, subject, body).then(() => {
-    //   // update the UI here
-    // })
-
+    // TODO(bsclifton): show a loading spinner; etc
   }
 
   const onChangeBody = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // disable submit button
-    //state.submitEnabled = false
-
     setFormData({
       ...formData,
       problemBody: event.currentTarget.value
@@ -106,9 +112,9 @@ function ContactSupport (props: Props) {
             />
           </li>
           <li>Please select the information you're comfortable sharing with us</li>
-          <li>VPN hostname: {supportData.os_version}</li>
-          <li>App version:</li>
-          <li>OS version:</li>
+          <li>VPN hostname: {supportData.hostname}</li>
+          <li>App version: {supportData.appVersion}</li>
+          <li>OS version: {supportData.osVersion}</li>
           <li>
             The more information you share with us the easier it will be for the support
             staff to help you resolve your issue.
