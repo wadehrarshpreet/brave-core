@@ -788,7 +788,7 @@ void BraveVpnService::CreateSupportTicket(
 }
 
 void BraveVpnService::GetSupportData(GetSupportDataCallback callback) {
-  // TODO(bsclifton): finish me
+  std::move(callback).Run("1.36.1", "Windows 10", "host_lol");
 }
 
 void BraveVpnService::FetchHostnamesForRegion(const std::string& name) {
