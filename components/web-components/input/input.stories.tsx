@@ -17,6 +17,9 @@ export default {
       },
       disabled: {
         type: 'boolean'
+      },
+      label: {
+        type: 'string'
       }
       // scale: {
       //   options: ['regular', 'tiny', 'small', 'large', 'jumbo'],

@@ -7,7 +7,6 @@ type CustomProps = {
   errorMessage?: string
   isRequired?: boolean
   isErrorAlwaysShown?: boolean
-  isAddon?: boolean
   value?: string | boolean | readonly string[]
 }
 
@@ -29,9 +28,9 @@ function Error (props: CustomProps) {
 }
 
 export default function TextInput (props: Props) {
-  const { errorMessage, label, isRequired, isErrorAlwaysShown, isAddon, ...inputProps } = props
+  const { errorMessage, label, isRequired, isErrorAlwaysShown, ...inputProps } = props
   return (
-    <label className={classNames(styles.textInput, props.isAddon && styles.isAddon, !!errorMessage ? styles.hasError : undefined)}>
+    <label className={classNames(styles.textInput, !!errorMessage ? styles.hasError : undefined)}>
       {label}
       <input
         type="text"
@@ -43,9 +42,9 @@ export default function TextInput (props: Props) {
 }
 
 export function Textarea(props: CustomProps & React.HTMLProps<HTMLTextAreaElement>) {
-  const { errorMessage, label, isRequired, isErrorAlwaysShown, isAddon, ...textareaprops } = props
+  const { errorMessage, label, isRequired, isErrorAlwaysShown, ...textareaprops } = props
   return (
-    <label className={classNames(styles.textInput, props.isAddon && styles.isAddon, !!errorMessage ? styles.hasError : undefined)}>
+    <label className={classNames(styles.textInput, !!errorMessage ? styles.hasError : undefined)}>
       {label}
       <textarea
         {...textareaprops}

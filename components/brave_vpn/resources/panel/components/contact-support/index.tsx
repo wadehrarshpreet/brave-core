@@ -53,11 +53,12 @@ function ContactSupport (props: Props) {
   React.useEffect(() => {
     getPanelBrowserAPI().serviceHandler.getSupportData()
       .then(setSupportData)
-  })
+  }, [])
 
 
   function getOnChangeField<T extends BaseType = BaseType>(key: keyof ContactSupportInputFields) {
     return function(e: T) {
+      console.log(setFormData)
       const value = (typeof e === 'string' || typeof e === 'number') ? e : e.currentTarget.value
       if (formData[key] === value) {
         return
@@ -127,68 +128,88 @@ function ContactSupport (props: Props) {
             <span>{getLocale('braveVpnContactSupport')}</span>
           </S.BackButton>
         </S.PanelHeader>
-        <S.List>
-          <li>
-            <TextInput
-              label={'Your email address'}
-              isRequired={true}
-              isErrorAlwaysShown={showErrors}
-              value={formData.contactEmail ?? ''}
-              onChange={getOnChangeField('contactEmail')}
-            />
-          </li>
-          <li>
-            <label>
-              Subject
-              <Select
-                ariaLabel={'Please choose a reason'}
-                value={formData.problemSubject ?? ''}
-                onChange={getOnChangeField('problemSubject')}
-              >
-                <option value="" disabled>Please choose a reason</option>
-                <option value="cant-connect">Cannot connect to the VPN (Other error)</option>
-                <option value="no-internet">No internet when connected</option>
-                <option value="slow">Slow connection</option>
-                <option value="website">Website doesn't work</option>
-                <option value="other">Other</option>
-              </Select>
-            </label>
-          </li>
-          <li>
-            <Textarea
-              value={formData.problemBody}
-              label={'Describe your issue'}
-              isRequired={true}
-              onChange={getOnChangeField('problemBody')}
-            />
-          </li>
-          <li>Please select the information you're comfortable sharing with us</li>
-          <li>
-            <label>
-              VPN hostname: {supportData?.osVersion}
+
+        <S.Form onSubmit={e => {e.preventDefault()}}>
+          <TextInput
+            label={'Your email address'}
+            isRequired={true}
+            isErrorAlwaysShown={showErrors}
+            value={formData.contactEmail ?? ''}
+            onChange={getOnChangeField('contactEmail')}
+          />
+          <label>
+            Subject
+            <Select
+              ariaLabel={'Please choose a reason'}
+              value={formData.problemSubject ?? ''}
+              onChange={getOnChangeField('problemSubject')}
+            >
+              <option value="" disabled>Please choose a reason</option>
+              <option value="cant-connect">Cannot connect to the VPN (Other error)</option>
+              <option value="no-internet">No internet when connected</option>
+              <option value="slow">Slow connection</option>
+              <option value="website">Website doesn't work</option>
+              <option value="other">Other</option>
+            </Select>
+          </label>
+          <Textarea
+            value={formData.problemBody}
+            label={'Describe your issue'}
+            isRequired={true}
+            onChange={getOnChangeField('problemBody')}
+          />
+          <S.OptionalValues>
+            <S.SectionDescription>
+              Please select the information you're comfortable sharing with us
+            </S.SectionDescription>
+            <S.OptionalValueLabel>
+              <div className={'optionalValueTitle'}>
+                <span className={'optionalValueTitleKey'}>VPN hostname:</span> {supportData?.hostname}
+              </div>
               <Toggle
                 isOn={formData.shareHostname}
                 onChange={getOnChangeToggle('shareHostname')}
               />
-            </label>
-          </li>
-          <li>App version:</li>
-          <li>OS version:</li>
-          <li>
-            The more information you share with us the easier it will be for the support
-            staff to help you resolve your issue.
+            </S.OptionalValueLabel>
+            <S.OptionalValueLabel>
+              <div className={'optionalValueTitle'}>
+                <span className={'optionalValueTitleKey'}>App version:</span> {supportData?.appVersion}
+              </div>
+              <Toggle
+                isOn={formData.shareAppVersion}
+                onChange={getOnChangeToggle('shareAppVersion')}
+              />
+            </S.OptionalValueLabel>
+            <S.OptionalValueLabel>
+              <div className={'optionalValueTitle'}>
+                <span className={'optionalValueTitleKey'}>OS version:</span> {supportData?.osVersion}
+              </div>
+              <Toggle
+                isOn={formData.shareOsVersion}
+                onChange={getOnChangeToggle('shareOsVersion')}
+              />
+            </S.OptionalValueLabel>
+          </S.OptionalValues>
+          <S.Notes>
+            <p>
+              The more information you share with us the easier it will be for the support staff to help you resolve your issue.
+            </p>
+            <p>
+              Support provided with the help of the Guardian team.
+            </p>
+          </S.Notes>
+          <Button
+            type={'submit'}
+            isPrimary
+            isCallToAction
+            isLoading={isSubmitting}
+            isDisabled={isSubmitting}
+            onClick={handleSubmit}
+          >
+            Submit
+          </Button>
+        </S.Form>
 
-            Support provided with the help of the Guardian team.
-          </li>
-        </S.List>
-        <Button
-          isPrimary
-          isLoading={isSubmitting}
-          isDisabled={isSubmitting}
-          onClick={handleSubmit}
-        >
-          Submit
-        </Button>
         {/* TODO(petemill): show an error if remoteSubmissionError has value */}
       </S.PanelContent>
     </S.Box>
