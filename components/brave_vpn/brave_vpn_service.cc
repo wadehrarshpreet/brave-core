@@ -21,8 +21,10 @@
 #include "brave/components/brave_vpn/brave_vpn_utils.h"
 #include "brave/components/brave_vpn/pref_names.h"
 #include "brave/components/brave_vpn/switches.h"
+#include "brave/components/version_info/version_info.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/scoped_user_pref_update.h"
+#include "components/version_info/version_info.h"
 #include "third_party/icu/source/i18n/unicode/timezone.h"
 #endif  // !defined(OS_ANDROID)
 
@@ -788,7 +790,11 @@ void BraveVpnService::CreateSupportTicket(
 }
 
 void BraveVpnService::GetSupportData(GetSupportDataCallback callback) {
-  std::move(callback).Run("1.36.1", "Windows 10", "host_lol");
+  std::string brave_version =
+      version_info::GetBraveVersionWithoutChromiumMajorVersion();
+  std::string os_version = version_info::GetOSType();
+  std::string vpn_hostname = hostname_ ? hostname_->display_name : "n/a";
+  std::move(callback).Run(brave_version, os_version, vpn_hostname);
 }
 
 void BraveVpnService::FetchHostnamesForRegion(const std::string& name) {
