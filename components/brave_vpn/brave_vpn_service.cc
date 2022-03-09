@@ -446,7 +446,6 @@ void BraveVpnService::BindInterface(
 }
 
 void BraveVpnService::OnPanelVisible() {
-  // TODO(bsclifton): clean this up
   LoadPurchasedState();
 }
 
@@ -768,18 +767,24 @@ void BraveVpnService::CreateSupportTicket(
 
   const GURL base_url = GetURLWithPath(kVpnHost, kCreateSupportTicket);
   base::Value dict(base::Value::Type::DICTIONARY);
+
+  std::string email_trimmed, subject_trimmed, body_trimmed;
+  // TODO(bsclifton): sanitize input also
+  base::TrimWhitespaceASCII(email, base::TRIM_ALL, &email_trimmed);
+  base::TrimWhitespaceASCII(subject, base::TRIM_ALL, &subject_trimmed);
+  base::TrimWhitespaceASCII(body, base::TRIM_ALL, &body_trimmed);
+
   // required fields
-  // TODO(bsclifton): trim / sanitize input
-  // TODO(bsclifton): make an ID like: `brave-desktop-mac-nightly` (for triage)
-  dict.SetStringKey("partner-client-id", "brave-windows-nightly");
-  dict.SetStringKey("email", email);
-  dict.SetStringKey("subject", subject);
-  dict.SetStringKey("support-ticket", body);
+  dict.SetStringKey("email", email_trimmed);
+  dict.SetStringKey("subject", subject_trimmed);
+  dict.SetStringKey("support-ticket", body_trimmed);
+  // NOTE: this matches the Bundle ID used for iOS
+  dict.SetStringKey("partner-client-id", "com.brave.ios.browser");
 
   // optional (but encouraged) fields
-  dict.SetStringKey("subscriber-credential", "fill me in");
-  dict.SetStringKey("payment-validation-method", "fill me in");
-  dict.SetStringKey("payment-validation-data", "fill me in");
+  dict.SetStringKey("subscriber-credential", "");
+  dict.SetStringKey("payment-validation-method", "brave-premium");
+  dict.SetStringKey("payment-validation-data", "");
 
   std::string request_body = CreateJSONRequestBody(dict);
   OAuthRequest(base_url, "POST", request_body, std::move(internal_callback));
@@ -916,7 +921,8 @@ void BraveVpnService::OnGetSubscriberCredentialV12(
   }
 
   VLOG(2) << __func__ << " : received subscriber credential";
-
+  // TODO(bsclifton): consider storing `subscriber_credential` for
+  // support ticket use-case
   GetProfileCredentials(
       base::BindOnce(&BraveVpnService::OnGetProfileCredentials,
                      base::Unretained(this)),
