@@ -762,7 +762,6 @@ void BraveVpnService::CreateSupportTicket(
     const std::string& subject,
     const std::string& body,
     CreateSupportTicketCallback callback) {
-  // TODO(bsclifton): finish me
   auto internal_callback =
       base::BindOnce(&BraveVpnService::OnCreateSupportTicket,
                      weak_ptr_factory_.GetWeakPtr(), std::move(callback));
@@ -770,11 +769,12 @@ void BraveVpnService::CreateSupportTicket(
   const GURL base_url = GetURLWithPath(kVpnHost, kCreateSupportTicket);
   base::Value dict(base::Value::Type::DICTIONARY);
   // required fields
-  // TODO: trim
+  // TODO(bsclifton): trim / sanitize input
+  // TODO(bsclifton): make an ID like: `brave-desktop-mac-nightly` (for triage)
+  dict.SetStringKey("partner-client-id", "brave-windows-nightly");
   dict.SetStringKey("email", email);
   dict.SetStringKey("subject", subject);
   dict.SetStringKey("support-ticket", body);
-  // TODO: make an ID like: `brave-desktop-mac-nightly` (for triage)
 
   // optional (but encouraged) fields
   dict.SetStringKey("subscriber-credential", "fill me in");
@@ -783,10 +783,6 @@ void BraveVpnService::CreateSupportTicket(
 
   std::string request_body = CreateJSONRequestBody(dict);
   OAuthRequest(base_url, "POST", request_body, std::move(internal_callback));
-
-  // TODO: put form into a loading state (spinner)
-  // this could be done server side
-  // ..
 }
 
 void BraveVpnService::GetSupportData(GetSupportDataCallback callback) {
@@ -1309,9 +1305,7 @@ void BraveVpnService::OnCreateSupportTicket(
     const std::string& body,
     const base::flat_map<std::string, std::string>& headers) {
   bool success = status == 200;
-  LOG(ERROR) << "BSC]] OnCreateSupportTicket =" << success;
-
-  // TODO: hide the contact form
-  // maybe callback can do that behavior and we can just run callback
-  // ..
+  LOG(ERROR) << "BSC]] OnCreateSupportTicket success=" << success
+             << "\nresponse_code=" << status << "\nbody=[[" << body << "]]";
+  std::move(callback).Run(success, body);
 }
