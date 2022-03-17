@@ -342,7 +342,23 @@ let locale: Record<string, string> = {
   editCardsTitle: 'Edit Cards',
   braveWalletBuyWithWyre: 'Buy with Wyre',
   braveWalletBuyWithRamp: 'Buy with Ramp',
-  braveWalletBuyContinueButton: 'Continue'
+  braveWalletBuyContinueButton: 'Continue',
+  // Header Private Window
+  headerTitle: 'Private Window',
+  headerText1: 'Brave never remembers what you do in a Private Window. Sites you visit won\'t show up in your history. Cookies, form data, and site data vanish when you close the window.',
+  headerText2: 'Note that your activity could still be visible to your internet service provider, passive network observers, or your employer.',
+  headerButton: 'Learn more',
+  // Header Private Window with Tor
+  headerTorTitle: 'Private Window with Tor Connectivity',
+  headerTorText1: 'Brave never remembers what you do in a Private Window. With Tor connectivity, you get two additional benefits: your IP address is hidden from the sites you visit, and the sites you visit are hidden from passive network observers. Note that Tor may slow down browsing, or break some websites.',
+  headerTorText2: 'A private window with Tor makes it more difficult, but not impossible, for your ISP or employer (if you\'re using a work machine or network) to see what sites you visit. However, even a private window with Tor won\'t fully defend against tracking. If your personal safety depends on remaining anonymous, use the Tor Browser instead. Learn more.',
+  // Tor connection
+  torStatus: 'Tor Status',
+  torStatusConnected: 'Tor connected successfully',
+  torStatusDisconnected: 'Disconnected',
+  torStatusInitializing: 'Tor is connecting... ',
+  torHelpConnecting: 'Having problems connecting? Try turning off Private Window with Tor and back on again in settings.',
+  torHelpDisconnected: 'Having trouble connecting? Open Brave Settings, disable Private Window with Tor, then re-enable. Still having trouble? Contact support.'
 }
 
 export function provideStrings (strings: Record<string, string>) {

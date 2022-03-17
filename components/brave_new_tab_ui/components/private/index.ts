@@ -11,6 +11,11 @@ import {
   Footer
 } from './modal'
 import { Page, PageWrapper } from './page'
+import SearchBox from './search-box'
+import DisclaimerDialog from './disclaimer-dialog'
+import BackgroundView from './background-view'
+import BadgeTor from './badge-tor'
+
 import {
   Grid,
   Grid2Columns,
@@ -81,5 +86,9 @@ export {
   TorStatusContainer,
   TorStatusGrid,
   TorStatusIndicator,
-  TorStatusText
+  TorStatusText,
+  SearchBox,
+  DisclaimerDialog,
+  BackgroundView,
+  BadgeTor
 }
