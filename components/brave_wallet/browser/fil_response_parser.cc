@@ -91,4 +91,9 @@ bool ParseFilStateSearchMsgLimited(const std::string& json,
   return base::StringToInt64(*code_value, exit_code);
 }
 
+bool ParseSendFilecoinTransaction(const std::string& json,
+                                  std::string* tx_hash) {
+  return true;
+}
+
 }  // namespace brave_wallet
