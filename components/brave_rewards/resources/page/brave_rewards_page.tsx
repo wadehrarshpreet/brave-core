@@ -14,7 +14,6 @@ import { WithThemeVariables } from '../shared/components/with_theme_variables'
 
 // Components
 import App from './components/app'
-require('../../../../ui/webui/resources/fonts/muli.css')
 require('../../../../ui/webui/resources/fonts/poppins.css')
 
 // Utils

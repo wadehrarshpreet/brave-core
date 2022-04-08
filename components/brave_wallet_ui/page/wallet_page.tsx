@@ -14,7 +14,6 @@ import store from './store'
 import { BrowserRouter } from 'react-router-dom'
 import 'emptykit.css'
 import '../../../ui/webui/resources/fonts/poppins.css'
-import '../../../ui/webui/resources/fonts/muli.css'
 
 import * as Lib from '../common/async/lib'
 import BraveCoreThemeProvider from '../../common/BraveCoreThemeProvider'
