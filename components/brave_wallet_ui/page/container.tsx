@@ -13,7 +13,6 @@ import * as WalletActions from '../common/actions/wallet_actions'
 import store from './store'
 
 import 'emptykit.css'
-import '../../../ui/webui/resources/fonts/poppins.css'
 
 import { OnboardingWrapper, WalletWidgetStandIn } from '../stories/style'
 import { CryptoView, LockScreen, OnboardingRestore, WalletPageLayout, WalletSubViewLayout } from '../components/desktop'
