@@ -64,6 +64,7 @@ import {
   NetworkDescription
 } from './style'
 import { Skeleton } from '../../../shared/loading-skeleton/styles'
+import NFTDetails from './components/nft-details'
 
 const AssetIconWithPlaceholder = withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 12 })
 
@@ -94,7 +95,9 @@ export const PortfolioAsset = () => {
     selectedAssetCryptoPrice,
     selectedAssetFiatPrice,
     selectedAssetPriceHistory,
-    selectedTimeline
+    selectedTimeline,
+    isFetchingNFTMetadata,
+    nftMetadata
   } = useSelector(({ page }: { page: PageState }) => page)
 
   // custom hooks
@@ -378,7 +381,7 @@ export const PortfolioAsset = () => {
         />
       }
 
-      {/* {selectedAsset?.isErc721 &&
+      {selectedAsset?.isErc721 &&
         <NFTDetails
           isLoading={isFetchingNFTMetadata}
           selectedAsset={selectedAsset}
@@ -386,7 +389,7 @@ export const PortfolioAsset = () => {
           defaultCurrencies={defaultCurrencies}
           selectedNetwork={selectedNetwork}
         />
-      } */}
+      }
 
       <AccountsAndTransactionsList
         formattedFullAssetBalance={formattedFullAssetBalance}
