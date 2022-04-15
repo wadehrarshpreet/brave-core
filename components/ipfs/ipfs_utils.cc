@@ -411,6 +411,7 @@ std::string GetRegistryDomainFromIPNS(const GURL& url) {
 }
 
 bool ToConfiguredGatewayURL(GURL* url, PrefService* prefs) {
+  LOG(ERROR) << "ToConfiguredGatewayURL url " << url->spec();
   if (!IsIPFSScheme(*url))
     return false;
   std::string cid;
@@ -418,8 +419,10 @@ bool ToConfiguredGatewayURL(GURL* url, PrefService* prefs) {
   if (!ParseCIDAndPathFromIPFSUrl(*url, &cid, &path) || cid.empty()) {
     return false;
   }
+  LOG(ERROR) << "ToConfiguredGatewayURL cid " << cid << " path " << path << " url " << url->spec();
   GURL gateway_url =
       ipfs::GetIPFSGatewayURL(cid, path, ipfs::GetDefaultIPFSGateway(prefs));
+  LOG(ERROR) << "ToConfiguredGatewayURL gateway_url " << gateway_url;
   *url = gateway_url;
   return true;
 }

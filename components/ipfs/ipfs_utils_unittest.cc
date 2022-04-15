@@ -706,7 +706,7 @@ TEST_F(IpfsUtilsUnitTest, ToConfiguredGatewayURL) {
   ASSERT_TRUE(ipfs::ToConfiguredGatewayURL(&url, prefs()));
   ASSERT_EQ(
       url,
-      "https://qmesjsinhppnmxmspmjwixyn6zs4e9zccarigr3jxcawtq.ipfs.dweb.link/"
+      "https://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq.ipfs.dweb.link/"
       "1817");
 
   url = GURL("");
