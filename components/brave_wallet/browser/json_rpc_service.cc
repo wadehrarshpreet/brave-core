@@ -1495,7 +1495,7 @@ void JsonRpcService::GetERC721Metadata(const std::string& contract_address,
                      weak_ptr_factory_.GetWeakPtr(), contract_address,
                      function_signature, network_url, std::move(callback));
 
-  GetSupportsInterface(contract_address, kERC721MetadataInterfaceId,
+  GetSupportsInterface(contract_address, kERC721MetadataInterfaceId, chain_id,
                        std::move(internal_callback));
 }
 
@@ -1637,8 +1637,11 @@ void JsonRpcService::OnGetERC721MetadataPayload(
 void JsonRpcService::GetSupportsInterface(
     const std::string& contract_address,
     const std::string& interface_id,
+    const std::string& chain_id,
     GetSupportsInterfaceCallback callback) {
-  if (!EthAddress::IsValidAddress(contract_address)) {
+  auto network_url = GetNetworkURL(prefs_, chain_id, mojom::CoinType::ETH);
+  if (!EthAddress::IsValidAddress(contract_address) ||
+      !network_url.is_valid()) {
     std::move(callback).Run(
         false, mojom::ProviderError::kInvalidParams,
         l10n_util::GetStringUTF8(IDS_WALLET_INVALID_PARAMETERS));
@@ -1658,7 +1661,7 @@ void JsonRpcService::GetSupportsInterface(
   DCHECK(network_urls_.contains(mojom::CoinType::ETH));
   RequestInternal(
       eth::eth_call("", contract_address, "", "", "", data, "latest"), true,
-      network_urls_[mojom::CoinType::ETH], std::move(internal_callback));
+      network_url, std::move(internal_callback));
 }
 
 void JsonRpcService::OnGetSupportsInterface(

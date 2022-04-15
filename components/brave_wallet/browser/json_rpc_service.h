@@ -241,6 +241,7 @@ class JsonRpcService : public KeyedService, public mojom::JsonRpcService {
 
   void GetSupportsInterface(const std::string& contract_address,
                             const std::string& interface_id,
+                            const std::string& chain_id,
                             GetSupportsInterfaceCallback callback);
 
   using SwitchEthereumChainRequestCallback =
