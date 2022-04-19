@@ -56,7 +56,7 @@
 #include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_ads/common/switches.h"
 #include "brave/components/brave_federated/data_store_service.h"
-#include "brave/components/brave_federated/data_stores/ad_notification_timing_data_store.h"
+#include "brave/components/brave_federated/data_stores/data_store.h"
 #include "brave/components/brave_federated/features.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service.h"
 #include "brave/components/brave_rewards/browser/rewards_p3a.h"
@@ -225,10 +225,7 @@ AdsServiceImpl::AdsServiceImpl(
     std::unique_ptr<AdsTooltipsDelegate> ads_tooltips_delegate,
 #endif
     history::HistoryService* history_service,
-    brave_federated::AsyncDataStore<
-        brave_federated::AdNotificationTimingDataStore,
-        brave_federated::AdNotificationTimingTaskLog>*
-        ad_notification_timing_data_store)
+    brave_federated::AsyncDataStore* ad_notification_timing_data_store)
     : profile_(profile),
       history_service_(history_service),
 #if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
@@ -2186,17 +2183,15 @@ void AdsServiceImpl::RecordP2AEvent(const std::string& name,
 }
 
 void AdsServiceImpl::LogTrainingInstance(
-    const brave_federated::mojom::TrainingInstancePtr training_instance) {
+    brave_federated::mojom::TrainingInstancePtr training_instance) {
   if (!ad_notification_timing_data_store_) {
     return;
   }
 
-  // TODO(https://github.com/brave/brave-browser/issues/21189): Refactor DB to
-  // use generic key/value schema across all data stores
-  brave_federated::AdNotificationTimingTaskLog log;
   auto callback =
       base::BindOnce(&AdsServiceImpl::OnLogTrainingInstance, AsWeakPtr());
-  ad_notification_timing_data_store_->AddLog(log, std::move(callback));
+  ad_notification_timing_data_store_->AddTrainingInstance(std::move(training_instance),
+  std::move(callback));
 }
 
 void AdsServiceImpl::OnLogTrainingInstance(bool success) {
