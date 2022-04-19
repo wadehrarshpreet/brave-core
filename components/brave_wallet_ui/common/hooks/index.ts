@@ -17,21 +17,23 @@ import useAssetManagement from './assets-management'
 import useHasAccount from './has-account'
 import usePrevNetwork from './previous-network'
 import { useLib } from './useLib'
+import { usePasswordStrength } from './use-password-strength'
 
 export {
-  useAssets,
-  useSwap,
-  useBalance,
-  useTransactionParser,
-  useTransactionFeesParser,
-  usePricing,
   useAddressLabels,
-  useSend,
-  usePreset,
-  useTokenInfo,
-  useExplorer,
   useAssetManagement,
-  useLib,
+  useAssets,
+  useBalance,
+  useExplorer,
   useHasAccount,
-  usePrevNetwork
+  useLib,
+  usePasswordStrength,
+  usePreset,
+  usePrevNetwork,
+  usePricing,
+  useSend,
+  useSwap,
+  useTokenInfo,
+  useTransactionFeesParser,
+  useTransactionParser
 }

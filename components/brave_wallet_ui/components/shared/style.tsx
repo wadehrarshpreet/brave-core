@@ -1,7 +1,15 @@
 import styled from 'styled-components'
+
+// types
 import { BraveWallet } from '../../constants/types'
-import transparent40x40Image from '../../assets/png-icons/transparent40x40.png'
+
+// utils
 import { stripERC20TokenImageURL } from '../../utils/string-utils'
+
+// images & icons
+import transparent40x40Image from '../../assets/png-icons/transparent40x40.png'
+import EyeOnIcon from '../../assets/svg-icons/eye-on-icon.svg'
+import EyeOffIcon from '../../assets/svg-icons/eye-off-icon.svg'
 
 export interface AssetIconProps {
   icon?: string
@@ -64,3 +72,23 @@ export const WalletButton = styled.button<{
     outline-width: 2px;
   }
  `
+
+export const ToggleVisibilityButton = styled(WalletButton)<{
+  isVisible: boolean
+}>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  cursor: pointer;
+  outline: none;
+  background: none;
+  border: none;
+  padding: 0px;
+  width: 18px;
+  height: 18px;
+  background-color: ${(p) => p.theme.color.text02};
+  -webkit-mask-image: url(${(p) => p.isVisible ? EyeOffIcon : EyeOnIcon});
+  mask-image: url(${(p) => p.isVisible ? EyeOffIcon : EyeOnIcon});
+  mask-size: cover;
+`
