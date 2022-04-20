@@ -207,13 +207,13 @@ void BatAdsClientMojoBridge::RecordP2AEvent(const std::string& name,
   bat_ads_client_->RecordP2AEvent(name, type, value);
 }
 
-void BatAdsClientMojoBridge::LogTrainingInstance(
+void BatAdsClientMojoBridge::AddCovariatesToDataStore(
     brave_federated::mojom::TrainingInstancePtr training_instance) {
   if (!connected()) {
     return;
   }
 
-  bat_ads_client_->LogTrainingInstance(std::move(training_instance));
+  bat_ads_client_->AddCovariatesToDataStore(std::move(training_instance));
 }
 
 void OnLoad(const ads::LoadCallback& callback,

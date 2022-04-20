@@ -2169,7 +2169,7 @@ void AdsServiceImpl::RecordP2AEvent(const std::string& name,
   }
 }
 
-void AdsServiceImpl::LogTrainingInstance(
+void AdsServiceImpl::AddCovariatesToDataStore(
     const brave_federated::mojom::TrainingInstancePtr training_instance) {
   if (!ad_notification_timing_data_store_) {
     return;
@@ -2179,11 +2179,11 @@ void AdsServiceImpl::LogTrainingInstance(
   // use generic key/value schema across all data stores
   brave_federated::AdNotificationTimingTaskLog log;
   auto callback =
-      base::BindOnce(&AdsServiceImpl::OnLogTrainingInstance, AsWeakPtr());
+      base::BindOnce(&AdsServiceImpl::OnAddCovariatesToDataStore, AsWeakPtr());
   ad_notification_timing_data_store_->AddLog(log, std::move(callback));
 }
 
-void AdsServiceImpl::OnLogTrainingInstance(bool success) {
+void AdsServiceImpl::OnAddCovariatesToDataStore(bool success) {
   if (!success) {
     VLOG(1) << "Failed to log training covariates";
     return;

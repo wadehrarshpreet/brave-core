@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/log_entries/number_of_user_activity_events.h"
+#include "bat/ads/internal/federated/covariates/number_of_user_activity_events.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ class BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest
 
 TEST_F(BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest, GetDataType) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry =
+  std::unique_ptr<Covariate> entry =
       std::make_unique<NumberOfUserActivityEvents>(
           UserActivityEventType::kOpenedNewTab,
           brave_federated::mojom::CovariateType::kNumberOfOpenedNewTabEvents);
@@ -40,7 +40,7 @@ TEST_F(BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest, GetDataType) {
 TEST_F(BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest,
        GetValueWithoutUserActivity) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry =
+  std::unique_ptr<Covariate> entry =
       std::make_unique<NumberOfUserActivityEvents>(
           UserActivityEventType::kOpenedNewTab,
           brave_federated::mojom::CovariateType::kNumberOfOpenedNewTabEvents);
@@ -54,7 +54,7 @@ TEST_F(BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest,
 
 TEST_F(BatAdsFederatedLogEntriesNumberOfUserActivityEventsTest, GetValue) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry =
+  std::unique_ptr<Covariate> entry =
       std::make_unique<NumberOfUserActivityEvents>(
           UserActivityEventType::kOpenedNewTab,
           brave_federated::mojom::CovariateType::kNumberOfOpenedNewTabEvents);

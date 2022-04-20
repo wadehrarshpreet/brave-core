@@ -3,13 +3,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/log_entries/last_ad_notification_was_clicked.h"
+#include "bat/ads/internal/federated/covariates/last_ad_notification_was_clicked.h"
 
 #include "base/time/time.h"
 #include "bat/ads/ad_history_info.h"
 #include "bat/ads/ads_history_info.h"
 #include "bat/ads/internal/ads_history/ads_history.h"
-#include "bat/ads/internal/federated/covariate_logs_util.h"
+#include "bat/ads/internal/federated/covariates_util.h"
 
 namespace ads {
 

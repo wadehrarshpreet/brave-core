@@ -69,7 +69,7 @@ class BatAdsClientMojoBridge
                       const ads::mojom::P2AEventType type,
                       const std::string& value) override;
 
-  void LogTrainingInstance(
+  void AddCovariatesToDataStore(
       brave_federated::mojom::TrainingInstancePtr training_instance) override;
 
   void Load(

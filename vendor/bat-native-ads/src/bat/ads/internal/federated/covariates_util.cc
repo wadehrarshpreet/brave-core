@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/covariate_logs_util.h"
+#include "bat/ads/internal/federated/covariates_util.h"
 
 #include "base/strings/string_number_conversions.h"
 #include "base/time/time.h"

@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/log_entries/ad_notification_clicked.h"
+#include "bat/ads/internal/federated/covariates/ad_notification_clicked.h"
 
 #include "bat/ads/internal/unittest_base.h"
 

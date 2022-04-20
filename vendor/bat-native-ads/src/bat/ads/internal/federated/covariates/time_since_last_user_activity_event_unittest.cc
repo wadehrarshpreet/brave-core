@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/log_entries/time_since_last_user_activity_event.h"
+#include "bat/ads/internal/federated/covariates/time_since_last_user_activity_event.h"
 
 #include <memory>
 
@@ -27,7 +27,7 @@ class BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest
 TEST_F(BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest,
        GetDataType) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry = std::make_unique<
+  std::unique_ptr<Covariate> entry = std::make_unique<
       TimeSinceLastUserActivityEvent>(
       UserActivityEventType::kOpenedNewTab,
       brave_federated::mojom::CovariateType::kTimeSinceLastOpenedNewTabEvent);
@@ -42,7 +42,7 @@ TEST_F(BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest,
 TEST_F(BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest,
        GetValueWithoutHistory) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry = std::make_unique<
+  std::unique_ptr<Covariate> entry = std::make_unique<
       TimeSinceLastUserActivityEvent>(
       UserActivityEventType::kOpenedNewTab,
       brave_federated::mojom::CovariateType::kTimeSinceLastOpenedNewTabEvent);
@@ -56,7 +56,7 @@ TEST_F(BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest,
 
 TEST_F(BatAdsFederatedLogEntriesTimeSinceLastUserActivityEventTest, GetValue) {
   // Arrange
-  std::unique_ptr<CovariateLogEntry> entry = std::make_unique<
+  std::unique_ptr<Covariate> entry = std::make_unique<
       TimeSinceLastUserActivityEvent>(
       UserActivityEventType::kOpenedNewTab,
       brave_federated::mojom::CovariateType::kTimeSinceLastOpenedNewTabEvent);

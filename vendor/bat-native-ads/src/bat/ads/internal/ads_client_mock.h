@@ -91,7 +91,7 @@ class AdsClientMock : public AdsClient {
                     const mojom::P2AEventType type,
                     const std::string& value));
 
-  MOCK_METHOD1(LogTrainingInstance,
+  MOCK_METHOD1(AddCovariatesToDataStore,
                void(const brave_federated::mojom::TrainingInstancePtr
                         training_instance));
 

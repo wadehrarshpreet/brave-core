@@ -3,17 +3,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_
-#define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_
+#ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_
+#define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_
 
 #include <string>
 
-#include "bat/ads/internal/federated/covariate_log_entry.h"
+#include "bat/ads/internal/federated/covariate.h"
 #include "bat/ads/internal/user_activity/user_activity_event_types.h"
 
 namespace ads {
 
-class NumberOfUserActivityEvents final : public CovariateLogEntry {
+class NumberOfUserActivityEvents final : public Covariate {
  public:
   NumberOfUserActivityEvents(
       UserActivityEventType event_type,
@@ -23,7 +23,7 @@ class NumberOfUserActivityEvents final : public CovariateLogEntry {
       delete;
   ~NumberOfUserActivityEvents() override;
 
-  // CovariateLogEntry:
+  // Covariate:
   brave_federated::mojom::DataType GetDataType() const override;
   brave_federated::mojom::CovariateType GetCovariateType() const override;
   std::string GetValue() const override;
@@ -35,4 +35,4 @@ class NumberOfUserActivityEvents final : public CovariateLogEntry {
 
 }  // namespace ads
 
-#endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_
+#endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_NUMBER_OF_USER_ACTIVITY_EVENTS_H_

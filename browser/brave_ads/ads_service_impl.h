@@ -431,9 +431,10 @@ class AdsServiceImpl : public AdsService,
                       const ads::mojom::P2AEventType type,
                       const std::string& value) override;
 
-  void LogTrainingInstance(const brave_federated::mojom::TrainingInstancePtr
-                               training_instance) override;
-  void OnLogTrainingInstance(bool success);
+  void AddCovariatesToDataStore(
+      const brave_federated::mojom::TrainingInstancePtr training_instance)
+      override;
+  void OnAddCovariatesToDataStore(bool success);
 
   void WriteDiagnosticLog(const std::string& file,
                           const int line,

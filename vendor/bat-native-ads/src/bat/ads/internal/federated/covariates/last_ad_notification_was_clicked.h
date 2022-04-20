@@ -3,16 +3,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_
-#define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_
+#ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_
+#define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_
 
 #include <string>
 
-#include "bat/ads/internal/federated/covariate_log_entry.h"
+#include "bat/ads/internal/federated/covariate.h"
 
 namespace ads {
 
-class LastAdNotificationWasClicked final : public CovariateLogEntry {
+class LastAdNotificationWasClicked final : public Covariate {
  public:
   LastAdNotificationWasClicked();
   LastAdNotificationWasClicked(const LastAdNotificationWasClicked&) = delete;
@@ -20,7 +20,7 @@ class LastAdNotificationWasClicked final : public CovariateLogEntry {
       delete;
   ~LastAdNotificationWasClicked() override;
 
-  // CovariateLogEntry:
+  // Covariate:
   brave_federated::mojom::DataType GetDataType() const override;
   brave_federated::mojom::CovariateType GetCovariateType() const override;
   std::string GetValue() const override;
@@ -28,4 +28,4 @@ class LastAdNotificationWasClicked final : public CovariateLogEntry {
 
 }  // namespace ads
 
-#endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_LOG_ENTRIES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_
+#endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_FEDERATED_COVARIATES_LAST_AD_NOTIFICATION_WAS_CLICKED_H_

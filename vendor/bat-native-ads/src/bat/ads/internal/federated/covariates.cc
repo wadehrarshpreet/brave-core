@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "bat/ads/internal/federated/covariate_logs.h"
+#include "bat/ads/internal/federated/covariates.h"
 
 #include <utility>
 #include <vector>
@@ -14,20 +14,20 @@
 #include "base/time/time.h"
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
-#include "bat/ads/internal/federated/covariate_log_entry.h"
-#include "bat/ads/internal/federated/log_entries/ad_notification_clicked.h"
-#include "bat/ads/internal/federated/log_entries/ad_notification_served_at.h"
-#include "bat/ads/internal/federated/log_entries/average_clickthrough_rate.h"
-#include "bat/ads/internal/federated/log_entries/last_ad_notification_was_clicked.h"
-#include "bat/ads/internal/federated/log_entries/number_of_user_activity_events.h"
-#include "bat/ads/internal/federated/log_entries/time_since_last_user_activity_event.h"
+#include "bat/ads/internal/federated/covariate.h"
+#include "bat/ads/internal/federated/covariates/ad_notification_clicked.h"
+#include "bat/ads/internal/federated/covariates/ad_notification_served_at.h"
+#include "bat/ads/internal/federated/covariates/average_clickthrough_rate.h"
+#include "bat/ads/internal/federated/covariates/last_ad_notification_was_clicked.h"
+#include "bat/ads/internal/federated/covariates/number_of_user_activity_events.h"
+#include "bat/ads/internal/federated/covariates/time_since_last_user_activity_event.h"
 #include "bat/ads/internal/logging.h"
 
 namespace ads {
 
 namespace {
 
-CovariateLogs* g_covariate_logs = nullptr;
+Covariates* g_covariates = nullptr;
 
 using UserActivityEventToCovariateTypesMapping =
     base::flat_map<UserActivityEventType,
@@ -114,13 +114,11 @@ AverageClickthroughRateTimeWindows& GetAverageClickthroughRateTimeWindows() {
 
 }  // namespace
 
-// TODO(https://github.com/brave/brave-browser/issues/22310): Refactor
-// CovariateLogs to Covariates
-CovariateLogs::CovariateLogs() {
-  DCHECK_EQ(g_covariate_logs, nullptr);
-  g_covariate_logs = this;
+Covariates::Covariates() {
+  DCHECK_EQ(g_covariates, nullptr);
+  g_covariates = this;
 
-  SetCovariateLogEntry(std::make_unique<LastAdNotificationWasClicked>());
+  SetCovariate(std::make_unique<LastAdNotificationWasClicked>());
 
   for (const auto& user_activity_event_to_covariate_types_mapping :
        GetUserActivityEventToCovariateTypesMapping()) {
@@ -130,81 +128,81 @@ CovariateLogs::CovariateLogs() {
     const brave_federated::mojom::CovariateType
         number_of_events_covariate_type =
             user_activity_event_to_covariate_types_mapping.second.first;
-    SetCovariateLogEntry(std::make_unique<NumberOfUserActivityEvents>(
+    SetCovariate(std::make_unique<NumberOfUserActivityEvents>(
         event_type, number_of_events_covariate_type));
 
     const brave_federated::mojom::CovariateType
         time_since_last_event_covariate_type =
             user_activity_event_to_covariate_types_mapping.second.second;
-    SetCovariateLogEntry(std::make_unique<TimeSinceLastUserActivityEvent>(
+    SetCovariate(std::make_unique<TimeSinceLastUserActivityEvent>(
         event_type, time_since_last_event_covariate_type));
   }
 
   for (const auto& average_clickthrough_rate_time_window :
        GetAverageClickthroughRateTimeWindows()) {
-    SetCovariateLogEntry(std::make_unique<AverageClickthroughRate>(
+    SetCovariate(std::make_unique<AverageClickthroughRate>(
         average_clickthrough_rate_time_window));
   }
 }
 
-CovariateLogs::~CovariateLogs() {
-  DCHECK(g_covariate_logs);
-  g_covariate_logs = nullptr;
+Covariates::~Covariates() {
+  DCHECK(g_covariates);
+  g_covariates = nullptr;
 }
 
 // static
-CovariateLogs* CovariateLogs::Get() {
-  DCHECK(g_covariate_logs);
-  return g_covariate_logs;
+Covariates* Covariates::Get() {
+  DCHECK(g_covariates);
+  return g_covariates;
 }
 
 // static
-bool CovariateLogs::HasInstance() {
-  return g_covariate_logs;
+bool Covariates::HasInstance() {
+  return g_covariates;
 }
 
-void CovariateLogs::SetCovariateLogEntry(
-    std::unique_ptr<CovariateLogEntry> entry) {
+void Covariates::SetCovariate(std::unique_ptr<Covariate> entry) {
   DCHECK(entry);
   brave_federated::mojom::CovariateType key = entry->GetCovariateType();
-  covariate_log_entries_[key] = std::move(entry);
+  covariates_[key] = std::move(entry);
 }
 
-brave_federated::mojom::TrainingInstancePtr CovariateLogs::GetTrainingInstance()
-    const {
+brave_federated::mojom::TrainingInstancePtr Covariates::GetCovariates() const {
   brave_federated::mojom::TrainingInstancePtr training_instance =
       brave_federated::mojom::TrainingInstance::New();
-  for (const auto& covariate_log_entry : covariate_log_entries_) {
-    const CovariateLogEntry* entry = covariate_log_entry.second.get();
-    DCHECK(entry);
+  for (const auto& item : covariates_) {
+    const Covariate* covariate = item.second.get();
+    DCHECK(covariate);
 
-    brave_federated::mojom::CovariatePtr covariate =
+    brave_federated::mojom::CovariatePtr federated_covariate =
         brave_federated::mojom::Covariate::New();
-    covariate->data_type = entry->GetDataType();
-    covariate->covariate_type = entry->GetCovariateType();
-    covariate->value = entry->GetValue();
-    training_instance->covariates.push_back(std::move(covariate));
+    federated_covariate->data_type = covariate->GetDataType();
+    federated_covariate->covariate_type = covariate->GetCovariateType();
+    federated_covariate->value = covariate->GetValue();
+
+    training_instance->covariates.push_back(std::move(federated_covariate));
   }
 
   return training_instance;
 }
 
-void CovariateLogs::SetAdNotificationServedAt(const base::Time time) {
+void Covariates::SetAdNotificationServedAt(const base::Time time) {
   auto ad_notification_served_at = std::make_unique<AdNotificationServedAt>();
   ad_notification_served_at->SetTime(time);
-  SetCovariateLogEntry(std::move(ad_notification_served_at));
+  SetCovariate(std::move(ad_notification_served_at));
 }
 
-void CovariateLogs::SetAdNotificationClicked(bool clicked) {
+void Covariates::SetAdNotificationClicked(bool clicked) {
   auto ad_notification_clicked = std::make_unique<AdNotificationClicked>();
   ad_notification_clicked->SetClicked(clicked);
-  SetCovariateLogEntry(std::move(ad_notification_clicked));
+  SetCovariate(std::move(ad_notification_clicked));
 }
 
-void CovariateLogs::LogTrainingInstance() {
+void Covariates::AddCovariatesToDataStore() {
   brave_federated::mojom::TrainingInstancePtr training_instance =
-      GetTrainingInstance();
-  AdsClientHelper::Get()->LogTrainingInstance(std::move(training_instance));
+      GetCovariates();
+  AdsClientHelper::Get()->AddCovariatesToDataStore(
+      std::move(training_instance));
 }
 
 }  // namespace ads

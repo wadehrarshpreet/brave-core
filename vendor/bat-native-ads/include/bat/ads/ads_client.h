@@ -129,7 +129,7 @@ class ADS_EXPORT AdsClient {
                               const std::string& value) = 0;
 
   // Log |training_instance|.
-  virtual void LogTrainingInstance(
+  virtual void AddCovariatesToDataStore(
       const brave_federated::mojom::TrainingInstancePtr training_instance) = 0;
 
   // Log a |message| to |file| and the console log with |line| and

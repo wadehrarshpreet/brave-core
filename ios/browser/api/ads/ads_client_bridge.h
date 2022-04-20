@@ -71,7 +71,7 @@
 - (void)recordP2AEvent:(const std::string&)name
                   type:(const ads::mojom::P2AEventType)type
                  value:(const std::string&)value;
-- (void)logTrainingInstance:
+- (void)addCovariatesToDataStore:
     (const brave_federated::mojom::TrainingInstancePtr)training_instance;
 
 @end
