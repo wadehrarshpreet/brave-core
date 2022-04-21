@@ -1,0 +1,18 @@
+diff --git a/tools/perf/cli_tools/update_wpr/update_wpr.py b/tools/perf/cli_tools/update_wpr/update_wpr.py
+index ac08ab7b36e609941d745140d1a6eea66b400f4e..557b4339b0b00b23a107199a0ece9548d83a887c 100644
+--- a/tools/perf/cli_tools/update_wpr/update_wpr.py
++++ b/tools/perf/cli_tools/update_wpr/update_wpr.py
+@@ -153,9 +153,12 @@ def _CountLogLines(log_file, line_matcher_re=r'.*'):
+ 
+ def _UploadArchiveToGoogleStorage(archive):
+   """Uploads specified WPR archive to the GS."""
+-  cli_helpers.Run([
++  print([
+     'upload_to_google_storage.py', '--bucket=chrome-partner-telemetry',
+     archive])
++  cli_helpers.Run([
++    'upload_to_google_storage.py', '--bucket=brave-telemetry',
++    archive])
+ 
+ 
+ def _GitAddArtifactHash(archive):

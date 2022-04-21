@@ -1,0 +1,15 @@
+diff --git a/tools/perf/core/perf_benchmark.py b/tools/perf/core/perf_benchmark.py
+index 28406ef74ba6bfab74a3fcd096f84a46597f85a5..5d1c54c2de07ed73f2d396c7ba76617fa20e157c 100644
+--- a/tools/perf/core/perf_benchmark.py
++++ b/tools/perf/core/perf_benchmark.py
+@@ -149,8 +149,8 @@ class PerfBenchmark(benchmark.Benchmark):
+     # other OSes, we simply pass the "--enable-field-trial-config" flag. See the
+     # FIELDTRIAL_TESTING_ENABLED buildflag definition in
+     # components/variations/service/BUILD.gn for more details.
+-    if not self.IsAndroid(possible_browser):
+-      return '--enable-field-trial-config'
++    # if not self.IsAndroid(possible_browser):
++    #   return '--enable-field-trial-config'
+ 
+     chrome_root = finder_options.chrome_root
+     if chrome_root is None:

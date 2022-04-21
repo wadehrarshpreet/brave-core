@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "tag" : "v1.39.73",
+      "label": "solana_on",
+      "profile_type": "empty",
+      "extra_args": "--enable-features=BraveWalletSolana"
+    },
+    {
+      "tag" : "v1.39.73",
+      "label": "solana_off",
+      "profile_type": "empty",
+      "extra_args": "--disable-features=BraveWalletSolana"
+    }
+
+  ],
+  "tests": [
+    {
+      "benchmark": "system_health.common_desktop",
+      "pageset_repeat": 10,
+      "stories": [
+        "load:media:youtube:2018"
+      ]
+    },
+    {
+      "benchmark": "system_health.memory_desktop",
+      "pageset_repeat": 10,
+      "stories": [
+        "load:media:youtube:2018"
+      ]
+    },
+    {
+      "benchmark": "speedometer2",
+      "pageset_repeat": 1
+    }
+
+  ]
+}
