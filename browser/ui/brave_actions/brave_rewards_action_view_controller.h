@@ -21,6 +21,9 @@ namespace ui {
 class MenuModel;
 }
 
+// TODO(zenparsing): This needs to be re-implemented using the new rewards
+// action view.
+
 // The purpose of this subclass is to:
 // - Add a custom context menu for the rewards extension icon. We do not want
 //   to use a regular extension menu because Uninstall and Unpin extension menu

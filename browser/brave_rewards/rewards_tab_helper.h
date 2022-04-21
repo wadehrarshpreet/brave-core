@@ -9,6 +9,9 @@
 #include <string>
 
 #include "base/memory/raw_ptr.h"
+#include "base/observer_list.h"
+#include "base/observer_list_types.h"
+#include "base/scoped_observation.h"
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
 #include "build/build_config.h"
 #include "components/sessions/core/session_id.h"
@@ -25,22 +28,40 @@ namespace brave_rewards {
 
 class RewardsService;
 
-class RewardsTabHelper : public RewardsServiceObserver,
+class RewardsTabHelper : public content::WebContentsUserData<RewardsTabHelper>,
                          public content::WebContentsObserver,
 #if !BUILDFLAG(IS_ANDROID)
                          public BrowserListObserver,
 #endif
-                         public content::WebContentsUserData<RewardsTabHelper> {
+                         public RewardsServiceObserver {
  public:
-  explicit RewardsTabHelper(content::WebContents*);
   RewardsTabHelper(const RewardsTabHelper&) = delete;
   RewardsTabHelper& operator=(const RewardsTabHelper&) = delete;
   ~RewardsTabHelper() override;
 
+  class Observer : public base::CheckedObserver {
+   public:
+    virtual void OnPublisherUpdated(const std::string& publisher_id) = 0;
+  };
+
+  void AddObserver(Observer* observer) { observer_list_.AddObserver(observer); }
+
+  void RemoveObserver(Observer* observer) {
+    observer_list_.RemoveObserver(observer);
+  }
+
+  using Observation = base::ScopedObservation<RewardsTabHelper, Observer>;
+
+  std::string GetPublisherIdForTab() { return publisher_id_; }
+
+  void SetPublisherIdForTab(const std::string& publisher_id);
+
  private:
   friend class content::WebContentsUserData<RewardsTabHelper>;
 
-  // content::WebContentsObserver overrides.
+  explicit RewardsTabHelper(content::WebContents* web_contents);
+
+  // content::WebContentsObserver
   void DidFinishLoad(content::RenderFrameHost* render_frame_host,
                      const GURL& validated_url) override;
   void DidFinishNavigation(
@@ -53,13 +74,22 @@ class RewardsTabHelper : public RewardsServiceObserver,
   void WebContentsDestroyed() override;
 
 #if !BUILDFLAG(IS_ANDROID)
-  // BrowserListObserver overrides
+  // BrowserListObserver
   void OnBrowserSetLastActive(Browser* browser) override;
   void OnBrowserNoLongerActive(Browser* browser) override;
+
+  bool BrowserHasWebContents(Browser* browser);
 #endif
+
+  // RewardsServiceObserver
+  void OnRewardsInitialized(RewardsService* rewards_service) override;
+
+  void MaybeSavePublisherInfo();
 
   SessionID tab_id_;
   raw_ptr<RewardsService> rewards_service_ = nullptr;  // NOT OWNED
+  base::ObserverList<Observer> observer_list_;
+  std::string publisher_id_;
 
   WEB_CONTENTS_USER_DATA_KEY_DECL();
 };
