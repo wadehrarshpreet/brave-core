@@ -45,16 +45,19 @@ for item in os.listdir(page_set_data_dir):
 # | head -n <rev_num> | tail -n 1 | git log -n 1 --stdin
 def GetRevisionNumberAndHash(revision):
   brave_dir = os.path.join(path_util.SRC_DIR, 'brave')
-  subprocess.check_call(['git', 'fetch', 'origin', revision], cwd=brave_dir)
+  subprocess.check_call(['git', 'fetch', 'origin', revision],
+                        cwd=brave_dir,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE)
   hash = subprocess.check_output(['git', 'rev-parse', 'FETCH_HEAD'],
                                  cwd=brave_dir).rstrip()
   rev_number_args = [
       'git', 'rev-list', '--topo-order', '--first-parent', '--count',
       'FETCH_HEAD'
   ]
-  logging.debug('Run binary:' + rev_number_args)
+  logging.debug('Run binary:' + ' '.join(rev_number_args))
   rev_number = subprocess.check_output(rev_number_args, cwd=brave_dir).rstrip()
-  return [rev_number, hash]
+  return [rev_number.decode('utf-8'), hash.decode('utf-8')]
 
 
 def RunSingleTest(binary,
@@ -62,6 +65,7 @@ def RunSingleTest(binary,
                   out_dir,
                   profile_dir,
                   is_ref,
+                  verbose,
                   extra_browser_args=[],
                   extra_benchmark_args=[]):
   args = [
@@ -74,7 +78,7 @@ def RunSingleTest(binary,
   if is_ref:
     benchmark += '.reference'
   if profile_dir:
-    args.append('--profile=%s' % profile_dir)
+    args.append('--profile-dir=%s' % profile_dir)
   args.append('--benchmarks=%s' % benchmark)
   args.append('--browser=exact')
   args.append('--browser-executable=%s' % binary)
@@ -87,10 +91,23 @@ def RunSingleTest(binary,
 
   args.extend(extra_benchmark_args)
 
+  if verbose:
+    args.append('--show-stdout')
+
+  args.append('--extra-browser-args=' + ' '.join(extra_browser_args))
+
   logging.debug('Run binary:' + ' '.join(args))
 
-  subprocess.check_call(args,
-                        cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
+  result = subprocess.run(args,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT,
+                          cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
+  if result.returncode != 0:
+    logging.error(result.stdout.decode('utf-8'))
+    return False
+  else:
+    logging.debug(result.stdout.decode('utf-8'))
+    return True
 
 
 def ReportToDashboard(product, is_ref, configuration_name, revision,
@@ -105,6 +122,8 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   args.append('--output-json=%s' % os.path.join(output_dir, 'results.json'))
 
   [revision_number, git_hash] = GetRevisionNumberAndHash(revision)
+  logging.debug('Got revision %s git_hash %s', revision_number, git_hash)
+
   build_properties = {}
   build_properties['bot_id'] = 'test_bot'
   if product == 'brave':
@@ -131,13 +150,17 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties['git_revision'] = git_hash
   build_properties_serialized = json.dumps(build_properties)
   args.append('--build-properties=%s' % build_properties_serialized)
-  try:
-    logging.debug('Run binary:' + ' '.join(args))
-    subprocess.check_call(args)
-    return True, []
-  except subprocess.CalledProcessError:
-    return False, ['Reporting ' + revision + ' failed']
 
+  logging.debug('Run binary:' + ' '.join(args))
+  result = subprocess.run(args,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
+  if result.returncode != 0:
+    logging.error(result.stdout.decode('utf-8'))
+    return False, ['Reporting ' + revision + ' failed']
+  else:
+    logging.debug(result.stdout.decode('utf-8'))
+    return True, []
 
 def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
                extra_browser_args, extra_benchmark_args):
@@ -145,17 +168,15 @@ def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
   has_failure = False
   for test_config in json_config['tests']:
     benchmark = test_config['benchmark']
-    if not args.report_only:
-      try:
-        RunSingleTest(binary, test_config, output_dir, profile_dir, is_ref,
-                      extra_browser_args, extra_benchmark_args)
-      except subprocess.CalledProcessError:
-        has_failure = True
-        error = 'Test case %s failed on revision %s' % (benchmark, revision)
-        error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
-                                           'benchmark_log.txt')
-        logging.error(error)
-        failedLogs.append(error)
+    if not RunSingleTest(binary, test_config, output_dir, profile_dir, is_ref,
+                         args.verbose, extra_browser_args,
+                         extra_benchmark_args):
+      has_failure = True
+      error = 'Test case %s failed on revision %s' % (benchmark, revision)
+      error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
+                                         'benchmark_log.txt')
+      logging.error(error)
+      failedLogs.append(error)
 
   return not has_failure, failedLogs
 
@@ -170,7 +191,7 @@ parser.add_argument('--targets',
                     help='The targets to test')
 parser.add_argument('--work-directory', required=True, type=str)
 parser.add_argument('--config', required=True, type=str)
-parser.add_argument('--skip-report', action='store_true')
+parser.add_argument('--no-report', action='store_true')
 parser.add_argument('--report-only', action='store_true')
 parser.add_argument('--report-on-failure', action='store_true')
 parser.add_argument('--verbose', action='store_true')
@@ -205,8 +226,8 @@ for target in targets:
     shutil.rmtree(out_dir, True)
     binaries[target] = browser_binary_fetcher.PrepareBinary(
         out_dir, target, configuration.chromium)
-  logging.info("target %s : %s directory %s", tag, binaries[target],
-               out_dir)
+    logging.info("target %s : %s directory %s", tag, binaries[target],
+                 out_dir)
 
 for target in targets:
   tag = tags[target]
@@ -218,21 +239,23 @@ for target in targets:
   # TODO: add profile dir
   profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
                                             args.work_directory)
-  binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
-                                           binaries[target],
-                                           os.path.join(out_dir, 'results'),
-                                           profile_dir, is_ref, args,
-                                           configuration.extra_browser_args,
-                                           configuration.extra_benchmark_args)
-  if not binary_success:
-    has_failure = True
-    failedLogs.extend(binary_logs)
+  binary_success = True
+  if not args.report_only:
+    binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
+                                             binaries[target],
+                                             os.path.join(out_dir, 'results'),
+                                             profile_dir, is_ref, args,
+                                             configuration.extra_browser_args,
+                                             configuration.extra_benchmark_args)
+    if not binary_success:
+      has_failure = True
+      failedLogs.extend(binary_logs)
 
   if not binary_success and not args.report_on_failure:
     error = 'Skip reporting because errors for target ' + target
     logging.error(error)
     failedLogs.append(error)
-  elif args.skip_report:
+  elif args.no_report:
     logging.debug('skip reporting because report==False')
   else:
     report_success, report_logs = ReportToDashboard(
@@ -242,7 +265,7 @@ for target in targets:
       has_failure = True
       failedLogs.extend(report_logs)
 
-logging.info('\nSummary:\n')
+logging.info('Summary:\n')
 if has_failure:
   logging.error('\n'.join(failedLogs))
   logging.error('Got %d errors!' % len(failedLogs))

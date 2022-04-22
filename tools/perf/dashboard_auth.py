@@ -13,10 +13,13 @@ import logging
 import os.path
 import sys
 
-#vpython -m pip install google-auth google-auth-oauthlib
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+try:
+  from google.auth.transport.requests import Request
+  from google.oauth2.credentials import Credentials
+  from google_auth_oauthlib.flow import InstalledAppFlow
+except ImportError:
+  logging.error('vpython -m pip install google-auth google-auth-oauthlib')
+  raise
 
 SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
 CLIENT_ID_FILE = os.path.join(os.path.expanduser("~"),
