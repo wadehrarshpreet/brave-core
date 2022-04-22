@@ -1,4 +1,12 @@
 {
+  "configuration":
+  {
+    "dashboard-bot-name": "asus-w10-slow-laptop",
+    "chromium" : false,
+    "profile-type": "empty",
+    "extra-browser-args": [],
+    "extra-benchmark-args": []
+  },
   "tests": [
     {
       "benchmark": "system_health.common_desktop",

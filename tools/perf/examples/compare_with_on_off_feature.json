@@ -1,18 +1,17 @@
 {
   "configurations": [
     {
-      "tag" : "v1.39.73",
+      "target" : "v1.39.73",
       "label": "solana_on",
       "profile_type": "empty",
-      "extra_args": "--enable-features=BraveWalletSolana"
+      "extra_browser_args": "--enable-features=BraveWalletSolana"
     },
     {
-      "tag" : "v1.39.73",
+      "target" : "v1.39.73",
       "label": "solana_off",
       "profile_type": "empty",
-      "extra_args": "--disable-features=BraveWalletSolana"
+      "extra_browser_args": "--disable-features=BraveWalletSolana"
     }
-
   ],
   "tests": [
     {

@@ -14,10 +14,10 @@ The tools should be run on a special prepared hardware/OS to minimize
 the result flakiness.
 
 Example usage:
- vpython run_brave_perftests.py --tags v1.36.23
-                                --configuration_name=test-agent
-                                --work_directory=e:\work\tmp\perf0\
-                                --extra_args="--use-live-sites"
+ vpython run_brave_perftests.py --configuration-name=test-agent
+                                --work-directory=e:\work\tmp\perf0\
+                                --target v1.36.23
+                                --extra-args="--use-live-sites"
 """
 import os
 import subprocess
@@ -29,19 +29,14 @@ import uuid
 import tempfile
 from lib import path_util
 from lib import browser_binary_fetcher
+from lib import perf_config
+from lib import perf_profile
 import argparse
-
-
-test_config_file_path = os.path.join(path_util.BRAVE_PERF_DIR, 'perftest_config.json')
-
-json_config = {}
-with open(test_config_file_path, 'r') as config_file:
-  json_config = json.load(config_file)
 
 # Workaround to add our wpr files
 page_set_data_dir = os.path.join(path_util.BRAVE_PERF_DIR, 'page_sets_data')
-chromium_page_set_data_dir = os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'page_sets',
-                                          'data')
+chromium_page_set_data_dir = os.path.join(path_util.SRC_DIR, 'tools', 'perf',
+                                          'page_sets', 'data')
 for item in os.listdir(page_set_data_dir):
   shutil.copy(os.path.join(page_set_data_dir, item), chromium_page_set_data_dir)
 
@@ -64,15 +59,24 @@ def GetRevisionNumberAndHash(revision):
   return [rev_number, hash]
 
 
-def RunTest(binary, config, out_dir, is_ref, extra_args=[]):
+def RunSingleTest(binary,
+                  config,
+                  out_dir,
+                  profile_dir,
+                  is_ref,
+                  extra_browser_args=[],
+                  extra_benchmark_args=[]):
   args = [
       sys.executable,
-      os.path.join(path_util.SRC_DIR, 'testing', 'scripts', 'run_performance_tests.py'),
+      os.path.join(path_util.SRC_DIR, 'testing', 'scripts',
+                   'run_performance_tests.py'),
       os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark')
   ]
   benchmark = config['benchmark']
   if is_ref:
     benchmark += '.reference'
+  if profile_dir:
+    args.append('--profile=%s' % profile_dir)
   args.append('--benchmarks=%s' % benchmark)
   args.append('--browser=exact')
   args.append('--browser-executable=%s' % binary)
@@ -83,18 +87,20 @@ def RunTest(binary, config, out_dir, is_ref, extra_args=[]):
     for story in config['stories']:
       args.append('--story=' + story)
 
-  args.extend(extra_args)
+  args.extend(extra_benchmark_args)
 
   logging.info(' '.join(args))
 
-  subprocess.check_call(args, cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
+  subprocess.check_call(args,
+                        cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
 
 
 def ReportToDashboard(product, is_ref, configuration_name, revision,
                       output_dir):
   args = [
       sys.executable,
-      os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'process_perf_results.py')
+      os.path.join(path_util.SRC_DIR, 'tools', 'perf',
+                   'process_perf_results.py')
   ]
   args.append('--configuration-name=%s' % configuration_name)
   args.append('--task-output-dir=%s' % output_dir)
@@ -115,6 +121,8 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties['parent_buildername'] = 'Linux Builder'
   build_properties['recipe'] = 'chromium'
   build_properties['slavename'] = 'test_bot'
+
+  # keep in sync with _MakeBuildStatusUrl() to make correct build urls.
   build_properties['buildername'] = product + '/' + revision
   build_properties['buildnumber'] = "001"
 
@@ -125,17 +133,23 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties['git_revision'] = git_hash
   build_properties_serialized = json.dumps(build_properties)
   args.append('--build-properties=%s' % build_properties_serialized)
-  subprocess.check_call(args)
+  try:
+    subprocess.check_call(args)
+    return True, []
+  except subprocess.CalledProcessError:
+    return False, ['Reporting ' + revision + ' failed']
 
 
-def TestBinary(product, revision, binary, output_dir, is_ref, args):
+def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
+               extra_browser_args, extra_benchmark_args):
   failedLogs = []
   has_failure = False
   for test_config in json_config['tests']:
     benchmark = test_config['benchmark']
     if not args.report_only:
       try:
-        RunTest(binary, test_config, output_dir, is_ref, args.extra_args)
+        RunSingleTest(binary, test_config, output_dir, profile_dir, is_ref,
+                      extra_browser_args, extra_benchmark_args)
       except subprocess.CalledProcessError:
         has_failure = True
         error = 'Test case %s failed on revision %s' % (benchmark, revision)
@@ -143,37 +157,20 @@ def TestBinary(product, revision, binary, output_dir, is_ref, args):
                                            'benchmark_log.txt')
         logging.error(error)
         failedLogs.append(error)
-  try:
-    if has_failure and not args.report_on_failure:
-      error = 'Skip reporting because errors for binary ' + binary
-      logging.error(error)
-      failedLogs.append(error)
-    elif args.skip_report:
-      logging.info('skip reporting because report==False')
-    else:
-      ReportToDashboard(product, is_ref, args.configuration_name, revision,
-                        output_dir)
 
-  except subprocess.CalledProcessError:
-    has_failure = True
-    error = 'Reporting ' + revision + ' failed'
-    logging.error(error)
-    failedLogs.append(error)
-  return [not has_failure, failedLogs]
+  return not has_failure, failedLogs
 
 
 failedLogs = []
 has_failure = False
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--target',
+parser.add_argument('--targets',
                     required=True,
-                    action='append',
-                    help='The target to test')
+                    type=str,
+                    help='The targets to test')
 parser.add_argument('--work-directory', required=True, type=str)
-parser.add_argument('--configuration-name', required=True, type=str)
-parser.add_argument('--chromium', action='store_true')
-parser.add_argument('--extra-args', action='append', default=[])
+parser.add_argument('--config', required=True, type=str)
 parser.add_argument('--skip-report', action='store_true')
 parser.add_argument('--report-only', action='store_true')
 parser.add_argument('--report-on-failure', action='store_true')
@@ -181,36 +178,62 @@ parser.add_argument('--verbose', action='store_true')
 args = parser.parse_args()
 
 log_level = logging.DEBUG if args.verbose else logging.INFO
-log_format = '%(asctime)s - %(levelname)s - %(funcName)s: %(message)s'
+log_format = '%(asctime)s: %(message)s'
 logging.basicConfig(level=log_level, format=log_format)
 
+json_config = {}
+with open(args.config, 'r') as config_file:
+  json_config = json.load(config_file)
+targets = args.targets.split(',')
+configuration = perf_config.PerfDashboardConfiguration(
+    json_config['configuration'])
 binaries = {}
 tags = {}
-out_dir = {}
-for target in args.target:
-  tag = browser_binary_fetcher.GetTagForTarget(target)
-  assert(tag != None)
-  tags[target] = tag
-  out_dir[target] = os.path.join(args.work_directory, tag)
+out_dirs = {}
+for target in targets:
+  tag = tags[target] = browser_binary_fetcher.GetTagForTarget(target)
+  assert (tag != None)
+  out_dir = out_dirs[target]= os.path.join(args.work_directory, tag)
 
   if not args.report_only:
-    shutil.rmtree(out_dir[target], True)
-    binaries[target] = browser_binary_fetcher.PrepareBinary(out_dir[target], target, args.chromium)
-  logging.info("configuration %s : %s directory %s", tag, binaries[target], out_dir[target])
+    shutil.rmtree(out_dir, True)
+    binaries[target] = browser_binary_fetcher.PrepareBinary(
+        out_dir, target, configuration.chromium)
+  logging.info("target %s : %s directory %s", tag, binaries[target],
+               out_dir)
 
-for target in args.target:
+for target in targets:
   tag = tags[target]
-  out_dir = out_dir[target]
+  out_dir = out_dirs[target]
 
-  product = 'chromium' if args.chromium else 'brave'
-  is_ref = args.chromium
+  product = 'chromium' if configuration.chromium else 'brave'
+  is_ref = configuration.chromium
 
-  [binary_success,
-   binary_logs] = TestBinary(product, 'refs/tags/' + tag, binaries[target],
-                             os.path.join(out_dir, 'results'), is_ref, args)
+  # TODO: add profile dir
+  profile_dir = perf_profile.GetProfilePath(configuration.profile_type)
+  binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
+                                           binaries[target],
+                                           os.path.join(out_dir, 'results'),
+                                           profile_dir, is_ref, args,
+                                           configuration.extra_browser_args,
+                                           configuration.extra_benchmark_args)
   if not binary_success:
     has_failure = True
     failedLogs.extend(binary_logs)
+
+  if not binary_success and not args.report_on_failure:
+    error = 'Skip reporting because errors for target ' + target
+    logging.error(error)
+    failedLogs.append(error)
+  elif args.skip_report:
+    logging.debug('skip reporting because report==False')
+  else:
+    report_success, report_logs = ReportToDashboard(
+        product, is_ref, configuration.dashboard_bot_name, 'refs/tags/' + tag,
+        os.path.join(out_dir, 'results'))
+    if not report_success:
+      has_failure = True
+      failedLogs.extend(report_logs)
 
 logging.info('\nSummary:\n')
 if has_failure:

@@ -19,19 +19,21 @@ from lib import path_util
 BRAVE_NIGHTLY_WIN_INSTALLER_URL = 'https://github.com/brave/brave-browser/releases/download/%s/BraveBrowserStandaloneSilentNightlySetup.exe'
 BRAVE_NIGHTLY_URL = 'https://github.com/brave/brave-browser/releases/download/%s/brave-%s-%s.zip'
 
+CHROME_RELEASES_JSON = os.path.join(path_util.BRAVE_PERF_DIR,
+                                    'chrome_releases.json')
 
-CHROME_RELEASES_JSON = os.path.join(path_util.BRAVE_PERF_DIR, 'chrome_releases.json')
 
 def GetBraveNightlyUrl(tag, platform):
   return BRAVE_NIGHTLY_URL % (tag, tag, platform)
 
+
 def ParseVersion(version_string):
   return map(int, version_string.split('.'))
 
+
 def GetNearestChromiumVersionAndUrl(tag):
   chrome_versions = {}
-  with open(CHROME_RELEASES_JSON,
-            'r') as config_file:
+  with open(CHROME_RELEASES_JSON, 'r') as config_file:
     chrome_versions = json.load(config_file)
 
   subprocess.check_call(['git', 'fetch', 'origin', ('refs/tags/%s' % tag)],
@@ -115,14 +117,22 @@ def PrepareBinaryByUrl(out_dir, url, is_chromium):
     return DownloadArchiveAndUnpack(out_dir, url)
   if is_chromium:
     install_path = os.path.join(os.path.expanduser('~'), 'AppData', 'Local',
-                              'Google', 'Chrome SxS', 'Application')
+                                'Google', 'Chrome SxS', 'Application')
     return DownloadWinInstallerAndExtract(out_dir, url, install_path,
                                           'chrome.exe')
   else:
     install_path = os.path.join(os.path.expanduser('~'), 'AppData', 'Local',
-                              'BraveSoftware', 'Brave-Browser-Nightly',
-                              'Application')
-    return DownloadWinInstallerAndExtract(out_dir, url, install_path, 'brave.exe')
+                                'BraveSoftware', 'Brave-Browser-Nightly',
+                                'Application')
+    return DownloadWinInstallerAndExtract(out_dir, url, install_path,
+                                          'brave.exe')
+
+
+def ParseTarget(target):
+  m = re.match('^(v\d+\.\d+\.\d+)(?::(.+)|$)', target)
+  if not m:
+    return None, target
+  return m.group(1), m.group(2)
 
 
 def PrepareBinaryByTag(out_dir, tag, is_chromium):
@@ -132,32 +142,31 @@ def PrepareBinaryByTag(out_dir, tag, is_chromium):
       raise RuntimeError('Failed to find nearest chromium binary for %s' % tag)
     return PrepareBinaryByUrl(out_dir, url, True)
 
-  else: #is_brave
-    m = re.match('v(\d+)\.(\d+)\.\d+', tag)
+  else:  #is_brave
+    m = re.match('^v(\d+)\.(\d+)\.\d+$', tag)
     if not m:
       raise RuntimeError('Failed to parse tag "%s"' % tag)
 
     # nightly < v1.35 has a broken .zip archive
     if m.group(1) == 1 and m.group(2) < 35:
-      return PrepareBinaryByUrl(out_dir, BRAVE_NIGHTLY_WIN_INSTALLER_URL % tag, False)
+      return PrepareBinaryByUrl(out_dir, BRAVE_NIGHTLY_WIN_INSTALLER_URL % tag,
+                                False)
     else:
       platform = 'win32-x64'
-      return PrepareBinaryByUrl(out_dir, BRAVE_NIGHTLY_URL % (tag, tag, platform), False)
+      return PrepareBinaryByUrl(out_dir,
+                                BRAVE_NIGHTLY_URL % (tag, tag, platform), False)
 
-def PrepareBinary(out_dir, source, is_chromium):
-  m = re.match('^v\d+\.\d+\.\d+:(.+)', source)
-  if m:
-    source = m.group(1)
-  if os.path.exists(source): # local binary
-    return source
-  elif source.startswith('http'):  # url
-    return PrepareBinaryByUrl(out_dir, source, is_chromium)
+
+def PrepareBinary(out_dir, target, is_chromium):
+  tag, location = ParseTarget(target)
+  if location and os.path.exists(location):  # local binary
+    return location
+  elif location and location.startswith('http'):  # url
+    return PrepareBinaryByUrl(out_dir, location, is_chromium)
   else:
-    return PrepareBinaryByTag(out_dir, source, is_chromium)
+    return PrepareBinaryByTag(out_dir, tag, is_chromium)
+
 
 def GetTagForTarget(target):
-    m = re.match('^(v\d+\.\d+\.\d+):(.+)', target)
-    if m:
-      return m.group(1)
-    #TODO only tag
-    return None
+  tag, _ = ParseTarget(target)
+  return tag
