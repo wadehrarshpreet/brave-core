@@ -27,10 +27,7 @@ import logging
 import shutil
 import uuid
 import tempfile
-from lib import path_util
-from lib import browser_binary_fetcher
-from lib import perf_config
-from lib import perf_profile
+from lib import path_util, browser_binary_fetcher, perf_config, perf_profile
 import argparse
 
 # Workaround to add our wpr files
@@ -55,6 +52,7 @@ def GetRevisionNumberAndHash(revision):
       'git', 'rev-list', '--topo-order', '--first-parent', '--count',
       'FETCH_HEAD'
   ]
+  logging.debug('Run binary:' + rev_number_args)
   rev_number = subprocess.check_output(rev_number_args, cwd=brave_dir).rstrip()
   return [rev_number, hash]
 
@@ -89,7 +87,7 @@ def RunSingleTest(binary,
 
   args.extend(extra_benchmark_args)
 
-  logging.info(' '.join(args))
+  logging.debug('Run binary:' + ' '.join(args))
 
   subprocess.check_call(args,
                         cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
@@ -98,7 +96,7 @@ def RunSingleTest(binary,
 def ReportToDashboard(product, is_ref, configuration_name, revision,
                       output_dir):
   args = [
-      sys.executable,
+      path_util.VPYTHON_2_PATH,
       os.path.join(path_util.SRC_DIR, 'tools', 'perf',
                    'process_perf_results.py')
   ]
@@ -134,6 +132,7 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties_serialized = json.dumps(build_properties)
   args.append('--build-properties=%s' % build_properties_serialized)
   try:
+    logging.debug('Run binary:' + ' '.join(args))
     subprocess.check_call(args)
     return True, []
   except subprocess.CalledProcessError:
@@ -181,8 +180,15 @@ log_level = logging.DEBUG if args.verbose else logging.INFO
 log_format = '%(asctime)s: %(message)s'
 logging.basicConfig(level=log_level, format=log_format)
 
+config_path = args.config
+if not os.path.isfile(config_path):
+  absolute_config = os.path.join(path_util.BRAVE_PERF_DIR, 'configs',
+                                 config_path)
+  if os.path.isfile(absolute_config):
+    config_path = absolute_config
+
 json_config = {}
-with open(args.config, 'r') as config_file:
+with open(config_path, 'r') as config_file:
   json_config = json.load(config_file)
 targets = args.targets.split(',')
 configuration = perf_config.PerfDashboardConfiguration(
@@ -210,7 +216,8 @@ for target in targets:
   is_ref = configuration.chromium
 
   # TODO: add profile dir
-  profile_dir = perf_profile.GetProfilePath(configuration.profile_type)
+  profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
+                                            args.work_directory)
   binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
                                            binaries[target],
                                            os.path.join(out_dir, 'results'),

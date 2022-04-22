@@ -9,8 +9,8 @@ import json
 import os
 import shutil
 import re
-from urllib2 import urlopen
-from StringIO import StringIO
+from urllib.request import urlopen
+from io import StringIO
 from zipfile import ZipFile
 from distutils.dir_util import copy_tree
 
@@ -37,10 +37,10 @@ def GetNearestChromiumVersionAndUrl(tag):
     chrome_versions = json.load(config_file)
 
   subprocess.check_call(['git', 'fetch', 'origin', ('refs/tags/%s' % tag)],
-                        cwd=path_util.SRC_BRAVE_DIR)
+                        cwd=path_util.BRAVE_SRC_DIR)
   package_json = json.loads(
       subprocess.check_output(['git', 'show', 'FETCH_HEAD:package.json'],
-                              cwd=path_util.SRC_BRAVE_DIR))
+                              cwd=path_util.BRAVE_SRC_DIR))
   requested_version = package_json['config']['projects']['chrome']['tag']
 
   parsed_requested_version = ParseVersion(requested_version)
