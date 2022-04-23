@@ -23,3 +23,15 @@ BRAVE_DEPOT_TOOLS_DIR = os.path.join(BRAVE_SRC_DIR, 'vendor', 'depot_tools')
 VPYTHON_2_PATH = os.path.join(
     BRAVE_DEPOT_TOOLS_DIR,
     'vpython.bat' if sys.platform == 'win32' else 'vpython')
+
+def GetBinaryPath(browser_dir):
+  if sys.platform == 'win32':
+    return os.path.join(browser_dir, 'brave.exe')
+  elif sys.platform == 'darwin':
+    dir = os.path.join(browser_dir, 'Contents', 'MacOS')
+    for file in os.listdir(dir):
+      if file.startswith('Brave Browser'):
+        return os.path.join(dir, file)
+    raise RuntimeError(f'Couldn\'t find a binary in {dir}' % dir)
+
+  raise RuntimeError(f'Unsupported platfrom {sys.platform}')

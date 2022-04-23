@@ -10,7 +10,7 @@ import os
 import shutil
 import re
 from urllib.request import urlopen
-from io import StringIO
+from io import BytesIO
 from zipfile import ZipFile
 from distutils.dir_util import copy_tree
 
@@ -36,7 +36,7 @@ def GetNearestChromiumVersionAndUrl(tag):
   with open(CHROME_RELEASES_JSON, 'r') as config_file:
     chrome_versions = json.load(config_file)
 
-  subprocess.check_call(['git', 'fetch', 'origin', ('refs/tags/%s' % tag)],
+  subprocess.check_call(['git', 'fetch', 'origin', (f'refs/tags/{tag}')],
                         cwd=path_util.BRAVE_SRC_DIR)
   package_json = json.loads(
       subprocess.check_output(['git', 'show', 'FETCH_HEAD:package.json'],
@@ -54,43 +54,42 @@ def GetNearestChromiumVersionAndUrl(tag):
 
   if best_candidate:
     string_version = '.'.join(map(str, best_candidate))
-    logging.info('Use chromium version %s for requested %s ' %
-                 (best_candidate, requested_version))
+    logging.info(f'Use chromium version {best_candidate} for requested {requested_version}')
     return string_version, chrome_versions[string_version]['url']
 
-  logging.error('No chromium version found for %s' % requested_version)
+  logging.error(f'No chromium version found for {requested_version}')
   return None, None
 
 
 def DownloadArchiveAndUnpack(output_directory, url):
-  logging.info('Downloading archive %s' % url)
+  logging.info(f'Downloading archive {url}')
   resp = urlopen(url)
-  zipfile = ZipFile(StringIO(resp.read()))
+  zipfile = ZipFile(BytesIO(resp.read()))
   zipfile.extractall(output_directory)
-  return os.path.join(output_directory, 'brave.exe')
+  return os.path.join(output_directory, path_util.GetBinaryPath(output_directory))
 
 
 def DownloadWinInstallerAndExtract(out_dir, url, expected_install_path, binary):
   if not os.path.exists(out_dir):
     os.makedirs(out_dir)
   installer_filename = os.path.join(out_dir, os.pardir, 'temp_installer.exe')
-  logging.info('Downloading %s' % url)
+  logging.info(f'Downloading {url}')
   f = urlopen(url)
   data = f.read()
   with open(installer_filename, 'wb') as output_file:
     output_file.write(data)
-  logging.info('Run installer %s' % installer_filename)
+  logging.info(f'Run installer {installer_filename}')
   subprocess.check_call([installer_filename, '--chrome-sxs'])
   try:
     subprocess.check_call(['taskkill.exe', '/f', '/im', binary])
   except subprocess.CalledProcessError:
-    logging.info('failed to kill %s' % binary)
+    logging.info(f'failed to kill {binary}')
 
   if not os.path.exists(expected_install_path):
-    raise RuntimeError('No files found in %s' % expected_install_path)
+    raise RuntimeError(f'No files found in {expected_install_path}')
 
   full_version = None
-  logging.info('Copy files to %s' % out_dir)
+  logging.info(f'Copy files to {out_dir}')
   copy_tree(expected_install_path, out_dir)
   for file in os.listdir(expected_install_path):
     #TODO: check brave tag? file.endswith(tag[2:])
@@ -98,10 +97,10 @@ def DownloadWinInstallerAndExtract(out_dir, url, expected_install_path, binary):
       assert (full_version == None)
       full_version = file
   assert (full_version != None)
-  logging.info('Detected version %s' % full_version)
+  logging.info(f'Detected version {full_version}')
   setup_filename = os.path.join(expected_install_path, full_version,
                                 'Installer', 'setup.exe')
-  logging.info('Run uninstall %s' % setup_filename)
+  logging.info(f'Run uninstall {setup_filename}')
   try:
     subprocess.check_call(
         [setup_filename, '--uninstall', '--force-uninstall', '--chrome-sxs'])
@@ -145,14 +144,19 @@ def PrepareBinaryByTag(out_dir, tag, is_chromium):
   else:  #is_brave
     m = re.match('^v(\d+)\.(\d+)\.\d+$', tag)
     if not m:
-      raise RuntimeError('Failed to parse tag "%s"' % tag)
+      raise RuntimeError(f'Failed to parse tag "{tag}"')
 
     # nightly < v1.35 has a broken .zip archive
     if m.group(1) == 1 and m.group(2) < 35:
       return PrepareBinaryByUrl(out_dir, BRAVE_NIGHTLY_WIN_INSTALLER_URL % tag,
                                 False)
     else:
-      platform = 'win32-x64'
+      import sys
+      if sys.platform == 'win32':
+        platform = 'win32-x64'
+      if sys.platform == 'darwin':
+        platform = 'darwin-arm64'
+      #hdiutil attach -nobrowse -noautoopen
       return PrepareBinaryByUrl(out_dir,
                                 BRAVE_NIGHTLY_URL % (tag, tag, platform), False)
 

@@ -78,16 +78,16 @@ def RunSingleTest(binary,
   if is_ref:
     benchmark += '.reference'
   if profile_dir:
-    args.append('--profile-dir=%s' % profile_dir)
-  args.append('--benchmarks=%s' % benchmark)
+    args.append(f'--profile-dir={profile_dir}')
+  args.append(f'--benchmarks={benchmark}')
   args.append('--browser=exact')
-  args.append('--browser-executable=%s' % binary)
-  args.append('--isolated-script-test-output=%s' % out_dir + '\\' +
-              config['benchmark'] + '\\output.json')
+  args.append(f'--browser-executable={binary}')
+  args.append('--isolated-script-test-output=' + os.path.join(out_dir ,
+              config['benchmark'], 'output.json'))
   args.append('--pageset-repeat=%d' % config['pageset_repeat'])
   if 'stories' in config:
     for story in config['stories']:
-      args.append('--story=' + story)
+      args.append(f'--story={story}')
 
   args.extend(extra_benchmark_args)
 
@@ -117,12 +117,12 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
       os.path.join(path_util.SRC_DIR, 'tools', 'perf',
                    'process_perf_results.py')
   ]
-  args.append('--configuration-name=%s' % configuration_name)
-  args.append('--task-output-dir=%s' % output_dir)
-  args.append('--output-json=%s' % os.path.join(output_dir, 'results.json'))
+  args.append(f'--configuration-name={configuration_name}')
+  args.append(f'--task-output-dir={output_dir}')
+  args.append('--output-json=' + os.path.join(output_dir, 'results.json'))
 
   [revision_number, git_hash] = GetRevisionNumberAndHash(revision)
-  logging.debug('Got revision %s git_hash %s', revision_number, git_hash)
+  logging.debug(f'Got revision {revision_number} git_hash {git_hash}')
 
   build_properties = {}
   build_properties['bot_id'] = 'test_bot'
@@ -149,7 +149,7 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties['got_webrtc_revision'] = revision_number
   build_properties['git_revision'] = git_hash
   build_properties_serialized = json.dumps(build_properties)
-  args.append('--build-properties=%s' % build_properties_serialized)
+  args.append('--build-properties=' + build_properties_serialized)
 
   logging.debug('Run binary:' + ' '.join(args))
   result = subprocess.run(args,
@@ -172,7 +172,7 @@ def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
                          args.verbose, extra_browser_args,
                          extra_benchmark_args):
       has_failure = True
-      error = 'Test case %s failed on revision %s' % (benchmark, revision)
+      error = f'Test case {benchmark} failed on revision {revision}'
       error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
                                          'benchmark_log.txt')
       logging.error(error)
@@ -219,15 +219,15 @@ tags = {}
 out_dirs = {}
 for target in targets:
   tag = tags[target] = browser_binary_fetcher.GetTagForTarget(target)
-  assert (tag != None)
+  if not tag:
+    raise RuntimeError(f'Can get the tag from target {target}')
   out_dir = out_dirs[target]= os.path.join(args.work_directory, tag)
 
   if not args.report_only:
     shutil.rmtree(out_dir, True)
     binaries[target] = browser_binary_fetcher.PrepareBinary(
         out_dir, target, configuration.chromium)
-    logging.info("target %s : %s directory %s", tag, binaries[target],
-                 out_dir)
+    logging.info(f'target {tag} : {binaries[target]} directory {out_dir}')
 
 for target in targets:
   tag = tags[target]
@@ -268,6 +268,6 @@ for target in targets:
 logging.info('Summary:\n')
 if has_failure:
   logging.error('\n'.join(failedLogs))
-  logging.error('Got %d errors!' % len(failedLogs))
+  logging.error(f'Got {len(failedLogs)} errors!')
 else:
   logging.info('OK')
