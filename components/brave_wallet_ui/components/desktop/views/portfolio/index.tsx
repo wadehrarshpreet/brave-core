@@ -139,7 +139,7 @@ const Portfolio = (props: Props) => {
     foundTokenInfoByContractAddress
   } = props
 
-  const [filteredAssetList, setfilteredAssetList] = React.useState<UserAssetInfoType[]>(userAssetList)
+  const [filteredAssetList, setFilteredAssetList] = React.useState<UserAssetInfoType[]>(userAssetList)
   const [fullPortfolioFiatBalance, setFullPortfolioFiatBalance] = React.useState<string>(portfolioBalance)
   const [hoverBalance, setHoverBalance] = React.useState<string>()
   const [hoverPrice, setHoverPrice] = React.useState<string>()
@@ -155,7 +155,7 @@ const Portfolio = (props: Props) => {
   const dispatch = useDispatch()
 
   const onSetFilteredAssetList = (filteredList: UserAssetInfoType[]) => {
-    setfilteredAssetList(filteredList)
+    setFilteredAssetList(filteredList)
   }
 
   React.useEffect(() => {
@@ -165,7 +165,7 @@ const Portfolio = (props: Props) => {
   }, [portfolioBalance])
 
   React.useEffect(() => {
-    setfilteredAssetList(userAssetList)
+    setFilteredAssetList(userAssetList)
   }, [userAssetList])
 
   const portfolioHistory = React.useMemo(() => {
@@ -182,7 +182,7 @@ const Portfolio = (props: Props) => {
     if (nftMetadata) {
       dispatch(WalletPageActions.updateNFTMetadata(undefined))
     }
-    setfilteredAssetList(userAssetList)
+    setFilteredAssetList(userAssetList)
     toggleNav()
   }
 
