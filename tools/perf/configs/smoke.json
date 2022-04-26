@@ -12,7 +12,7 @@
       "benchmark": "system_health.memory_desktop",
       "pageset_repeat": 1,
       "stories": [
-        "load:chrome:blank"
+        "load:media:youtube:2018"
       ]
     }
   ]

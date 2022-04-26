@@ -25,8 +25,8 @@ import json
 import sys
 import logging
 import shutil
+import time
 import uuid
-import tempfile
 from lib import path_util, browser_binary_fetcher, perf_config, perf_profile
 import argparse
 
@@ -82,8 +82,8 @@ def RunSingleTest(binary,
   args.append(f'--benchmarks={benchmark}')
   args.append('--browser=exact')
   args.append(f'--browser-executable={binary}')
-  args.append('--isolated-script-test-output=' + os.path.join(out_dir ,
-              config['benchmark'], 'output.json'))
+  args.append('--isolated-script-test-output=' +
+              os.path.join(out_dir, config['benchmark'], 'output.json'))
   args.append('--pageset-repeat=%d' % config['pageset_repeat'])
   if 'stories' in config:
     for story in config['stories']:
@@ -141,7 +141,7 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
 
   # keep in sync with _MakeBuildStatusUrl() to make correct build urls.
   build_properties['buildername'] = product + '/' + revision
-  build_properties['buildnumber'] = "001"
+  build_properties['buildnumber'] = '001'
 
   build_properties[
       'got_revision_cp'] = 'refs/heads/main@{#%s}' % revision_number
@@ -157,10 +157,11 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
                           stderr=subprocess.STDOUT)
   if result.returncode != 0:
     logging.error(result.stdout.decode('utf-8'))
-    return False, ['Reporting ' + revision + ' failed']
+    return False, ['Reporting ' + revision + ' failed'], None
   else:
     logging.debug(result.stdout.decode('utf-8'))
-    return True, []
+    return True, [], revision_number
+
 
 def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
                extra_browser_args, extra_benchmark_args):
@@ -176,12 +177,12 @@ def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
       error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
                                          'benchmark_log.txt')
       logging.error(error)
-      failedLogs.append(error)
+      failedLogs.append(True, error)
 
   return not has_failure, failedLogs
 
 
-failedLogs = []
+logs = []
 has_failure = False
 
 parser = argparse.ArgumentParser()
@@ -221,7 +222,7 @@ for target in targets:
   tag = tags[target] = browser_binary_fetcher.GetTagForTarget(target)
   if not tag:
     raise RuntimeError(f'Can get the tag from target {target}')
-  out_dir = out_dirs[target]= os.path.join(args.work_directory, tag)
+  out_dir = out_dirs[target] = os.path.join(args.work_directory, tag)
 
   if not args.report_only:
     shutil.rmtree(out_dir, True)
@@ -230,44 +231,56 @@ for target in targets:
     logging.info(f'target {tag} : {binaries[target]} directory {out_dir}')
 
 for target in targets:
+  status_line = ''
   tag = tags[target]
   out_dir = out_dirs[target]
 
   product = 'chromium' if configuration.chromium else 'brave'
   is_ref = configuration.chromium
 
-  # TODO: add profile dir
   profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
                                             args.work_directory)
   binary_success = True
+  status_line = f'Tag {tag} : '
   if not args.report_only:
+    start_time = time.time()
     binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
                                              binaries[target],
                                              os.path.join(out_dir, 'results'),
                                              profile_dir, is_ref, args,
                                              configuration.extra_browser_args,
                                              configuration.extra_benchmark_args)
+    spent_time = time.time() - start_time
+    status_line += f'Run {spent_time:.2f}s '
+    status_line += 'OK, ' if binary_success else 'FAILURE, '
     if not binary_success:
       has_failure = True
-      failedLogs.extend(binary_logs)
+      logs.extend(binary_logs)
 
   if not binary_success and not args.report_on_failure:
     error = 'Skip reporting because errors for target ' + target
+    status_line += 'Report skipped'
     logging.error(error)
-    failedLogs.append(error)
+    logs.append(error)
   elif args.no_report:
     logging.debug('skip reporting because report==False')
   else:
-    report_success, report_logs = ReportToDashboard(
+    start_time = time.time()
+    report_success, report_failed_logs, revision_number = ReportToDashboard(
         product, is_ref, configuration.dashboard_bot_name, 'refs/tags/' + tag,
         os.path.join(out_dir, 'results'))
+    spent_time = time.time() - start_time
+    status_line += f'Report {spent_time:.2f}s '
+    status_line += 'OK, ' if binary_success else 'FAILURE, '
+    status_line += f'Revnum: #{revision_number}'
     if not report_success:
       has_failure = True
-      failedLogs.extend(report_logs)
+      logs.extend(report_failed_logs)
+  logs.append(status_line)
 
-logging.info('Summary:\n')
+if logs != []:
+  logging.info('\n' + '\n'.join(logs))
 if has_failure:
-  logging.error('\n'.join(failedLogs))
-  logging.error(f'Got {len(failedLogs)} errors!')
+  logging.error(f'Summary: has failure!')
 else:
-  logging.info('OK')
+  logging.info('Summary: OK')

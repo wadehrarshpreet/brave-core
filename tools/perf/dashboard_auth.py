@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-#
-# [VPYTHON:BEGIN]
-
-# [VPYTHON:END]
-#
 # Copyright (c) 2021 The Brave Authors. All rights reserved.
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -23,7 +18,9 @@ try:
   from google.oauth2.credentials import Credentials
   from google_auth_oauthlib.flow import InstalledAppFlow
 except ImportError:
-  logging.error('vpython -m pip install google-auth google-auth-oauthlib')
+  logging.error(
+      'vpython -m pip install google-auth google-auth-oauthlib'
+  )
   raise
 
 SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
@@ -32,8 +29,7 @@ CLIENT_ID_FILE = os.path.join(os.path.expanduser("~"),
 PERF_CREDENTIAL_FILE = os.path.join(os.path.expanduser("~"),
                                     '.perf_dashboard_credentials.json')
 
-
-def GetDashboardCredentials(can_be_interactive = False):
+def GetDashboardCredentials(can_be_interactive=False):
   credentials = None
   should_store_new_credentials = False
 
