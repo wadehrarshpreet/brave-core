@@ -1,8 +1,26 @@
 diff --git a/tools/perf/page_sets/data/system_health_desktop.json b/tools/perf/page_sets/data/system_health_desktop.json
-index 483e3cf2dbb064626942e44deccc3a6054fc1579..08aae9aeed19e973aa7450dfd5087bb63c74c4fb 100644
+index e0eece0890221fe7aa53b17e259c90814311f0ff..39e80bc9e7f8b92fdbe767cbb9c2117f285223d1 100644
 --- a/tools/perf/page_sets/data/system_health_desktop.json
 +++ b/tools/perf/page_sets/data/system_health_desktop.json
-@@ -233,7 +233,7 @@
+@@ -56,7 +56,7 @@
+             "DEFAULT": "system_health_desktop_014.wprgo"
+         },
+         "browse:news:hackernews:2020": {
+-            "DEFAULT": "system_health_desktop_a28b400ce1.wprgo"
++            "DEFAULT": "system_health_desktop_c72fda288b.wprgo"
+         },
+         "browse:news:nytimes": {
+             "DEFAULT": "system_health_desktop_015.wprgo"
+@@ -74,7 +74,7 @@
+             "DEFAULT": "system_health_desktop_037.wprgo"
+         },
+         "browse:search:google:2020": {
+-            "DEFAULT": "system_health_desktop_2b7904b984.wprgo"
++            "DEFAULT": "system_health_desktop_20c4fe6ace.wprgo"
+         },
+         "browse:search:google_india": {
+             "DEFAULT": "system_health_desktop_039.wprgo"
+@@ -239,7 +239,7 @@                                                                                                 6:56 PM
              "win": "system_health_desktop_047.wprgo"
          },
          "load:media:youtube:2018": {
