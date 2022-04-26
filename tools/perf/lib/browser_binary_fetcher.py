@@ -28,7 +28,7 @@ def GetBraveNightlyUrl(tag, platform):
 
 
 def ParseVersion(version_string):
-  return map(int, version_string.split('.'))
+  return version_string.split('.')
 
 
 def GetNearestChromiumVersionAndUrl(tag):
@@ -36,12 +36,14 @@ def GetNearestChromiumVersionAndUrl(tag):
   with open(CHROME_RELEASES_JSON, 'r') as config_file:
     chrome_versions = json.load(config_file)
 
-  subprocess.check_call(['git', 'fetch', 'origin', (f'refs/tags/{tag}')],
-                        cwd=path_util.BRAVE_SRC_DIR)
+  args = ['git', 'fetch', 'origin', (f'refs/tags/{tag}')]
+  logging.debug('Run binary:' + ' '.join(args))
+  subprocess.check_call(args, cwd=path_util.BRAVE_SRC_DIR)
   package_json = json.loads(
       subprocess.check_output(['git', 'show', 'FETCH_HEAD:package.json'],
                               cwd=path_util.BRAVE_SRC_DIR))
   requested_version = package_json['config']['projects']['chrome']['tag']
+  logging.debug(f'Got requested_version: {requested_version}')
 
   parsed_requested_version = ParseVersion(requested_version)
   best_candidate = None
@@ -163,8 +165,12 @@ def PrepareBinaryByTag(out_dir, tag, is_chromium):
 
 def PrepareBinary(out_dir, target, is_chromium):
   tag, location = ParseTarget(target)
-  if location and os.path.exists(location):  # local binary
-    return location
+  logging.debug(f'Parsed tag: {tag}, location : {location}')
+  if location:  # local binary
+    if os.path.exists(location):
+      return location
+    else:
+      raise RuntimeError(f'{location} doesn\'t exist')
   elif location and location.startswith('http'):  # url
     return PrepareBinaryByUrl(out_dir, location, is_chromium)
   else:

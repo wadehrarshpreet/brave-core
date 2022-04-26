@@ -2,17 +2,18 @@
   "configuration":
   {
     "dashboard-bot-name": "test-agent",
-    "chromium" : false,
+    "chromium" : true,
     "profile-type": "adblock-profile",
-    "extra-browser-args": ["--enable-logging", "--somekey"],
-    "extra-benchmark-args": ["--use-live-sites"]
+    "extra-browser-args": ["--somekey1", "--somekey2"],
+    "extra-benchmark-args": []
   },
   "tests": [
     {
       "benchmark": "system_health.memory_desktop",
       "pageset_repeat": 1,
       "stories": [
-        "load:media:youtube:2018"
+        "browse:search:google:2020",
+        "browse:news:hackernews:2020"
       ]
     }
   ]

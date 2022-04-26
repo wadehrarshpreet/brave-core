@@ -14,10 +14,10 @@ The tools should be run on a special prepared hardware/OS to minimize
 the result flakiness.
 
 Example usage:
- vpython run_brave_perftests.py --configuration-name=test-agent
-                                --work-directory=e:\work\tmp\perf0\
-                                --target v1.36.23
-                                --extra-args="--use-live-sites"
+ vpython3 run_brave_perftests.py --configuration-name=test-agent
+                                 --work-directory=e:\work\tmp\perf0\
+                                 --target v1.36.23
+                                 --extra-args="--use-live-sites"
 """
 import os
 import subprocess
@@ -177,7 +177,7 @@ def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
       error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
                                          'benchmark_log.txt')
       logging.error(error)
-      failedLogs.append(True, error)
+      failedLogs.append(error)
 
   return not has_failure, failedLogs
 
