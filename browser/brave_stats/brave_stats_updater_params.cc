@@ -13,8 +13,8 @@
 #include "base/system/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/time/time.h"
-#include "bat/ads/pref_names.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_referrals/common/pref_names.h"
 #include "brave/components/brave_wallet/browser/pref_names.h"
 #include "build/build_config.h"
@@ -92,7 +92,7 @@ std::string BraveStatsUpdaterParams::GetReferralCodeParam() const {
 
 std::string BraveStatsUpdaterParams::GetAdsEnabledParam() const {
   return BooleanToString(
-      profile_pref_service_->GetBoolean(ads::prefs::kEnabled));
+      profile_pref_service_->GetBoolean(brave_ads::prefs::kEnabled));
 }
 
 std::string BraveStatsUpdaterParams::GetProcessArchParam() const {

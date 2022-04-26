@@ -27,7 +27,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/time_formatting_util.h"
 #include "bat/ads/internal/url_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave_base/random.h"
 #include "third_party/re2/src/re2/re2.h"
 
@@ -252,7 +252,7 @@ void Conversions::StartTimerIfReady() {
 
 bool Conversions::ShouldAllow() const {
   return AdsClientHelper::Get()->GetBooleanPref(
-      prefs::kShouldAllowConversionTracking);
+      brave_ads::prefs::kShouldAllowConversionTracking);
 }
 
 void Conversions::CheckRedirectChain(

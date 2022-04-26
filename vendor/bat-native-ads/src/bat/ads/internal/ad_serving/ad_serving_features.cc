@@ -6,7 +6,7 @@
 #include "bat/ads/internal/ad_serving/ad_serving_features.h"
 
 #include "base/metrics/field_trial_params.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace features {
@@ -18,7 +18,7 @@ constexpr char kFeatureName[] = "AdServing";
 constexpr char kFieldTrialParameterDefaultAdNotificationsPerHour[] =
     "default_ad_notifications_per_hour";
 constexpr int kDefaultDefaultAdNotificationsPerHour =
-    kDefaultAdNotificationsPerHour;
+    brave_ads::kDefaultAdNotificationsPerHour;
 constexpr char kFieldTrialParameterMaximumAdNotificationsPerDay[] =
     "maximum_ad_notifications_per_day";
 constexpr int kDefaultMaximumAdNotificationsPerDay = 40;

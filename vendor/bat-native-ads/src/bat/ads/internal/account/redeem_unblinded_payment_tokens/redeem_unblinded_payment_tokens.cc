@@ -22,7 +22,7 @@
 #include "bat/ads/internal/privacy/unblinded_payment_tokens/unblinded_payment_token_info.h"
 #include "bat/ads/internal/privacy/unblinded_payment_tokens/unblinded_payment_tokens.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave_base/random.h"
 #include "net/http/http_status_code.h"
 
@@ -157,8 +157,9 @@ void RedeemUnblindedPaymentTokens::ScheduleNextTokenRedemption() {
   const base::Time next_token_redemption_at =
       CalculateNextTokenRedemptionDate();
 
-  AdsClientHelper::Get()->SetDoublePref(prefs::kNextTokenRedemptionAt,
-                                        next_token_redemption_at.ToDoubleT());
+  AdsClientHelper::Get()->SetDoublePref(
+      brave_ads::prefs::kNextTokenRedemptionAt,
+      next_token_redemption_at.ToDoubleT());
 
   if (delegate_) {
     delegate_->OnDidScheduleNextUnblindedPaymentTokensRedemption(
@@ -193,8 +194,9 @@ void RedeemUnblindedPaymentTokens::OnRetry() {
 }
 
 base::TimeDelta RedeemUnblindedPaymentTokens::CalculateTokenRedemptionDelay() {
-  const base::Time next_token_redemption_at = base::Time::FromDoubleT(
-      AdsClientHelper::Get()->GetDoublePref(prefs::kNextTokenRedemptionAt));
+  const base::Time next_token_redemption_at =
+      base::Time::FromDoubleT(AdsClientHelper::Get()->GetDoublePref(
+          brave_ads::prefs::kNextTokenRedemptionAt));
 
   const base::Time now = base::Time::Now();
 

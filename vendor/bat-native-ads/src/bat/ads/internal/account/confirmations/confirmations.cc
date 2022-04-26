@@ -30,8 +30,8 @@
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_token_info.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/transaction_info.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
@@ -282,8 +282,9 @@ void Confirmations::OnDidRedeemUnblindedToken(
   const int unblinded_payment_tokens_count =
       ConfirmationsState::Get()->get_unblinded_payment_tokens()->Count();
 
-  const base::Time next_token_redemption_at = base::Time::FromDoubleT(
-      AdsClientHelper::Get()->GetDoublePref(prefs::kNextTokenRedemptionAt));
+  const base::Time next_token_redemption_at =
+      base::Time::FromDoubleT(AdsClientHelper::Get()->GetDoublePref(
+          brave_ads::prefs::kNextTokenRedemptionAt));
 
   BLOG(1, "Successfully redeemed unblinded token for "
               << confirmation.ad_type << " with confirmation id "

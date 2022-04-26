@@ -9,7 +9,7 @@
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/catalog/catalog.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
@@ -18,25 +18,27 @@ constexpr int kCatalogLifespanInDays = 1;
 }
 
 void ResetCatalog() {
-  AdsClientHelper::Get()->ClearPref(prefs::kCatalogId);
-  AdsClientHelper::Get()->ClearPref(prefs::kCatalogVersion);
-  AdsClientHelper::Get()->ClearPref(prefs::kCatalogPing);
-  AdsClientHelper::Get()->ClearPref(prefs::kCatalogLastUpdated);
+  AdsClientHelper::Get()->ClearPref(brave_ads::prefs::kCatalogId);
+  AdsClientHelper::Get()->ClearPref(brave_ads::prefs::kCatalogVersion);
+  AdsClientHelper::Get()->ClearPref(brave_ads::prefs::kCatalogPing);
+  AdsClientHelper::Get()->ClearPref(brave_ads::prefs::kCatalogLastUpdated);
 }
 
 std::string GetCatalogId() {
-  return AdsClientHelper::Get()->GetStringPref(prefs::kCatalogId);
+  return AdsClientHelper::Get()->GetStringPref(brave_ads::prefs::kCatalogId);
 }
 
 bool DoesCatalogExist() {
-  return AdsClientHelper::Get()->GetIntegerPref(prefs::kCatalogVersion) > 0;
+  return AdsClientHelper::Get()->GetIntegerPref(
+             brave_ads::prefs::kCatalogVersion) > 0;
 }
 
 bool HasCatalogExpired() {
   const base::Time now = base::Time::Now();
 
   const double catalog_last_updated_timestamp =
-      AdsClientHelper::Get()->GetDoublePref(prefs::kCatalogLastUpdated);
+      AdsClientHelper::Get()->GetDoublePref(
+          brave_ads::prefs::kCatalogLastUpdated);
 
   const base::Time time =
       base::Time::FromDoubleT(catalog_last_updated_timestamp);

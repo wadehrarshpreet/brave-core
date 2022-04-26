@@ -7,12 +7,12 @@
 
 #include "base/android/jni_string.h"
 #include "base/system/sys_info.h"
-#include "bat/ads/pref_names.h"
 #include "brave/browser/brave_ads/android/jni_headers/BraveAdsSignupDialog_jni.h"
 #include "brave/browser/brave_ads/android/jni_headers/BraveAds_jni.h"
 #include "brave/browser/brave_ads/background_helper/background_helper.h"
 #include "brave/build/android/jni_headers/BraveNotificationSettingsBridge_jni.h"
 #include "brave/components/brave_ads/common/features.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "chrome/browser/notifications/jni_headers/NotificationSystemStatusUtil_jni.h"
 #include "chrome/browser/notifications/notification_channels_provider_android.h"
 

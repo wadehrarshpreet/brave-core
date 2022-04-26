@@ -9,7 +9,7 @@
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "net/http/http_status_code.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -86,7 +86,7 @@ TEST_F(BatAdsCatalogPermissionRuleTest,
 
 TEST_F(BatAdsCatalogPermissionRuleTest, DoNotAllowAdIfCatalogDoesNotExist) {
   // Arrange
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion, 0);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 0);
 
   // Act
   CatalogPermissionRule permission_rule;

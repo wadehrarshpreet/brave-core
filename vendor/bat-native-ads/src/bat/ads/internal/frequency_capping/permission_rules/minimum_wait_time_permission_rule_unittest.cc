@@ -10,7 +10,7 @@
 #include "bat/ads/internal/frequency_capping/frequency_capping_unittest_util.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -36,7 +36,7 @@ TEST_F(BatAdsMinimumWaitTimePermissionRuleTest, AllowAdIfThereIsNoAdsHistory) {
 
 TEST_F(BatAdsMinimumWaitTimePermissionRuleTest, AllowAdIfDoesNotExceedCap) {
   // Arrange
-  AdsClientHelper::Get()->SetInt64Pref(prefs::kAdsPerHour, 5);
+  AdsClientHelper::Get()->SetInt64Pref(brave_ads::prefs::kAdsPerHour, 5);
 
   RecordAdEvent(AdType::kAdNotification, ConfirmationType::kServed);
 
@@ -52,7 +52,7 @@ TEST_F(BatAdsMinimumWaitTimePermissionRuleTest, AllowAdIfDoesNotExceedCap) {
 
 TEST_F(BatAdsMinimumWaitTimePermissionRuleTest, DoNotAllowAdIfExceedsCap) {
   // Arrange
-  AdsClientHelper::Get()->SetInt64Pref(prefs::kAdsPerHour, 5);
+  AdsClientHelper::Get()->SetInt64Pref(brave_ads::prefs::kAdsPerHour, 5);
 
   RecordAdEvent(AdType::kAdNotification, ConfirmationType::kServed);
 

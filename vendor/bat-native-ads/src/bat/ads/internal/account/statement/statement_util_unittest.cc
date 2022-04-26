@@ -15,7 +15,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -41,8 +41,9 @@ TEST_F(BatAdsStatementUtilTest, GetNextPaymentDate) {
 
   const base::Time next_token_redemption_at =
       TimeFromString("5 February 2020", /* is_local */ false);
-  AdsClientHelper::Get()->SetDoublePref(prefs::kNextTokenRedemptionAt,
-                                        next_token_redemption_at.ToDoubleT());
+  AdsClientHelper::Get()->SetDoublePref(
+      brave_ads::prefs::kNextTokenRedemptionAt,
+      next_token_redemption_at.ToDoubleT());
 
   const TransactionList transactions;
 

@@ -5,12 +5,12 @@
 
 #include "base/path_service.h"
 #include "base/test/scoped_feature_list.h"
-#include "bat/ads/pref_names.h"
 #include "brave/browser/brave_ads/ads_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
 #include "brave/common/brave_paths.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_ads/common/features.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_rewards/browser/rewards_service_impl.h"
 #include "brave/components/brave_rewards/browser/test/common/rewards_browsertest_context_util.h"
 #include "brave/components/brave_rewards/browser/test/common/rewards_browsertest_response.h"
@@ -184,7 +184,7 @@ IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled, AdsAlreadyEnabled) {
 IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
                        AdsEnablePopupAccepted) {
   GURL url = https_server()->GetURL(kAllowedDomain, "/simple.html");
-  GetPrefs()->SetBoolean(ads::prefs::kEnabled, false);
+  GetPrefs()->SetBoolean(brave_ads::prefs::kEnabled, false);
 
   auto* rewards_service = static_cast<brave_rewards::RewardsServiceImpl*>(
       brave_rewards::RewardsServiceFactory::GetForProfile(
@@ -206,14 +206,14 @@ IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
       popup_contents, "[data-test-id='rewards-onboarding-main-button']");
 
   EXPECT_EQ(true, content::EvalJs(contents, kResolveRequestAdsEnabledPromise));
-  EXPECT_TRUE(GetPrefs()->GetBoolean(ads::prefs::kEnabled));
+  EXPECT_TRUE(GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled));
 }
 
 IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
                        RewardsEnablePopupAccepted) {
   GURL url = https_server()->GetURL(kAllowedDomain, "/simple.html");
   rewards_browsertest_util::SetOnboardingBypassed(browser(), false);
-  GetPrefs()->SetBoolean(ads::prefs::kEnabled, false);
+  GetPrefs()->SetBoolean(brave_ads::prefs::kEnabled, false);
 
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   content::WebContents* contents =
@@ -227,13 +227,13 @@ IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
       popup_contents, "[data-test-id='rewards-onboarding-main-button']");
 
   EXPECT_EQ(true, content::EvalJs(contents, kResolveRequestAdsEnabledPromise));
-  EXPECT_TRUE(GetPrefs()->GetBoolean(ads::prefs::kEnabled));
+  EXPECT_TRUE(GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled));
 }
 
 IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
                        PopupClosedByNewTabOpen) {
   GURL url = https_server()->GetURL(kAllowedDomain, "/simple.html");
-  GetPrefs()->SetBoolean(ads::prefs::kEnabled, false);
+  GetPrefs()->SetBoolean(brave_ads::prefs::kEnabled, false);
 
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url));
   content::WebContents* contents =
@@ -253,7 +253,7 @@ IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
 IN_PROC_BROWSER_TEST_F(RequestAdsEnabledApiTestEnabled,
                        ApiForIncognitoBrowser) {
   GURL url = https_server()->GetURL(kAllowedDomain, "/simple.html");
-  GetPrefs()->SetBoolean(ads::prefs::kEnabled, true);
+  GetPrefs()->SetBoolean(brave_ads::prefs::kEnabled, true);
 
   Browser* incognito_browser = OpenURLOffTheRecord(browser()->profile(), url);
 

@@ -19,7 +19,7 @@
 #include "bat/ads/internal/features/bandits/epsilon_greedy_bandit_features.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/segments/segments_json_reader.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace ad_targeting {
@@ -73,7 +73,7 @@ ArmBucketMap BucketSortArms(const ArmList& arms) {
 
 SegmentList GetEligibleSegments() {
   const std::string json = AdsClientHelper::Get()->GetStringPref(
-      prefs::kEpsilonGreedyBanditEligibleSegments);
+      brave_ads::prefs::kEpsilonGreedyBanditEligibleSegments);
 
   return JSONReader::ReadSegments(json);
 }
@@ -194,8 +194,8 @@ EpsilonGreedyBandit::EpsilonGreedyBandit() = default;
 EpsilonGreedyBandit::~EpsilonGreedyBandit() = default;
 
 SegmentList EpsilonGreedyBandit::GetSegments() const {
-  const std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  const std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
 
   const EpsilonGreedyBanditArmMap arms =
       EpsilonGreedyBanditArms::FromJson(json);

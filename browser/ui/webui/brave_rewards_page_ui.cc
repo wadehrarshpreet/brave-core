@@ -18,13 +18,13 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/time/time.h"
 #include "bat/ads/ad_content_info.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ledger/mojom_structs.h"
 #include "brave/browser/brave_ads/ads_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
 #include "brave/browser/ui/webui/brave_webui_source.h"
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service_observer.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
@@ -556,15 +556,15 @@ void RewardsDOMHandler::InitPrefChangeRegistrar() {
   pref_change_registrar_.Init(profile->GetPrefs());
 
   pref_change_registrar_.Add(
-      ads::prefs::kEnabled,
+      brave_ads::prefs::kEnabled,
       base::BindRepeating(&RewardsDOMHandler::OnPrefChanged,
                           base::Unretained(this)));
   pref_change_registrar_.Add(
-      ads::prefs::kAdsPerHour,
+      brave_ads::prefs::kAdsPerHour,
       base::BindRepeating(&RewardsDOMHandler::OnPrefChanged,
                           base::Unretained(this)));
   pref_change_registrar_.Add(
-      ads::prefs::kAdsSubdivisionTargetingCode,
+      brave_ads::prefs::kAdsSubdivisionTargetingCode,
       base::BindRepeating(&RewardsDOMHandler::OnPrefChanged,
                           base::Unretained(this)));
 

@@ -30,9 +30,9 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/statement_info.h"
 #include "bat/ads/transaction_info.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 

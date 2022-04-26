@@ -8,19 +8,19 @@
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/unittest_time_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
 void ForceCatalogFrequencyCapPermission() {
-  AdsClientHelper::Get()->SetStringPref(prefs::kCatalogId,
+  AdsClientHelper::Get()->SetStringPref(brave_ads::prefs::kCatalogId,
                                         "573c74fa-623a-4a46-adce-e688dfb7e8f5");
 
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion, 1);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 1);
 
-  AdsClientHelper::Get()->SetInt64Pref(prefs::kCatalogPing, 7200000);
+  AdsClientHelper::Get()->SetInt64Pref(brave_ads::prefs::kCatalogPing, 7200000);
 
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         NowAsTimestamp());
 }
 

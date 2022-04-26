@@ -6,7 +6,6 @@
 #include "brave/components/brave_ads/browser/ads_service.h"
 
 #include "base/time/time.h"
-#include "bat/ads/pref_names.h"
 #include "brave/components/brave_ads/common/pref_names.h"
 #include "components/pref_registry/pref_registry_syncable.h"
 
@@ -40,44 +39,46 @@ void AdsService::RegisterProfilePrefs(
 
   registry->RegisterIntegerPref(prefs::kVersion, prefs::kCurrentVersionNumber);
 
-  registry->RegisterBooleanPref(ads::prefs::kEnabled, false);
+  registry->RegisterBooleanPref(brave_ads::prefs::kEnabled, false);
 
   registry->RegisterIntegerPref(prefs::kAdNotificationLastScreenPositionX, 0);
   registry->RegisterIntegerPref(prefs::kAdNotificationLastScreenPositionY, 0);
   registry->RegisterBooleanPref(prefs::kAdNotificationDidFallbackToCustom,
                                 false);
 
-  registry->RegisterBooleanPref(ads::prefs::kShouldAllowConversionTracking,
-                                true);
+  registry->RegisterBooleanPref(
+      brave_ads::prefs::kShouldAllowConversionTracking, true);
 
-  registry->RegisterInt64Pref(ads::prefs::kAdsPerHour, -1);
+  registry->RegisterInt64Pref(brave_ads::prefs::kAdsPerHour, -1);
 
-  registry->RegisterIntegerPref(ads::prefs::kIdleTimeThreshold, 15);
+  registry->RegisterIntegerPref(brave_ads::prefs::kIdleTimeThreshold, 15);
 
-  registry->RegisterBooleanPref(ads::prefs::kShouldAllowAdsSubdivisionTargeting,
-                                false);
-  registry->RegisterStringPref(ads::prefs::kAdsSubdivisionTargetingCode,
+  registry->RegisterBooleanPref(
+      brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting, false);
+  registry->RegisterStringPref(brave_ads::prefs::kAdsSubdivisionTargetingCode,
                                "AUTO");
   registry->RegisterStringPref(
-      ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode, "");
+      brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode, "");
 
-  registry->RegisterStringPref(ads::prefs::kCatalogId, "");
-  registry->RegisterIntegerPref(ads::prefs::kCatalogVersion, 0);
-  registry->RegisterInt64Pref(ads::prefs::kCatalogPing, 0);
-  registry->RegisterDoublePref(ads::prefs::kCatalogLastUpdated,
+  registry->RegisterStringPref(brave_ads::prefs::kCatalogId, "");
+  registry->RegisterIntegerPref(brave_ads::prefs::kCatalogVersion, 0);
+  registry->RegisterInt64Pref(brave_ads::prefs::kCatalogPing, 0);
+  registry->RegisterDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                base::Time().ToDoubleT());
 
-  registry->RegisterIntegerPref(ads::prefs::kIssuerPing, 7200000);
+  registry->RegisterIntegerPref(brave_ads::prefs::kIssuerPing, 7200000);
 
-  registry->RegisterStringPref(ads::prefs::kEpsilonGreedyBanditArms, "");
-  registry->RegisterStringPref(ads::prefs::kEpsilonGreedyBanditEligibleSegments,
-                               "");
+  registry->RegisterStringPref(brave_ads::prefs::kEpsilonGreedyBanditArms, "");
+  registry->RegisterStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditEligibleSegments, "");
 
-  registry->RegisterDoublePref(ads::prefs::kNextTokenRedemptionAt,
+  registry->RegisterDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                base::Time::Now().ToDoubleT());
 
-  registry->RegisterBooleanPref(ads::prefs::kHasMigratedConversionState, false);
-  registry->RegisterBooleanPref(ads::prefs::kHasMigratedRewardsState, false);
+  registry->RegisterBooleanPref(brave_ads::prefs::kHasMigratedConversionState,
+                                false);
+  registry->RegisterBooleanPref(brave_ads::prefs::kHasMigratedRewardsState,
+                                false);
 }
 
 }  // namespace brave_ads

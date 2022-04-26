@@ -74,13 +74,12 @@
 #include "bat/ads/internal/user_activity/idle_time.h"
 #include "bat/ads/internal/user_activity/user_activity.h"
 #include "bat/ads/new_tab_page_ad_info.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/promoted_content_ad_info.h"
 #include "bat/ads/statement_info.h"
+#include "brave/components/brave_ads/common/pref_names.h"
+#include "brave/components/brave_federated/public/interfaces/brave_federated.mojom.h"
 #include "build/build_config.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
-
-#include "brave/components/brave_federated/public/interfaces/brave_federated.mojom.h"
 
 namespace ads {
 

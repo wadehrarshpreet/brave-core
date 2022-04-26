@@ -16,7 +16,7 @@
 #include "bat/ads/internal/conversions/conversion_queue_item_info.h"
 #include "bat/ads/internal/database/tables/conversion_queue_database_table.h"
 #include "bat/ads/internal/logging.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
@@ -120,7 +120,7 @@ absl::optional<ConversionQueueItemList> FromJson(const std::string& json) {
 
 void Migrate(InitializeCallback callback) {
   if (AdsClientHelper::Get()->GetBooleanPref(
-          prefs::kHasMigratedConversionState)) {
+          brave_ads::prefs::kHasMigratedConversionState)) {
     callback(/* success */ true);
     return;
   }
@@ -134,7 +134,7 @@ void Migrate(InitializeCallback callback) {
           BLOG(3, "Successfully migrated conversion state");
 
           AdsClientHelper::Get()->SetBooleanPref(
-              prefs::kHasMigratedConversionState, true);
+              brave_ads::prefs::kHasMigratedConversionState, true);
 
           callback(/* success */ true);
           return;
@@ -163,7 +163,7 @@ void Migrate(InitializeCallback callback) {
               }
 
               AdsClientHelper::Get()->SetBooleanPref(
-                  prefs::kHasMigratedConversionState, true);
+                  brave_ads::prefs::kHasMigratedConversionState, true);
 
               BLOG(3, "Successfully migrated conversion state");
               callback(/* success */ true);

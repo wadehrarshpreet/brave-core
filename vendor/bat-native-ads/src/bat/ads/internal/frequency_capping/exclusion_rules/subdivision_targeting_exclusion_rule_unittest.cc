@@ -10,7 +10,7 @@
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -41,7 +41,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
   ads_client_mock_->SetStringPref(
       prefs::kAutoDetectedAdsSubdivisionTargetingCode, "US-FL");
 
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "AUTO");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "AUTO");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -57,7 +58,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
 TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
        AllowAdIfSubdivisionTargetingIsSupportedForMultipleGeoTargets) {
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "US-FL");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "US-FL");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -77,7 +79,8 @@ TEST_F(
   ads_client_mock_->SetStringPref(
       prefs::kAutoDetectedAdsSubdivisionTargetingCode, "US-FL");
 
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "AUTO");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "AUTO");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -93,7 +96,8 @@ TEST_F(
 TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
        AllowAdIfSubdivisionTargetingIsSupportedAndManuallySelected) {
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "US-FL");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "US-FL");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -110,7 +114,8 @@ TEST_F(
     BatAdsSubdivisionTargetingExclusionRuleTest,
     AllowAdIfSubdivisionTargetingIsSupportedAndManuallySelectedForNonSubdivisionGeoTarget) {  // NOLINT
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "US-FL");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "US-FL");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -129,7 +134,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
   ads_client_mock_->SetStringPref(
       prefs::kAutoDetectedAdsSubdivisionTargetingCode, "");
 
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "AUTO");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "AUTO");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -145,7 +151,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
 TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
        DoNotAllowAdIfSubdivisionTargetingIsSupportedForUnsupportedGeoTarget) {
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "US-FL");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "US-FL");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -194,8 +201,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
 TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
        DoNotAllowAdIfSubdivisionTargetingIsDisabledForSubdivisionGeoTarget) {
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode,
-                                  "DISABLED");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "DISABLED");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;
@@ -211,8 +218,8 @@ TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
 TEST_F(BatAdsSubdivisionTargetingExclusionRuleTest,
        AllowAdIfSubdivisionTargetingIsDisabledForNonSubdivisionGeoTarget) {
   // Arrange
-  ads_client_mock_->SetStringPref(prefs::kAdsSubdivisionTargetingCode,
-                                  "DISABLED");
+  ads_client_mock_->SetStringPref(
+      brave_ads::prefs::kAdsSubdivisionTargetingCode, "DISABLED");
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetId;

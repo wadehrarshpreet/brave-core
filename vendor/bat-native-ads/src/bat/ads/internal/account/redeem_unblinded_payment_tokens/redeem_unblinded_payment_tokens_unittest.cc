@@ -15,7 +15,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "net/http/http_status_code.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -68,7 +68,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest, RedeemUnblindedPaymentTokens) {
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   const privacy::UnblindedPaymentTokenList& unblinded_payment_tokens =
@@ -142,7 +142,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest,
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   const privacy::UnblindedPaymentTokenList& unblinded_payment_tokens =
@@ -200,7 +200,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest, ScheduleNextTokenRedemption) {
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   const privacy::UnblindedPaymentTokenList& unblinded_payment_tokens =
@@ -259,7 +259,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest, InvalidWallet) {
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   const privacy::UnblindedPaymentTokenList& unblinded_payment_tokens =
@@ -320,7 +320,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest, NoUnblindedPaymentTokens) {
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   // Act
@@ -375,7 +375,7 @@ TEST_F(BatAdsRedeemUnblindedPaymentTokensTest, Retry) {
   MockUrlRequest(ads_client_mock_, endpoints);
 
   const base::Time time = Now();
-  ads_client_mock_->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  ads_client_mock_->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                                   time.ToDoubleT());
 
   const privacy::UnblindedPaymentTokenList& unblinded_payment_tokens =

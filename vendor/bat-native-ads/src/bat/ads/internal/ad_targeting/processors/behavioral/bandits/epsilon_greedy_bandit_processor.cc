@@ -15,7 +15,7 @@
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/segments/segments_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace ad_targeting {
@@ -115,8 +115,8 @@ void EpsilonGreedyBandit::Process(const BanditFeedbackInfo& feedback) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void EpsilonGreedyBandit::InitializeArms() const {
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
 
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
@@ -125,15 +125,16 @@ void EpsilonGreedyBandit::InitializeArms() const {
   arms = MaybeDeleteArms(arms);
 
   json = EpsilonGreedyBanditArms::ToJson(arms);
-  AdsClientHelper::Get()->SetStringPref(prefs::kEpsilonGreedyBanditArms, json);
+  AdsClientHelper::Get()->SetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms, json);
 
   BLOG(1, "Successfully initialized epsilon greedy bandit arms");
 }
 
 void EpsilonGreedyBandit::UpdateArm(const uint64_t reward,
                                     const std::string& segment) const {
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
 
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
@@ -156,7 +157,8 @@ void EpsilonGreedyBandit::UpdateArm(const uint64_t reward,
 
   json = EpsilonGreedyBanditArms::ToJson(arms);
 
-  AdsClientHelper::Get()->SetStringPref(prefs::kEpsilonGreedyBanditArms, json);
+  AdsClientHelper::Get()->SetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms, json);
 
   BLOG(1,
        "Epsilon greedy bandit arm was updated for " << segment << " segment");

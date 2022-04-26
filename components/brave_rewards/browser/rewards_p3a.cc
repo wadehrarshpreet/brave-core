@@ -9,7 +9,6 @@
 #include "base/metrics/histogram_macros.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/values.h"
-#include "bat/ads/pref_names.h"
 #include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "components/prefs/pref_service.h"
@@ -129,8 +128,8 @@ void RecordAdsState(AdsState state) {
 
 void UpdateAdsStateOnPreferenceChange(PrefService* prefs,
                                       const std::string& pref) {
-  const bool ads_enabled = prefs->GetBoolean(ads::prefs::kEnabled);
-  if (pref == ads::prefs::kEnabled) {
+  const bool ads_enabled = prefs->GetBoolean(brave_ads::prefs::kEnabled);
+  if (pref == brave_ads::prefs::kEnabled) {
     if (ads_enabled) {
       RecordAdsState(AdsState::kAdsEnabled);
       prefs->SetBoolean(brave_ads::prefs::kAdsWereDisabled, false);
@@ -144,7 +143,7 @@ void UpdateAdsStateOnPreferenceChange(PrefService* prefs,
 
 void MaybeRecordInitialAdsState(PrefService* prefs) {
   if (!prefs->GetBoolean(brave_ads::prefs::kHasAdsP3AState)) {
-    const bool ads_state = prefs->GetBoolean(ads::prefs::kEnabled);
+    const bool ads_state = prefs->GetBoolean(brave_ads::prefs::kEnabled);
     RecordAdsState(ads_state ? AdsState::kAdsEnabled : AdsState::kAdsDisabled);
     prefs->SetBoolean(brave_ads::prefs::kHasAdsP3AState, true);
   }

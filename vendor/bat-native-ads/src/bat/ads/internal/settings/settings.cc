@@ -11,14 +11,14 @@
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ad_serving/ad_serving_features.h"
 #include "bat/ads/internal/ads_client_helper.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace settings {
 
 int GetAdsPerHour() {
   int64_t ads_per_hour =
-      AdsClientHelper::Get()->GetInt64Pref(prefs::kAdsPerHour);
+      AdsClientHelper::Get()->GetInt64Pref(brave_ads::prefs::kAdsPerHour);
 
   if (ads_per_hour == -1) {
     ads_per_hour =
@@ -26,8 +26,9 @@ int GetAdsPerHour() {
   }
 
   const int64_t clamped_ads_per_hour = base::clamp(
-      ads_per_hour, static_cast<int64_t>(kMinimumAdNotificationsPerHour),
-      static_cast<int64_t>(kMaximumAdNotificationsPerHour));
+      ads_per_hour,
+      static_cast<int64_t>(brave_ads::kMinimumAdNotificationsPerHour),
+      static_cast<int64_t>(brave_ads::kMaximumAdNotificationsPerHour));
 
   return static_cast<int>(clamped_ads_per_hour);
 }

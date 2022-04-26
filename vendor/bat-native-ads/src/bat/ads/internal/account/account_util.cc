@@ -11,12 +11,12 @@
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/privacy/unblinded_payment_tokens/unblinded_payment_tokens.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
 bool ShouldRewardUser() {
-  return AdsClientHelper::Get()->GetBooleanPref(prefs::kEnabled);
+  return AdsClientHelper::Get()->GetBooleanPref(brave_ads::prefs::kEnabled);
 }
 
 void ResetRewards(ResetRewardsCallback callback) {

@@ -10,13 +10,13 @@
 #include "base/barrier_closure.h"
 #include "base/command_line.h"
 #include "base/system/sys_info.h"
-#include "bat/ads/pref_names.h"
 #include "brave/browser/brave_stats/brave_stats_updater_params.h"
 #include "brave/browser/brave_stats/buildflags.h"
 #include "brave/browser/brave_stats/switches.h"
 #include "brave/common/brave_channel_info.h"
 #include "brave/common/network_constants.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_referrals/buildflags/buildflags.h"
 #include "brave/components/brave_stats/browser/brave_stats_updater_util.h"
 #include "brave/components/brave_wallet/browser/pref_names.h"
@@ -320,7 +320,7 @@ bool BraveStatsUpdater::IsReferralInitialized() {
 }
 
 bool BraveStatsUpdater::IsAdsEnabled() {
-  return GetProfilePrefs()->GetBoolean(ads::prefs::kEnabled);
+  return GetProfilePrefs()->GetBoolean(brave_ads::prefs::kEnabled);
 }
 
 bool BraveStatsUpdater::HasDoneThresholdPing() {

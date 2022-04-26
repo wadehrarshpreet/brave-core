@@ -12,8 +12,8 @@
 #include "bat/ads/internal/database/tables/transactions_database_table.h"
 #include "bat/ads/internal/legacy_migration/rewards/legacy_rewards_migration_util.h"
 #include "bat/ads/internal/logging.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/transaction_info_aliases.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
@@ -30,14 +30,16 @@ void OnFailedToMigrate(InitializeCallback callback) {
 
 void OnDidMigrate(InitializeCallback callback) {
   BLOG(3, "Successfully migrated rewards state");
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kHasMigratedRewardsState, true);
+  AdsClientHelper::Get()->SetBooleanPref(
+      brave_ads::prefs::kHasMigratedRewardsState, true);
   callback(/* success */ true);
 }
 
 }  // namespace
 
 void Migrate(InitializeCallback callback) {
-  if (AdsClientHelper::Get()->GetBooleanPref(prefs::kHasMigratedRewardsState)) {
+  if (AdsClientHelper::Get()->GetBooleanPref(
+          brave_ads::prefs::kHasMigratedRewardsState)) {
     callback(/* success */ true);
     return;
   }

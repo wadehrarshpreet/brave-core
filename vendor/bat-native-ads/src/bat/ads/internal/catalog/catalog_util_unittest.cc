@@ -10,7 +10,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -25,26 +25,28 @@ class BatAdsCatalogUtilTest : public UnitTestBase {
 
 TEST_F(BatAdsCatalogUtilTest, ResetCatalog) {
   // Arrange
-  AdsClientHelper::Get()->SetStringPref(prefs::kCatalogId,
+  AdsClientHelper::Get()->SetStringPref(brave_ads::prefs::kCatalogId,
                                         "150a9518-4db8-4fba-b104-0c420a1d9c0c");
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion, 1);
-  AdsClientHelper::Get()->SetInt64Pref(prefs::kCatalogPing, 1000);
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 1);
+  AdsClientHelper::Get()->SetInt64Pref(brave_ads::prefs::kCatalogPing, 1000);
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         NowAsTimestamp());
 
   // Act
   ResetCatalog();
 
   // Assert
-  EXPECT_TRUE(!AdsClientHelper::Get()->HasPrefPath(prefs::kCatalogId) &&
-              !AdsClientHelper::Get()->HasPrefPath(prefs::kCatalogVersion) &&
-              !AdsClientHelper::Get()->HasPrefPath(prefs::kCatalogPing) &&
-              !AdsClientHelper::Get()->HasPrefPath(prefs::kCatalogLastUpdated));
+  EXPECT_TRUE(
+      !AdsClientHelper::Get()->HasPrefPath(brave_ads::prefs::kCatalogId) &&
+      !AdsClientHelper::Get()->HasPrefPath(brave_ads::prefs::kCatalogVersion) &&
+      !AdsClientHelper::Get()->HasPrefPath(brave_ads::prefs::kCatalogPing) &&
+      !AdsClientHelper::Get()->HasPrefPath(
+          brave_ads::prefs::kCatalogLastUpdated));
 }
 
 TEST_F(BatAdsCatalogUtilTest, CatalogExists) {
   // Arrange
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion, 1);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 1);
 
   // Act
   const bool does_exist = DoesCatalogExist();
@@ -55,7 +57,7 @@ TEST_F(BatAdsCatalogUtilTest, CatalogExists) {
 
 TEST_F(BatAdsCatalogUtilTest, CatalogDoesNotExist) {
   // Arrange
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion, 0);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 0);
 
   // Act
   const bool does_exist = DoesCatalogExist();
@@ -66,7 +68,7 @@ TEST_F(BatAdsCatalogUtilTest, CatalogDoesNotExist) {
 
 TEST_F(BatAdsCatalogUtilTest, CatalogHasExpired) {
   // Arrange
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         NowAsTimestamp());
 
   // Act
@@ -79,7 +81,7 @@ TEST_F(BatAdsCatalogUtilTest, CatalogHasExpired) {
 
 TEST_F(BatAdsCatalogUtilTest, CatalogHasNotExpired) {
   // Arrange
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         NowAsTimestamp());
 
   // Act

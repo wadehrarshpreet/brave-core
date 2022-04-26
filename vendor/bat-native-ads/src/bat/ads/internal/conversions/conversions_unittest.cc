@@ -20,7 +20,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -57,8 +57,8 @@ class BatAdsConversionsTest : public UnitTestBase {
 
 TEST_F(BatAdsConversionsTest, ShouldNotAllowConversionTracking) {
   // Arrange
-  ads_client_mock_->SetBooleanPref(prefs::kShouldAllowConversionTracking,
-                                   false);
+  ads_client_mock_->SetBooleanPref(
+      brave_ads::prefs::kShouldAllowConversionTracking, false);
 
   ConversionList conversions;
 
@@ -91,7 +91,7 @@ TEST_F(BatAdsConversionsTest, ShouldNotAllowConversionTracking) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedAdNotificationWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -126,7 +126,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertViewedAdNotificationWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -166,7 +166,7 @@ TEST_F(BatAdsConversionsTest, ConvertViewedAdNotificationWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertClickedAdNotificationWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -204,7 +204,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertClickedAdNotificationWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -247,7 +247,7 @@ TEST_F(BatAdsConversionsTest, ConvertClickedAdNotificationWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedNewTabPageAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(creative_ad, AdType::kNewTabPageAd,
@@ -282,7 +282,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertViewedNewTabPageAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(creative_ad, AdType::kNewTabPageAd,
@@ -322,7 +322,7 @@ TEST_F(BatAdsConversionsTest, ConvertViewedNewTabPageAdWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertClickedNewTabPageAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -360,7 +360,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertClickedNewTabPageAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -403,7 +403,7 @@ TEST_F(BatAdsConversionsTest, ConvertClickedNewTabPageAdWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedPromotedContentAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event =
@@ -439,7 +439,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertViewedPromotedContentAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event =
@@ -480,7 +480,7 @@ TEST_F(BatAdsConversionsTest, ConvertViewedPromotedContentAdWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertClickedPromotedContentAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 =
@@ -521,7 +521,7 @@ TEST_F(BatAdsConversionsTest,
 TEST_F(BatAdsConversionsTest,
        ConvertClickedPromotedContentAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 =
@@ -566,7 +566,7 @@ TEST_F(BatAdsConversionsTest,
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedInlineContentAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -602,7 +602,7 @@ TEST_F(BatAdsConversionsTest,
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedInlineContentAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -637,7 +637,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertClickedInlineContentAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -679,7 +679,7 @@ TEST_F(BatAdsConversionsTest, ConvertClickedInlineContentAdWhenAdsAreDisabled) {
 
 TEST_F(BatAdsConversionsTest, ConvertClickedInlineContentAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -722,7 +722,7 @@ TEST_F(BatAdsConversionsTest, ConvertClickedInlineContentAdWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertViewedSearchResultAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -757,7 +757,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertViewedSearchResultAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event = BuildAdEvent(
@@ -797,7 +797,7 @@ TEST_F(BatAdsConversionsTest, ConvertViewedSearchResultAdWhenAdsAreEnabled) {
 TEST_F(BatAdsConversionsTest,
        DoNotConvertClickedSearchResultAdWhenAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(
@@ -835,7 +835,7 @@ TEST_F(BatAdsConversionsTest,
 
 TEST_F(BatAdsConversionsTest, ConvertClickedSearchResultAdWhenAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const CreativeAdInfo& creative_ad = BuildCreativeAd();
   const AdEventInfo& ad_event_1 = BuildAdEvent(

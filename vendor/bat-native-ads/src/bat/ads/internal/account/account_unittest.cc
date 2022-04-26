@@ -21,10 +21,10 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/statement_info.h"
 #include "bat/ads/transaction_info.h"
 #include "bat/ads/transaction_info_aliases.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "net/http/http_status_code.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -155,7 +155,7 @@ TEST_F(BatAdsAccountTest, GetWallet) {
 
 TEST_F(BatAdsAccountTest, GetIssuersIfAdsAreEnabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   const URLEndpoints& endpoints = {{// Get issuers request
                                     R"(/v1/issuers/)",
@@ -223,7 +223,7 @@ TEST_F(BatAdsAccountTest, GetIssuersIfAdsAreEnabled) {
 
 TEST_F(BatAdsAccountTest, DoNotGetIssuersIfAdsAreDisabled) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   const URLEndpoints& endpoints = {{// Get issuers request
                                     R"(/v1/issuers/)",
@@ -284,7 +284,7 @@ TEST_F(BatAdsAccountTest, DoNotGetIssuersIfAdsAreDisabled) {
 
 TEST_F(BatAdsAccountTest, DoNotGetInvalidIssuers) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   BuildAndSetIssuers();
 
@@ -356,7 +356,7 @@ TEST_F(BatAdsAccountTest, DoNotGetInvalidIssuers) {
 
 TEST_F(BatAdsAccountTest, DoNotGetMissingPaymentIssuers) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   BuildAndSetIssuers();
 

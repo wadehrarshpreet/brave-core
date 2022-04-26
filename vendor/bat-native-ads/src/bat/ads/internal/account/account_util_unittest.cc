@@ -15,7 +15,7 @@
 #include "bat/ads/internal/privacy/unblinded_payment_tokens/unblinded_payment_tokens_unittest_util.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -30,7 +30,7 @@ class BatAdsAccountUtilTest : public UnitTestBase {
 
 TEST_F(BatAdsAccountUtilTest, ShouldRewardUser) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
   // Act
   const bool should_reward_user = ShouldRewardUser();
@@ -41,7 +41,7 @@ TEST_F(BatAdsAccountUtilTest, ShouldRewardUser) {
 
 TEST_F(BatAdsAccountUtilTest, ShouldNotRewardUser) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   // Act
   const bool should_reward_user = ShouldRewardUser();

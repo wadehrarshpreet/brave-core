@@ -83,7 +83,6 @@ source_set("headers") {
     "include/bat/ads/new_tab_page_ad_wallpaper_info.h",
     "include/bat/ads/new_tab_page_ad_wallpaper_info_aliases.h",
     "include/bat/ads/page_transition_types.h",
-    "include/bat/ads/pref_names.h",
     "include/bat/ads/promoted_content_ad_info.h",
     "include/bat/ads/statement_info.h",
     "include/bat/ads/transaction_info.h",
@@ -1007,7 +1006,6 @@ source_set("ads") {
     "src/bat/ads/new_tab_page_ad_info.cc",
     "src/bat/ads/new_tab_page_ad_wallpaper_focal_point_info.cc",
     "src/bat/ads/new_tab_page_ad_wallpaper_info.cc",
-    "src/bat/ads/pref_names.cc",
     "src/bat/ads/promoted_content_ad_info.cc",
     "src/bat/ads/statement_info.cc",
     "src/bat/ads/transaction_info.cc",
@@ -1049,9 +1047,11 @@ source_set("ads") {
   }
 
   deps = [
+    # bat-native-ads will eventually be moved into components/brave_ads
     "//base",
     "//brave/common",
     "//brave/components/brave_adaptive_captcha/buildflags",
+    "//brave/components/brave_ads/common:prefs",
     "//brave/components/challenge_bypass_ristretto",
     "//brave/components/l10n/browser",
     "//brave/components/l10n/common",

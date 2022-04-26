@@ -12,7 +12,7 @@
 #include "bat/ads/internal/frequency_capping/frequency_capping_unittest_util.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -51,8 +51,8 @@ TEST_F(BatAdsConversionExclusionRuleTest, AllowAdIfThereIsNoConversionHistory) {
 TEST_F(BatAdsConversionExclusionRuleTest,
        DoNotAllowAdIfShouldNotAllowConversionTracking) {
   // Arrange
-  ads_client_mock_->SetBooleanPref(prefs::kShouldAllowConversionTracking,
-                                   false);
+  ads_client_mock_->SetBooleanPref(
+      brave_ads::prefs::kShouldAllowConversionTracking, false);
 
   CreativeAdInfo creative_ad;
   creative_ad.creative_set_id = kCreativeSetIds.at(0);

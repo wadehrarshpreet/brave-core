@@ -12,13 +12,14 @@
 #include "bat/ads/internal/account/statement/next_payment_date_util.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/time_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
 base::Time GetNextPaymentDate(const TransactionList& transactions) {
-  const base::Time next_token_redemption_at = base::Time::FromDoubleT(
-      AdsClientHelper::Get()->GetDoublePref(prefs::kNextTokenRedemptionAt));
+  const base::Time next_token_redemption_at =
+      base::Time::FromDoubleT(AdsClientHelper::Get()->GetDoublePref(
+          brave_ads::prefs::kNextTokenRedemptionAt));
 
   const base::Time next_payment_date =
       CalculateNextPaymentDate(next_token_redemption_at, transactions);

@@ -11,11 +11,11 @@
 #include "base/system/sys_info.h"
 #include "base/test/bind.h"
 #include "base/time/time.h"
-#include "bat/ads/pref_names.h"
 #include "brave/browser/brave_stats/brave_stats_updater.h"
 #include "brave/browser/brave_stats/brave_stats_updater_params.h"
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_referrals/browser/brave_referrals_service.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_stats/browser/brave_stats_updater_util.h"
@@ -81,7 +81,7 @@ class BraveStatsUpdaterTest : public testing::Test {
         brave_stats::ProcessArch::kArchSkip);
   }
   void SetEnableAds(bool ads_enabled) {
-    GetProfilePrefs()->SetBoolean(ads::prefs::kEnabled, ads_enabled);
+    GetProfilePrefs()->SetBoolean(brave_ads::prefs::kEnabled, ads_enabled);
   }
 
   void SetCurrentTimeForTest(const base::Time& current_time) {

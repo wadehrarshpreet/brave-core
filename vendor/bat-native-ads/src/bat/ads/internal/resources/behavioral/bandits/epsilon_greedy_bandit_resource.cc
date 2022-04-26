@@ -15,7 +15,7 @@
 #include "bat/ads/internal/segments/segments_json_reader.h"
 #include "bat/ads/internal/segments/segments_json_writer.h"
 #include "bat/ads/internal/segments/segments_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace resource {
@@ -24,7 +24,7 @@ namespace {
 
 SegmentList GetSegments() {
   const std::string json = AdsClientHelper::Get()->GetStringPref(
-      prefs::kEpsilonGreedyBanditEligibleSegments);
+      brave_ads::prefs::kEpsilonGreedyBanditEligibleSegments);
 
   return JSONReader::ReadSegments(json);
 }
@@ -45,7 +45,7 @@ void EpsilonGreedyBandit::LoadFromCatalog(const Catalog& catalog) {
   const std::string json = JSONWriter::WriteSegments(parent_segments);
 
   AdsClientHelper::Get()->SetStringPref(
-      prefs::kEpsilonGreedyBanditEligibleSegments, json);
+      brave_ads::prefs::kEpsilonGreedyBanditEligibleSegments, json);
 
   BLOG(2, "Successfully loaded epsilon greedy bandit segments:");
   for (const auto& segment : parent_segments) {

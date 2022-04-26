@@ -36,12 +36,12 @@
 #include "base/task/thread_pool.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "base/time/time.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ledger/global_constants.h"
 #include "bat/ledger/ledger_database.h"
 #include "brave/browser/brave_ads/ads_service_factory.h"
 #include "brave/browser/ui/webui/brave_rewards_source.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_rewards/browser/android_util.h"
 #include "brave/components/brave_rewards/browser/diagnostic_log.h"
 #include "brave/components/brave_rewards/browser/logging.h"
@@ -418,7 +418,7 @@ void RewardsServiceImpl::InitPrefChangeRegistrar() {
       base::BindRepeating(&RewardsServiceImpl::OnPreferenceChanged,
                           base::Unretained(this)));
   profile_pref_change_registrar_.Add(
-      ads::prefs::kEnabled,
+      brave_ads::prefs::kEnabled,
       base::BindRepeating(&RewardsServiceImpl::OnPreferenceChanged,
                           base::Unretained(this)));
 }
@@ -434,7 +434,8 @@ void RewardsServiceImpl::OnPreferenceChanged(const std::string& key) {
     }
   }
 
-  if (key == prefs::kAutoContributeEnabled || key == ads::prefs::kEnabled) {
+  if (key == prefs::kAutoContributeEnabled ||
+      key == brave_ads::prefs::kEnabled) {
     bool rewards_enabled = IsRewardsEnabled();
     if (rewards_enabled) {
       RecordBackendP3AStats();
@@ -449,8 +450,8 @@ void RewardsServiceImpl::OnPreferenceChanged(const std::string& key) {
 void RewardsServiceImpl::CheckPreferences() {
   const bool is_ac_enabled = profile_->GetPrefs()->GetBoolean(
       brave_rewards::prefs::kAutoContributeEnabled);
-  const bool is_ads_enabled = profile_->GetPrefs()->GetBoolean(
-      ads::prefs::kEnabled);
+  const bool is_ads_enabled =
+      profile_->GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled);
 
   if (is_ac_enabled || is_ads_enabled) {
     StartLedgerProcessIfNecessary();
@@ -1387,7 +1388,8 @@ void RewardsServiceImpl::EnableGreaseLion() {
       greaselion::AUTO_CONTRIBUTION,
       profile_->GetPrefs()->GetBoolean(prefs::kAutoContributeEnabled));
   greaselion_service_->SetFeatureEnabled(
-      greaselion::ADS, profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled));
+      greaselion::ADS,
+      profile_->GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled));
 
   const bool show_button = profile_->GetPrefs()->GetBoolean(prefs::kShowButton);
   greaselion_service_->SetFeatureEnabled(
@@ -1741,7 +1743,7 @@ void RewardsServiceImpl::OnAdsEnabled(bool ads_enabled) {
   if (greaselion_service_) {
     greaselion_service_->SetFeatureEnabled(
         greaselion::ADS,
-        profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled));
+        profile_->GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled));
   }
 #endif
 
@@ -3425,7 +3427,7 @@ void RewardsServiceImpl::SetAdsEnabled(const bool is_enabled) {
 }
 
 bool RewardsServiceImpl::IsAdsEnabled() const {
-  return profile_->GetPrefs()->GetBoolean(ads::prefs::kEnabled);
+  return profile_->GetPrefs()->GetBoolean(brave_ads::prefs::kEnabled);
 }
 
 bool RewardsServiceImpl::IsRewardsEnabled() const {

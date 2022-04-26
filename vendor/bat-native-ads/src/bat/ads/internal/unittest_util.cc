@@ -20,7 +20,7 @@
 #include "bat/ads/internal/unittest_file_util.h"
 #include "bat/ads/internal/unittest_tag_parser_util.h"
 #include "bat/ads/internal/unittest_time_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/l10n/browser/locale_helper_mock.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
@@ -275,30 +275,33 @@ void MockHasPrefPath(const std::unique_ptr<AdsClientMock>& mock) {
 }
 
 void MockDefaultPrefs(const std::unique_ptr<AdsClientMock>& mock) {
-  mock->SetBooleanPref(prefs::kEnabled, true);
+  mock->SetBooleanPref(brave_ads::prefs::kEnabled, true);
 
-  mock->SetInt64Pref(prefs::kAdsPerHour, -1);
+  mock->SetInt64Pref(brave_ads::prefs::kAdsPerHour, -1);
 
-  mock->SetIntegerPref(prefs::kIdleTimeThreshold, 15);
+  mock->SetIntegerPref(brave_ads::prefs::kIdleTimeThreshold, 15);
 
-  mock->SetBooleanPref(prefs::kShouldAllowConversionTracking, true);
+  mock->SetBooleanPref(brave_ads::prefs::kShouldAllowConversionTracking, true);
 
-  mock->SetBooleanPref(prefs::kShouldAllowAdsSubdivisionTargeting, false);
-  mock->SetStringPref(prefs::kAdsSubdivisionTargetingCode, "AUTO");
-  mock->SetStringPref(prefs::kAutoDetectedAdsSubdivisionTargetingCode, "");
+  mock->SetBooleanPref(brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting,
+                       false);
+  mock->SetStringPref(brave_ads::prefs::kAdsSubdivisionTargetingCode, "AUTO");
+  mock->SetStringPref(
+      brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode, "");
 
-  mock->SetStringPref(prefs::kCatalogId, "");
-  mock->SetIntegerPref(prefs::kCatalogVersion, 1);
-  mock->SetInt64Pref(prefs::kCatalogPing, 7200000);
-  mock->SetDoublePref(prefs::kCatalogLastUpdated, DistantPast().ToDoubleT());
+  mock->SetStringPref(brave_ads::prefs::kCatalogId, "");
+  mock->SetIntegerPref(brave_ads::prefs::kCatalogVersion, 1);
+  mock->SetInt64Pref(brave_ads::prefs::kCatalogPing, 7200000);
+  mock->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
+                      DistantPast().ToDoubleT());
 
-  mock->SetInt64Pref(prefs::kIssuerPing, 0);
+  mock->SetInt64Pref(brave_ads::prefs::kIssuerPing, 0);
 
-  mock->SetDoublePref(prefs::kNextTokenRedemptionAt,
+  mock->SetDoublePref(brave_ads::prefs::kNextTokenRedemptionAt,
                       DistantFuture().ToDoubleT());
 
-  mock->SetBooleanPref(prefs::kHasMigratedConversionState, true);
-  mock->SetBooleanPref(prefs::kHasMigratedRewardsState, true);
+  mock->SetBooleanPref(brave_ads::prefs::kHasMigratedConversionState, true);
+  mock->SetBooleanPref(brave_ads::prefs::kHasMigratedRewardsState, true);
 }
 
 }  // namespace

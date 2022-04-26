@@ -15,7 +15,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
 #include "bat/ads/internal/user_activity/user_activity_features.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -190,13 +190,14 @@ TEST_F(BatAdsIdleTimeTest, UpdateIdleTimeThreshold) {
   scoped_feature_list.InitWithFeaturesAndParameters(enabled_features,
                                                     disabled_features);
 
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kIdleTimeThreshold, 10);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kIdleTimeThreshold,
+                                         10);
 
   ASSERT_TRUE(MaybeUpdateIdleTimeThreshold());
 
   // Act
-  const int idle_time_threshold =
-      AdsClientHelper::Get()->GetIntegerPref(prefs::kIdleTimeThreshold);
+  const int idle_time_threshold = AdsClientHelper::Get()->GetIntegerPref(
+      brave_ads::prefs::kIdleTimeThreshold);
 
   // Assert
   const int expected_idle_time_threshold = 5;
@@ -217,13 +218,14 @@ TEST_F(BatAdsIdleTimeTest, DoNotUpdateIdleTimeThreshold) {
   scoped_feature_list.InitWithFeaturesAndParameters(enabled_features,
                                                     disabled_features);
 
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kIdleTimeThreshold, 10);
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kIdleTimeThreshold,
+                                         10);
 
   ASSERT_FALSE(MaybeUpdateIdleTimeThreshold());
 
   // Act
-  const int idle_time_threshold =
-      AdsClientHelper::Get()->GetIntegerPref(prefs::kIdleTimeThreshold);
+  const int idle_time_threshold = AdsClientHelper::Get()->GetIntegerPref(
+      brave_ads::prefs::kIdleTimeThreshold);
 
   // Assert
   const int expected_idle_time_threshold = 10;

@@ -20,7 +20,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/l10n/browser/locale_helper.h"
 #include "brave/components/l10n/common/locale_util.h"
 
@@ -87,7 +87,7 @@ void SubdivisionTargeting::MaybeFetchForLocale(const std::string& locale) {
                                                               << " locale");
 
     AdsClientHelper::Get()->SetBooleanPref(
-        prefs::kShouldAllowAdsSubdivisionTargeting, false);
+        brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting, false);
 
     return;
   }
@@ -144,7 +144,7 @@ std::string SubdivisionTargeting::GetLazyAutoDetectedSubdivisionCode() const {
   if (!auto_detected_subdivision_code_optional_) {
     auto_detected_subdivision_code_optional_ =
         AdsClientHelper::Get()->GetStringPref(
-            prefs::kAutoDetectedAdsSubdivisionTargetingCode);
+            brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode);
   }
 
   return auto_detected_subdivision_code_optional_.value();
@@ -153,7 +153,7 @@ std::string SubdivisionTargeting::GetLazyAutoDetectedSubdivisionCode() const {
 std::string SubdivisionTargeting::GetLazySubdivisionCode() const {
   if (!subdivision_code_optional_) {
     subdivision_code_optional_ = AdsClientHelper::Get()->GetStringPref(
-        prefs::kAdsSubdivisionTargetingCode);
+        brave_ads::prefs::kAdsSubdivisionTargetingCode);
   }
 
   return subdivision_code_optional_.value();
@@ -174,7 +174,7 @@ void SubdivisionTargeting::MaybeAllowForLocale(const std::string& locale) {
   const bool should_allow = ShouldAllowForLocale(locale);
 
   AdsClientHelper::Get()->SetBooleanPref(
-      prefs::kShouldAllowAdsSubdivisionTargeting, should_allow);
+      brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting, should_allow);
 }
 
 bool SubdivisionTargeting::ShouldAutoDetect() const {
@@ -259,7 +259,8 @@ bool SubdivisionTargeting::ParseJson(const std::string& json) {
       base::StringPrintf("%s-%s", country->c_str(), region->c_str());
 
   AdsClientHelper::Get()->SetStringPref(
-      prefs::kAutoDetectedAdsSubdivisionTargetingCode, subdivision_code);
+      brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode,
+      subdivision_code);
 
   return true;
 }

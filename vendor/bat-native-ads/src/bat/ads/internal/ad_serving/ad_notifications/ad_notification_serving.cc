@@ -32,7 +32,7 @@
 #include "bat/ads/internal/segments/segments_aliases.h"
 #include "bat/ads/internal/settings/settings.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 namespace ad_notifications {

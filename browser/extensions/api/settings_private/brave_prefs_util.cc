@@ -5,9 +5,9 @@
 
 #include "brave/browser/extensions/api/settings_private/brave_prefs_util.h"
 
-#include "bat/ads/pref_names.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "brave/components/brave_shields/common/pref_names.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
@@ -118,13 +118,13 @@ const PrefsUtil::TypedPrefMap& BravePrefsUtil::GetAllowlistedKeys() {
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
 
   // Rewards/Ads prefs
-  (*s_brave_allowlist)[ads::prefs::kEnabled] =
+  (*s_brave_allowlist)[brave_ads::prefs::kEnabled] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
-  (*s_brave_allowlist)[ads::prefs::kAdsPerHour] =
+  (*s_brave_allowlist)[brave_ads::prefs::kAdsPerHour] =
       settings_api::PrefType::PREF_TYPE_NUMBER;
-  (*s_brave_allowlist)[ads::prefs::kShouldAllowAdsSubdivisionTargeting] =
+  (*s_brave_allowlist)[brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
-  (*s_brave_allowlist)[ads::prefs::kAdsSubdivisionTargetingCode] =
+  (*s_brave_allowlist)[brave_ads::prefs::kAdsSubdivisionTargetingCode] =
       settings_api::PrefType::PREF_TYPE_STRING;
   (*s_brave_allowlist)[brave_rewards::prefs::kEnabled] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;

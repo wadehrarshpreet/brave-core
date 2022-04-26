@@ -22,7 +22,7 @@
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=AdDiagnosticsTest.*
 
@@ -41,7 +41,7 @@ class AdDiagnosticsTest : public UnitTestBase {
 
 TEST_F(AdDiagnosticsTest, AdsEnabledAndLocale) {
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, false);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, false);
 
   // Act & Assert
   GetAds()->GetAdDiagnostics([](const bool success, const std::string& json) {
@@ -57,7 +57,7 @@ TEST_F(AdDiagnosticsTest, AdsEnabledAndLocale) {
   });
 
   // Arrange
-  AdsClientHelper::Get()->SetBooleanPref(prefs::kEnabled, true);
+  AdsClientHelper::Get()->SetBooleanPref(brave_ads::prefs::kEnabled, true);
   InitializeAds();
 
   // Act & Assert
@@ -76,10 +76,11 @@ TEST_F(AdDiagnosticsTest, CatalogPrefs) {
   // Arrange
   InitializeAds();
   const std::string catalog_id = "catalog_id";
-  AdsClientHelper::Get()->SetStringPref(prefs::kCatalogId, catalog_id);
+  AdsClientHelper::Get()->SetStringPref(brave_ads::prefs::kCatalogId,
+                                        catalog_id);
 
   const double catalog_last_updated_timestamp = NowAsTimestamp();
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         catalog_last_updated_timestamp);
 
   const base::Time catalog_last_updated_time =

@@ -30,9 +30,9 @@
 #include "bat/ads/ads_history_sort_types.h"
 #include "bat/ads/database.h"
 #include "bat/ads/inline_content_ad_info.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/statement_info.h"
 #import "brave/build/ios/mojom/cpp_transformations.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #import "brave/ios/browser/api/common/common_operations.h"
 #import "brave_ads.h"
 #import "inline_content_ad_ios.h"
@@ -69,16 +69,16 @@ static NSString* const kLegacyAutoDetectedAdsSubdivisionTargetingCodePrefKey =
     @"BATAutoDetectedAdsSubdivisionTargetingCodePrefKey";
 
 static NSString* const kAdsEnabledPrefKey =
-    base::SysUTF8ToNSString(ads::prefs::kEnabled);
+    base::SysUTF8ToNSString(brave_ads::prefs::kEnabled);
 static NSString* const kNumberOfAdsPerHourKey =
-    base::SysUTF8ToNSString(ads::prefs::kAdsPerHour);
+    base::SysUTF8ToNSString(brave_ads::prefs::kAdsPerHour);
 static NSString* const kShouldAllowAdsSubdivisionTargetingPrefKey = [NSString
-    stringWithUTF8String:ads::prefs::kShouldAllowAdsSubdivisionTargeting];
+    stringWithUTF8String:brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting];
 static NSString* const kAdsSubdivisionTargetingCodePrefKey =
-    base::SysUTF8ToNSString(ads::prefs::kAdsSubdivisionTargetingCode);
+    base::SysUTF8ToNSString(brave_ads::prefs::kAdsSubdivisionTargetingCode);
 static NSString* const kAutoDetectedAdsSubdivisionTargetingCodePrefKey =
     [NSString stringWithUTF8String:
-                  ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode];
+                  brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode];
 static NSString* const kAdsResourceMetadataPrefKey = @"BATAdsResourceMetadata";
 
 namespace {
@@ -1326,7 +1326,7 @@ BATClassAdsBridge(BOOL, isDebug, setDebug, g_is_debug)
 
 - (bool)getBooleanPref:(const std::string&)path {
   const auto key = base::SysUTF8ToNSString(path);
-  if (path == ads::prefs::kShouldAllowConversionTracking) {
+  if (path == brave_ads::prefs::kShouldAllowConversionTracking) {
     return [self shouldAllowAdConversionTracking];
   }
   return [self.prefs[key] boolValue];

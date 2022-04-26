@@ -20,7 +20,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 #include "net/http/http_status_code.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
@@ -132,7 +132,8 @@ void Issuers::FetchAfterDelay() {
 }
 
 base::TimeDelta Issuers::GetFetchDelay() const {
-  const int ping = AdsClientHelper::Get()->GetIntegerPref(prefs::kIssuerPing);
+  const int ping =
+      AdsClientHelper::Get()->GetIntegerPref(brave_ads::prefs::kIssuerPing);
   return base::Milliseconds(ping);
 }
 

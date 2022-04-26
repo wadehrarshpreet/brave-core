@@ -9,7 +9,7 @@
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/user_activity/user_activity_features.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
@@ -31,8 +31,8 @@ bool HasExceededMaximumIdleTime(const int idle_time) {
 }
 
 bool MaybeUpdateIdleTimeThreshold() {
-  const int last_idle_time_threshold =
-      AdsClientHelper::Get()->GetIntegerPref(prefs::kIdleTimeThreshold);
+  const int last_idle_time_threshold = AdsClientHelper::Get()->GetIntegerPref(
+      brave_ads::prefs::kIdleTimeThreshold);
 
   const base::TimeDelta idle_time_threshold =
       features::user_activity::GetIdleTimeThreshold();
@@ -43,7 +43,7 @@ bool MaybeUpdateIdleTimeThreshold() {
     return false;
   }
 
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kIdleTimeThreshold,
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kIdleTimeThreshold,
                                          idle_time_threshold_as_int);
 
   return true;

@@ -22,7 +22,7 @@
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
@@ -115,11 +115,11 @@ void AdServer::OnFetch(const mojom::UrlResponse& url_response) {
 
 void AdServer::SaveCatalog(const Catalog& catalog) {
   const double catalog_last_updated = base::Time::Now().ToDoubleT();
-  AdsClientHelper::Get()->SetDoublePref(prefs::kCatalogLastUpdated,
+  AdsClientHelper::Get()->SetDoublePref(brave_ads::prefs::kCatalogLastUpdated,
                                         catalog_last_updated);
 
   const std::string last_catalog_id =
-      AdsClientHelper::Get()->GetStringPref(prefs::kCatalogId);
+      AdsClientHelper::Get()->GetStringPref(brave_ads::prefs::kCatalogId);
 
   const std::string catalog_id = catalog.GetId();
 
@@ -128,14 +128,16 @@ void AdServer::SaveCatalog(const Catalog& catalog) {
     return;
   }
 
-  AdsClientHelper::Get()->SetStringPref(prefs::kCatalogId, catalog_id);
+  AdsClientHelper::Get()->SetStringPref(brave_ads::prefs::kCatalogId,
+                                        catalog_id);
 
   const int catalog_version = catalog.GetVersion();
-  AdsClientHelper::Get()->SetIntegerPref(prefs::kCatalogVersion,
+  AdsClientHelper::Get()->SetIntegerPref(brave_ads::prefs::kCatalogVersion,
                                          catalog_version);
 
   const int64_t catalog_ping = catalog.GetPing();
-  AdsClientHelper::Get()->SetInt64Pref(prefs::kCatalogPing, catalog_ping);
+  AdsClientHelper::Get()->SetInt64Pref(brave_ads::prefs::kCatalogPing,
+                                       catalog_ping);
 
   Bundle bundle;
   bundle.BuildFromCatalog(catalog);
@@ -144,9 +146,9 @@ void AdServer::SaveCatalog(const Catalog& catalog) {
 void AdServer::FetchAfterDelay() {
   retry_timer_.Stop();
 
-  const int64_t ping =
-      g_is_debug ? kDebugCatalogPing
-                 : AdsClientHelper::Get()->GetInt64Pref(prefs::kCatalogPing);
+  const int64_t ping = g_is_debug ? kDebugCatalogPing
+                                  : AdsClientHelper::Get()->GetInt64Pref(
+                                        brave_ads::prefs::kCatalogPing);
 
   const base::TimeDelta delay = base::Seconds(ping);
 

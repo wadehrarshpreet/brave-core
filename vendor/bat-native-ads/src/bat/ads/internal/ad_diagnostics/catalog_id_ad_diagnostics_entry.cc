@@ -7,7 +7,7 @@
 
 #include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 namespace ads {
 
@@ -24,7 +24,7 @@ std::string CatalogIdAdDiagnosticsEntry::GetKey() const {
 }
 
 std::string CatalogIdAdDiagnosticsEntry::GetValue() const {
-  return AdsClientHelper::Get()->GetStringPref(prefs::kCatalogId);
+  return AdsClientHelper::Get()->GetStringPref(brave_ads::prefs::kCatalogId);
 }
 
 }  // namespace ads

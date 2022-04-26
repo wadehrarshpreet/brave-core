@@ -37,7 +37,6 @@
 #include "bat/ads/ads.h"
 #include "bat/ads/ads_history_info.h"
 #include "bat/ads/inline_content_ad_info.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/resources/grit/bat_ads_resources.h"
 #include "bat/ads/statement_info.h"
 #include "brave/browser/brave_ads/notification_helper/notification_helper.h"
@@ -271,28 +270,29 @@ bool AdsServiceImpl::IsSupportedLocale() const {
 }
 
 void AdsServiceImpl::SetEnabled(const bool is_enabled) {
-  SetBooleanPref(ads::prefs::kEnabled, is_enabled);
+  SetBooleanPref(brave_ads::prefs::kEnabled, is_enabled);
 }
 
 void AdsServiceImpl::SetAllowConversionTracking(const bool should_allow) {
-  SetBooleanPref(ads::prefs::kShouldAllowConversionTracking, should_allow);
+  SetBooleanPref(brave_ads::prefs::kShouldAllowConversionTracking,
+                 should_allow);
 }
 
 void AdsServiceImpl::SetAdsPerHour(const int64_t ads_per_hour) {
-  DCHECK(ads_per_hour >= ads::kMinimumAdNotificationsPerHour &&
-         ads_per_hour <= ads::kMaximumAdNotificationsPerHour);
-  SetInt64Pref(ads::prefs::kAdsPerHour, ads_per_hour);
+  DCHECK(ads_per_hour >= brave_ads::kMinimumAdNotificationsPerHour &&
+         ads_per_hour <= brave_ads::kMaximumAdNotificationsPerHour);
+  SetInt64Pref(brave_ads::prefs::kAdsPerHour, ads_per_hour);
 }
 
 void AdsServiceImpl::SetAdsSubdivisionTargetingCode(
     const std::string& subdivision_targeting_code) {
-  SetStringPref(ads::prefs::kAdsSubdivisionTargetingCode,
+  SetStringPref(brave_ads::prefs::kAdsSubdivisionTargetingCode,
                 subdivision_targeting_code);
 }
 
 void AdsServiceImpl::SetAutoDetectedAdsSubdivisionTargetingCode(
     const std::string& subdivision_targeting_code) {
-  SetStringPref(ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode,
+  SetStringPref(brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode,
                 subdivision_targeting_code);
 }
 
@@ -511,7 +511,7 @@ void AdsServiceImpl::ToggleFlaggedAd(const std::string& json,
 }
 
 bool AdsServiceImpl::IsEnabled() const {
-  return GetBooleanPref(ads::prefs::kEnabled);
+  return GetBooleanPref(brave_ads::prefs::kEnabled);
 }
 
 bool AdsServiceImpl::IsBraveNewsEnabled() const {
@@ -526,28 +526,30 @@ bool AdsServiceImpl::ShouldStart() const {
 }
 
 int64_t AdsServiceImpl::GetAdsPerHour() const {
-  int64_t ads_per_hour = GetInt64Pref(ads::prefs::kAdsPerHour);
+  int64_t ads_per_hour = GetInt64Pref(brave_ads::prefs::kAdsPerHour);
   if (ads_per_hour == -1) {
     ads_per_hour = base::GetFieldTrialParamByFeatureAsInt(
         kAdServing, "default_ad_notifications_per_hour",
-        ads::kDefaultAdNotificationsPerHour);
+        brave_ads::kDefaultAdNotificationsPerHour);
   }
 
-  return base::clamp(ads_per_hour,
-                     static_cast<int64_t>(ads::kMinimumAdNotificationsPerHour),
-                     static_cast<int64_t>(ads::kMaximumAdNotificationsPerHour));
+  return base::clamp(
+      ads_per_hour,
+      static_cast<int64_t>(brave_ads::kMinimumAdNotificationsPerHour),
+      static_cast<int64_t>(brave_ads::kMaximumAdNotificationsPerHour));
 }
 
 bool AdsServiceImpl::ShouldAllowAdsSubdivisionTargeting() const {
-  return GetBooleanPref(ads::prefs::kShouldAllowAdsSubdivisionTargeting);
+  return GetBooleanPref(brave_ads::prefs::kShouldAllowAdsSubdivisionTargeting);
 }
 
 std::string AdsServiceImpl::GetAdsSubdivisionTargetingCode() const {
-  return GetStringPref(ads::prefs::kAdsSubdivisionTargetingCode);
+  return GetStringPref(brave_ads::prefs::kAdsSubdivisionTargetingCode);
 }
 
 std::string AdsServiceImpl::GetAutoDetectedAdsSubdivisionTargetingCode() const {
-  return GetStringPref(ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode);
+  return GetStringPref(
+      brave_ads::prefs::kAutoDetectedAdsSubdivisionTargetingCode);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -642,11 +644,12 @@ void AdsServiceImpl::Initialize() {
   profile_pref_change_registrar_.Init(profile_->GetPrefs());
 
   profile_pref_change_registrar_.Add(
-      ads::prefs::kEnabled, base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
-                                                base::Unretained(this)));
+      brave_ads::prefs::kEnabled,
+      base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
+                          base::Unretained(this)));
 
   profile_pref_change_registrar_.Add(
-      ads::prefs::kIdleTimeThreshold,
+      brave_ads::prefs::kIdleTimeThreshold,
       base::BindRepeating(&AdsServiceImpl::OnPrefsChanged,
                           base::Unretained(this)));
 
@@ -1005,7 +1008,7 @@ void AdsServiceImpl::ProcessIdleState(const ui::IdleState idle_state,
 }
 
 int AdsServiceImpl::GetIdleTimeThreshold() {
-  return GetIntegerPref(ads::prefs::kIdleTimeThreshold);
+  return GetIntegerPref(brave_ads::prefs::kIdleTimeThreshold);
 }
 
 #if BUILDFLAG(BRAVE_ADAPTIVE_CAPTCHA_ENABLED)
@@ -1722,29 +1725,29 @@ void AdsServiceImpl::MigratePrefsVersion8To9() {
 }
 
 void AdsServiceImpl::MigratePrefsVersion9To10() {
-  if (!PrefExists(ads::prefs::kAdsPerHour)) {
+  if (!PrefExists(brave_ads::prefs::kAdsPerHour)) {
     return;
   }
 
-  const int64_t ads_per_hour = GetInt64Pref(ads::prefs::kAdsPerHour);
+  const int64_t ads_per_hour = GetInt64Pref(brave_ads::prefs::kAdsPerHour);
   if (ads_per_hour == -1 || ads_per_hour == 2) {
     // The user did not change the ads per hour setting from the legacy default
     // value of 2 so we should clear the preference to transition to
     // |kDefaultAdNotificationsPerHour|
-    profile_->GetPrefs()->ClearPref(ads::prefs::kAdsPerHour);
+    profile_->GetPrefs()->ClearPref(brave_ads::prefs::kAdsPerHour);
   }
 }
 
 void AdsServiceImpl::MigratePrefsVersion10To11() {
-  if (!PrefExists(ads::prefs::kAdsPerHour)) {
+  if (!PrefExists(brave_ads::prefs::kAdsPerHour)) {
     return;
   }
 
-  const int64_t ads_per_hour = GetInt64Pref(ads::prefs::kAdsPerHour);
+  const int64_t ads_per_hour = GetInt64Pref(brave_ads::prefs::kAdsPerHour);
   if (ads_per_hour == 0 || ads_per_hour == -1) {
     // Clear the ads per hour preference to transition to
     // |kDefaultAdNotificationsPerHour|
-    profile_->GetPrefs()->ClearPref(ads::prefs::kAdsPerHour);
+    profile_->GetPrefs()->ClearPref(brave_ads::prefs::kAdsPerHour);
   }
 }
 
@@ -1761,8 +1764,8 @@ bool AdsServiceImpl::IsUpgradingFromPreBraveAdsBuild() {
   // exist, |prefs::kVersion| does not exist and it is not the first time the
   // browser has run for this user
 #if !BUILDFLAG(IS_ANDROID)
-  return GetBooleanPref(ads::prefs::kEnabled) &&
-         !PrefExists(ads::prefs::kIdleTimeThreshold) &&
+  return GetBooleanPref(brave_ads::prefs::kEnabled) &&
+         !PrefExists(brave_ads::prefs::kIdleTimeThreshold) &&
          !PrefExists(prefs::kVersion) && !first_run::IsChromeFirstRun();
 #else
   return false;
@@ -1812,7 +1815,7 @@ bool AdsServiceImpl::PrefExists(const std::string& path) const {
 }
 
 void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
-  if (pref == ads::prefs::kEnabled) {
+  if (pref == brave_ads::prefs::kEnabled) {
     rewards_service_->OnAdsEnabled(IsEnabled());
     if (!IsEnabled()) {
       SuspendP2AHistograms();
@@ -1830,7 +1833,7 @@ void AdsServiceImpl::OnPrefsChanged(const std::string& pref) {
     brave_rewards::p3a::UpdateAdsStateOnPreferenceChange(profile_->GetPrefs(),
                                                          pref);
     MaybeStart(/* should_restart */ false);
-  } else if (pref == ads::prefs::kIdleTimeThreshold) {
+  } else if (pref == brave_ads::prefs::kIdleTimeThreshold) {
     StartCheckIdleStateTimer();
   } else if (pref == brave_rewards::prefs::kWalletBrave) {
     OnWalletUpdated();

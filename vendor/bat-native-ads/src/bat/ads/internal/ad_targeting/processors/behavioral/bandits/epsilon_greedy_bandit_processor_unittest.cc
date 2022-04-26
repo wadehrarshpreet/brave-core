@@ -11,7 +11,7 @@
 #include "bat/ads/internal/container_util.h"
 #include "bat/ads/internal/unittest_base.h"
 #include "bat/ads/internal/unittest_util.h"
-#include "bat/ads/pref_names.h"
+#include "brave/components/brave_ads/common/pref_names.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
 
@@ -53,8 +53,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest, InitializeAllArmsFromResource) {
   processor::EpsilonGreedyBandit processor;
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   EXPECT_EQ(30U, arms.size());
@@ -72,8 +72,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest, NeverProcessed) {
   std::string segment = "travel";
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(segment);
@@ -100,8 +100,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest,
   processor.Process({segment, mojom::AdNotificationEventType::kDismissed});
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(segment);
@@ -128,8 +128,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest,
   processor.Process({segment, mojom::AdNotificationEventType::kTimedOut});
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(segment);
@@ -156,8 +156,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest,
   processor.Process({segment, mojom::AdNotificationEventType::kClicked});
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(segment);
@@ -179,8 +179,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest, ProcessSegmentNotInResource) {
   processor.Process({segment, mojom::AdNotificationEventType::kTimedOut});
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(segment);
@@ -197,8 +197,8 @@ TEST_F(BatAdsEpsilonGreedyBanditProcessorTest, ProcessChildSegment) {
   processor.Process({segment, mojom::AdNotificationEventType::kTimedOut});
 
   // Assert
-  std::string json =
-      AdsClientHelper::Get()->GetStringPref(prefs::kEpsilonGreedyBanditArms);
+  std::string json = AdsClientHelper::Get()->GetStringPref(
+      brave_ads::prefs::kEpsilonGreedyBanditArms);
   EpsilonGreedyBanditArmMap arms = EpsilonGreedyBanditArms::FromJson(json);
 
   auto iter = arms.find(parent_segment);
