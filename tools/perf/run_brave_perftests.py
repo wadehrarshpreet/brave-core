@@ -238,11 +238,11 @@ for target in targets:
   product = 'chromium' if configuration.chromium else 'brave'
   is_ref = configuration.chromium
 
-  profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
-                                            args.work_directory)
   binary_success = True
   status_line = f'Tag {tag} : '
   if not args.report_only:
+    profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
+                                            args.work_directory)
     start_time = time.time()
     binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
                                              binaries[target],

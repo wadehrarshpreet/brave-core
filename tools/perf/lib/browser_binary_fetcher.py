@@ -149,7 +149,7 @@ def PrepareBinaryByTag(out_dir, tag, is_chromium):
       raise RuntimeError(f'Failed to parse tag "{tag}"')
 
     # nightly < v1.35 has a broken .zip archive
-    if m.group(1) == 1 and m.group(2) < 35:
+    if int(m.group(1)) == 1 and int(m.group(2)) < 35:
       return PrepareBinaryByUrl(out_dir, BRAVE_NIGHTLY_WIN_INSTALLER_URL % tag,
                                 False)
     else:
