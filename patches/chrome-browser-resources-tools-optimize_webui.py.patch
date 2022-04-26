@@ -6,7 +6,7 @@ index 5a6272320981ee6fc591a0c9d78084f4cc3ce7b4..8cf233c9c6f3c767abb852794f0a0865
  
  # These files are already combined and minified.
  _BASE_EXCLUDES = []
-+_BASE_EXCLUDES += [ 'chrome://brave-resources/fonts/muli.css', 'chrome://brave-resources/fonts/poppins.css' ]; _BR_RESOURCES_PATH = os.path.join(_SRC_PATH, 'brave', 'ui', 'webui', 'resources','').replace('\\', '/')
++_BASE_EXCLUDES += [ 'chrome://brave-resources/fonts/poppins.css' ]; _BR_RESOURCES_PATH = os.path.join(_SRC_PATH, 'brave', 'ui', 'webui', 'resources','').replace('\\', '/')
  for excluded_file in [
      'resources/polymer/v1_0/web-animations-js/web-animations-next-lite.min.js',
      'resources/css/roboto.css',
