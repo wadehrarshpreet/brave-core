@@ -6,6 +6,10 @@
 import logging
 import os
 import sys
+import subprocess
+import hashlib
+import uuid
+import shutil
 
 from zipfile import ZipFile
 
@@ -21,59 +25,98 @@ def DownloadFromGoogleStorage(sha1, output_path):
   gsutil = download_from_google_storage.Gsutil(
       download_from_google_storage.GSUTIL_DEFAULT_PATH)
   gs_path = 'gs://' + path_util.BRAVE_PERF_BUCKET + '/' + sha1
-  logging.info('Download profile from %s to %s', gs_path, output_path)
+  logging.info(f'Download profile from {gs_path} to {output_path}')
   exit_code = gsutil.call('cp', gs_path, output_path)
   if exit_code:
-    raise RuntimeError('Failed to download: "%s"' % gs_path)
+    raise RuntimeError(f'Failed to download: {gs_path}')
 
 
-def GetProfilePath(profile, work_directory):
-  logging.debug(f'profile {profile}')
-  if os.path.isdir(profile):  # local profile
-    return profile
-
+def GetProfilePath(profile, binary, work_directory):
   if profile == 'clean':
     return None
+
+  binary_path_hash = hashlib.sha1(binary.encode("utf-8")).hexdigest()[:6]
+  profile_id = profile + '-' + binary_path_hash
+
 
   if not hasattr(GetProfilePath, 'profiles'):
     GetProfilePath.profiles = {}
 
   if profile in GetProfilePath.profiles:
-    return GetProfilePath.profiles[profile]
+    return GetProfilePath.profiles[profile_id]
 
-  zip_path = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
-                          profile + '.zip')
-  zip_path_sha1 = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
+  dir = None
+  if os.path.isdir(profile):  # local profile
+    dir = os.path.join(work_directory, 'profiles',
+                       uuid.uuid4().hex.upper()[0:6])
+    shutil.copytree(profile, dir)
+    RebaseProfile(binary, dir)
+  else:
+    zip_path = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR, profile + '.zip')
+    zip_path_sha1 = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
                                profile + '.zip.sha1')
 
-  if not os.path.isfile(zip_path_sha1):
-    raise RuntimeError('Unknown profile, file %s not found' %
-                       zip_path_sha1)
+    if not os.path.isfile(zip_path_sha1):
+      raise RuntimeError(f'Unknown profile, file {zip_path_sha1} not found')
 
-  sha1 = None
-  with open(zip_path_sha1, 'r') as sha1_file:
-    sha1 = sha1_file.read().rstrip()
-  logging.debug('Expected hash %s for profile %s', sha1, profile)
-  if not sha1:
-    raise RuntimeError('Bad sha1 in ' % zip_path_sha1)
+    sha1 = None
+    with open(zip_path_sha1, 'r') as sha1_file:
+      sha1 = sha1_file.read().rstrip()
+    logging.debug(f'Expected hash {sha1} for profile {profile}')
+    if not sha1:
+      raise RuntimeError(f'Bad sha1 in {zip_path_sha1}')
 
-  if not os.path.isfile(zip_path):
-    DownloadFromGoogleStorage(sha1, zip_path)
-  else:
-    current_sha1 = download_from_google_storage.get_sha1(zip_path)
-    if current_sha1 != sha1:
-      logging.info('Profile needs to be updated. Current hash%s, expected %s',
-                   current_sha1, sha1)
+    if not os.path.isfile(zip_path):
       DownloadFromGoogleStorage(sha1, zip_path)
+    else:
+      current_sha1 = download_from_google_storage.get_sha1(zip_path)
+      if current_sha1 != sha1:
+        logging.info(f'Profile needs to be updated. Current hash {current_sha1}, expected {sha1}')
+        DownloadFromGoogleStorage(sha1, zip_path)
+    dir = os.path.join(work_directory, 'profiles', profile_id + '-' + sha1)
 
-  dir = os.path.join(work_directory, 'profiles', profile + sha1)
-  if not os.path.isdir(dir):
-    os.makedirs(dir)
-    logging.info('Create temp profile dir %s for profile %s', dir, profile)
-    zipfile = ZipFile(zip_path)
-    zipfile.extractall(dir)
-  else:
-    logging.info('Use temp profile dir %s for profile %s', dir, profile)
+    if not os.path.isdir(dir):
+      os.makedirs(dir)
+      logging.info(f'Create temp profile dir {dir} for profile {profile}')
+      zipfile = ZipFile(zip_path)
+      zipfile.extractall(dir)
+      RebaseProfile(binary, dir)
 
-  GetProfilePath.profiles[profile] = dir
+  logging.info(f'Use temp profile dir {dir} for profile {profile}')
+  GetProfilePath.profiles[profile_id] = dir
   return dir
+
+
+def RebaseProfile(binary, profile_directory, extra_browser_args=[]):
+  logging.info(f'Rebasing dir {profile_directory} using binary {binary}')
+  args = [
+      sys.executable,
+      os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark'),
+      'system_health.common_desktop'
+  ]
+  args.append(f'--story=load:media:youtube:2018')
+  args.append('--browser=exact')
+  args.append(f'--browser-executable={binary}')
+
+  args.append(f'--profile-dir={profile_directory}')
+
+  extra_browser_args.append('--update-source-profile')
+  # TODO: add  is_chromium, see _GetVariationsBrowserArgs
+  extra_browser_args.append('--use-brave-field-trial-config')
+
+  args.append('--extra-browser-args=' + ' '.join(extra_browser_args))
+
+  #TODO: add output
+
+  logging.debug('Run binary:' + ' '.join(args))
+
+  result = subprocess.run(args,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT,
+                          cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
+  if result.returncode != 0:
+    logging.error(result.stdout.decode('utf-8'))
+    return False
+  else:
+    logging.debug(result.stdout.decode('utf-8'))
+    return True

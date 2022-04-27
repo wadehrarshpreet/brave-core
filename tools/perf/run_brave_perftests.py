@@ -89,7 +89,7 @@ def RunSingleTest(binary,
     for story in config['stories']:
       args.append(f'--story={story}')
 
-  if not is_ref: # TODO: should be is_chromium, see _GetVariationsBrowserArgs
+  if not is_ref:  # TODO: should be is_chromium, see _GetVariationsBrowserArgs
     extra_browser_args.append('--use-brave-field-trial-config')
 
   args.extend(extra_benchmark_args)
@@ -245,6 +245,7 @@ for target in targets:
   status_line = f'Tag {tag} : '
   if not args.report_only:
     profile_dir = perf_profile.GetProfilePath(configuration.profile,
+                                              binaries[target],
                                               args.work_directory)
     start_time = time.time()
     binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
