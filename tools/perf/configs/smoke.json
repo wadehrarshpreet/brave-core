@@ -3,7 +3,7 @@
   {
     "dashboard-bot-name": "test-agent",
     "chromium" : false,
-    "profile": "E:\\work\\tmp\\test_profile_1",
+    "profile": "clean",
     "extra-browser-args": ["--somekey1", "--somekey2"],
     "extra-benchmark-args": []
   },
