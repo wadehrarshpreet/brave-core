@@ -32,7 +32,7 @@ def GetProfilePath(profile, work_directory):
   if os.path.isdir(profile):  # local profile
     return profile
 
-  if profile == 'empty':
+  if profile == 'clean':
     return None
 
   if not hasattr(GetProfilePath, 'profiles'):

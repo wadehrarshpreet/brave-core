@@ -89,6 +89,9 @@ def RunSingleTest(binary,
     for story in config['stories']:
       args.append(f'--story={story}')
 
+  if not is_ref: # TODO: should be is_chromium, see _GetVariationsBrowserArgs
+    extra_browser_args.append('--use-brave-field-trial-config')
+
   args.extend(extra_benchmark_args)
 
   if verbose:
