@@ -241,8 +241,8 @@ for target in targets:
   binary_success = True
   status_line = f'Tag {tag} : '
   if not args.report_only:
-    profile_dir = perf_profile.GetProfilePath(configuration.profile_type,
-                                            args.work_directory)
+    profile_dir = perf_profile.GetProfilePath(configuration.profile,
+                                              args.work_directory)
     start_time = time.time()
     binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
                                              binaries[target],

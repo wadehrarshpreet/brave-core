@@ -27,29 +27,33 @@ def DownloadFromGoogleStorage(sha1, output_path):
     raise RuntimeError('Failed to download: "%s"' % gs_path)
 
 
-def GetProfilePath(profile_type, work_directory):
-  if profile_type == 'empty':
+def GetProfilePath(profile, work_directory):
+  logging.debug(f'profile {profile}')
+  if os.path.isdir(profile):  # local profile
+    return profile
+
+  if profile == 'empty':
     return None
 
   if not hasattr(GetProfilePath, 'profiles'):
     GetProfilePath.profiles = {}
 
-  if profile_type in GetProfilePath.profiles:
-    return GetProfilePath.profiles[profile_type]
+  if profile in GetProfilePath.profiles:
+    return GetProfilePath.profiles[profile]
 
   zip_path = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
-                          profile_type + '.zip')
+                          profile + '.zip')
   zip_path_sha1 = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
-                               profile_type + '.zip.sha1')
+                               profile + '.zip.sha1')
 
   if not os.path.isfile(zip_path_sha1):
-    raise RuntimeError('Unknown profile type, file %s not found' %
+    raise RuntimeError('Unknown profile, file %s not found' %
                        zip_path_sha1)
 
   sha1 = None
   with open(zip_path_sha1, 'r') as sha1_file:
     sha1 = sha1_file.read().rstrip()
-  logging.debug('Expected hash %s for profile %s', sha1, profile_type)
+  logging.debug('Expected hash %s for profile %s', sha1, profile)
   if not sha1:
     raise RuntimeError('Bad sha1 in ' % zip_path_sha1)
 
@@ -62,14 +66,14 @@ def GetProfilePath(profile_type, work_directory):
                    current_sha1, sha1)
       DownloadFromGoogleStorage(sha1, zip_path)
 
-  dir = os.path.join(work_directory, 'profiles', profile_type + sha1)
+  dir = os.path.join(work_directory, 'profiles', profile + sha1)
   if not os.path.isdir(dir):
     os.makedirs(dir)
-    logging.info('Create temp profile dir %s for profile %s', dir, profile_type)
+    logging.info('Create temp profile dir %s for profile %s', dir, profile)
     zipfile = ZipFile(zip_path)
     zipfile.extractall(dir)
   else:
-    logging.info('Use temp profile dir %s for profile %s', dir, profile_type)
+    logging.info('Use temp profile dir %s for profile %s', dir, profile)
 
-  GetProfilePath.profiles[profile_type] = dir
+  GetProfilePath.profiles[profile] = dir
   return dir

@@ -3,7 +3,7 @@
   {
     "dashboard-bot-name": "asus-w10-slow-laptop-adblock",
     "chromium" : false,
-    "profile-type": "adblock-profile",
+    "profile": "adblock-profile",
     "extra-browser-args": [],
     "extra-benchmark-args": []
   },

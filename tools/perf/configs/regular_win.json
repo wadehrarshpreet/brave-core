@@ -3,7 +3,7 @@
   {
     "dashboard-bot-name": "asus-w10-slow-laptop",
     "chromium" : false,
-    "profile-type": "empty",
+    "profile": "empty",
     "extra-browser-args": [],
     "extra-benchmark-args": []
   },

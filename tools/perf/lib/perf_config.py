@@ -6,8 +6,8 @@
 import logging
 
 class PerfConfiguration(object):
-  profile_type = 'empty'
-  extra_browser_args = [] # TODO: support it
+  profile = 'empty'
+  extra_browser_args = []
 
 
 class PerfConfigurationWithTarget(PerfConfiguration):

@@ -3,7 +3,7 @@
   {
     "dashboard-bot-name": "test-agent",
     "chromium" : false,
-    "profile-type": "adblock-profile",
+    "profile": "E:\\work\\tmp\\test_profile_1",
     "extra-browser-args": ["--somekey1", "--somekey2"],
     "extra-benchmark-args": []
   },
