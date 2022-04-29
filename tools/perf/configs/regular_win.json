@@ -3,7 +3,7 @@
   {
     "dashboard-bot-name": "asus-w10-slow-laptop",
     "chromium" : false,
-    "profile": "empty",
+    "profile": "clean",
     "extra-browser-args": [],
     "extra-benchmark-args": []
   },
@@ -13,7 +13,8 @@
       "pageset_repeat": 10,
       "stories": [
         "load:chrome:blank",
-        "load:media:youtube:2018"
+        "load:media:youtube:2018",
+        "browse:news:hackernews:2020"
       ]
     },
     {
