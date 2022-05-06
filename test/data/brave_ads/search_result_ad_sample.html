@@ -42,23 +42,30 @@
   </script>
   <script>
     const load = () => {
-      fetch('https://search.anonymous.brave.com/v10/view?creativeInstanceId=data-creative-instance-id-1')
+      fetch('https://search.anonymous.ads.brave.com/v3/view?creativeInstanceId=data-creative-instance-id-1')
         .then(response => {})
         .catch((error) => {});
-      fetch('https://search.anonymous.brave.com/v10/view?creativeInstanceId=data-creative-instance-id-2')
+      fetch('https://search.anonymous.ads.brave.com/v3/view?creativeInstanceId=data-creative-instance-id-2')
         .then(response => {})
         .catch((error) => {});
       // Somthing went wrong and we've sent view confirmation twice for data-creative-instance-id-1.
-      fetch('https://search.anonymous.bravesoftware.com/v10/view?creativeInstanceId=data-creative-instance-id-1')
+      fetch('https://search.anonymous.ads.bravesoftware.com/v3/view?creativeInstanceId=data-creative-instance-id-1')
         .then(response => {})
         .catch((error) => {});
       // Somthing went wrong and we've sent not existant view confirmation.
-      fetch('https://search.anonymous.bravesoftware.com/v10/view?creativeInstanceId=not-existant')
+      fetch('https://search.anonymous.ads.bravesoftware.com/v3/view?creativeInstanceId=not-existant')
         .then(response => {})
         .catch((error) => {});
     }
     window.onload = load;
   </script>
 </head>
-<body></body>
+<body>
+  <a id='ad-link-1' href='https://search.anonymous.ads.brave.com/v3/click?creativeInstanceId=data-creative-instance-id-1'>
+    Click me
+  </a>
+  <a id='ad-link-2' href='https://search.anonymous.ads.bravesoftware.com/v3/click?creativeInstanceId=data-creative-instance-id-2' target="_blank" rel="noopener noreferrer">
+    Click me
+  </a>
+</body>
 </html>

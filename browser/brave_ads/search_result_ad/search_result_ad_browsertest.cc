@@ -21,6 +21,7 @@
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "content/public/test/content_mock_cert_verifier.h"
+#include "content/public/test/test_navigation_observer.h"
 #include "content/public/test/url_loader_interceptor.h"
 #include "net/dns/mock_host_resolver.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -116,7 +117,7 @@ class SentViewedEventsWaiter final {
   bool URLLoaderInterceptorCallback(
       content::URLLoaderInterceptor::RequestParams* params) {
     const std::string creative_instance_id =
-        brave_ads::GetCreativeInstanceIdFromSearchAdsViewedUrl(
+        brave_ads::GetViewedSearchResultAdCreativeInstanceId(
             params->url_request.url);
     if (!creative_instance_id.empty()) {
       auto it = std::find(sent_viewed_creative_instance_ids_.begin(),
@@ -135,7 +136,10 @@ class SentViewedEventsWaiter final {
     return false;
   }
 
-  void WaitForViewedEvents() { run_loop_.Run(); }
+  void WaitForViewedEvents() {
+    run_loop_.Run();
+    url_loader_interceptor_.reset();
+  }
 
  private:
   base::RunLoop run_loop_;
@@ -194,6 +198,57 @@ class SearchResultAdTest : public InProcessBrowserTest {
     return web_contents;
   }
 
+  content::WebContents* LoadAndCheckSampleSearchResultAdWebPage(
+      brave_ads::MockAdsService* ads_service) {
+    brave_ads::TriggerSearchResultAdEventCallback trigger_callback;
+    auto run_loop = std::make_unique<base::RunLoop>();
+    EXPECT_CALL(*ads_service, TriggerSearchResultAdEvent(_, _, _))
+        .WillOnce([&run_loop, &trigger_callback](
+                      ads::mojom::SearchResultAdPtr ad_mojom,
+                      const ads::mojom::SearchResultAdEventType event_type,
+                      brave_ads::TriggerSearchResultAdEventCallback callback) {
+          CheckSampleSearchAdMetadata(ad_mojom, 1);
+          trigger_callback = std::move(callback);
+          run_loop->Quit();
+        });
+
+    SentViewedEventsWaiter sent_viewed_events_waiter(
+        {"data-creative-instance-id-1", "not-existant"});
+    content::WebContents* web_contents = LoadTestDataUrl(
+        kAllowedDomain, "/brave_ads/search_result_ad_sample.html");
+    run_loop->Run();
+    Mock::VerifyAndClearExpectations(ads_service);
+    EXPECT_CALL(*ads_service, IsEnabled()).WillRepeatedly(Return(true));
+
+    run_loop = std::make_unique<base::RunLoop>();
+    EXPECT_CALL(*ads_service, TriggerSearchResultAdEvent(_, _, _))
+        .WillOnce([&run_loop, &trigger_callback](
+                      ads::mojom::SearchResultAdPtr ad_mojom,
+                      const ads::mojom::SearchResultAdEventType event_type,
+                      brave_ads::TriggerSearchResultAdEventCallback callback) {
+          CheckSampleSearchAdMetadata(ad_mojom, 2);
+          trigger_callback = std::move(callback);
+          run_loop->Quit();
+        });
+
+    // Continue to trigger ad viewed events even if one of them failed.
+    std::move(trigger_callback)
+        .Run(false, "placement-id-1",
+             ads::mojom::SearchResultAdEventType::kViewed);
+    run_loop->Run();
+    Mock::VerifyAndClearExpectations(ads_service);
+    EXPECT_CALL(*ads_service, IsEnabled()).WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*ads_service, TriggerSearchResultAdEvent(_, _, _)).Times(0);
+    std::move(trigger_callback)
+        .Run(true, "placement-id-2",
+             ads::mojom::SearchResultAdEventType::kViewed);
+
+    sent_viewed_events_waiter.WaitForViewedEvents();
+
+    return web_contents;
+  }
+
   net::EmbeddedTestServer* https_server() { return https_server_.get(); }
 
   Profile* profile() { return browser()->profile(); }
@@ -204,55 +259,50 @@ class SearchResultAdTest : public InProcessBrowserTest {
   std::unique_ptr<net::EmbeddedTestServer> https_server_;
 };
 
-IN_PROC_BROWSER_TEST_F(SearchResultAdTest, SampleSearchAdMetadata) {
+IN_PROC_BROWSER_TEST_F(SearchResultAdTest, SampleSearchResultAd) {
   brave_ads::MockAdsService ads_service;
   ScopedTestingAdsServiceSetter scoped_setter(profile(), &ads_service);
-
-  EXPECT_CALL(ads_service, IsEnabled()).WillRepeatedly(Return(true));
-  brave_ads::TriggerSearchResultAdEventCallback trigger_callback;
-  auto run_loop = std::make_unique<base::RunLoop>();
-  EXPECT_CALL(ads_service, TriggerSearchResultAdEvent(_, _, _))
-      .WillOnce([&run_loop, &trigger_callback](
-                    ads::mojom::SearchResultAdPtr ad_mojom,
-                    const ads::mojom::SearchResultAdEventType event_type,
-                    brave_ads::TriggerSearchResultAdEventCallback callback) {
-        CheckSampleSearchAdMetadata(ad_mojom, 1);
-        trigger_callback = std::move(callback);
-        run_loop->Quit();
-      });
-
-  SentViewedEventsWaiter sent_viewed_events_waiter(
-      {"data-creative-instance-id-1", "not-existant"});
-  LoadTestDataUrl(kAllowedDomain, "/brave_ads/search_result_ad_sample.html");
-  run_loop->Run();
-  Mock::VerifyAndClearExpectations(&ads_service);
   EXPECT_CALL(ads_service, IsEnabled()).WillRepeatedly(Return(true));
 
-  run_loop = std::make_unique<base::RunLoop>();
-  EXPECT_CALL(ads_service, TriggerSearchResultAdEvent(_, _, _))
-      .WillOnce([&run_loop, &trigger_callback](
-                    ads::mojom::SearchResultAdPtr ad_mojom,
-                    const ads::mojom::SearchResultAdEventType event_type,
-                    brave_ads::TriggerSearchResultAdEventCallback callback) {
-        CheckSampleSearchAdMetadata(ad_mojom, 2);
-        trigger_callback = std::move(callback);
-        run_loop->Quit();
-      });
+  content::WebContents* web_contents =
+      LoadAndCheckSampleSearchResultAdWebPage(&ads_service);
 
-  // Continue to trigger ad viewed events even if one of them failed.
-  std::move(trigger_callback)
-      .Run(false, "placement-id-1",
-           ads::mojom::SearchResultAdEventType::kViewed);
-  run_loop->Run();
-  Mock::VerifyAndClearExpectations(&ads_service);
+  content::TestNavigationObserver observer(web_contents);
+  EXPECT_TRUE(content::ExecJs(web_contents,
+                              "document.getElementById('ad-link-1').click();"));
+  observer.Wait();
+
+  EXPECT_EQ("https://brave.com/data-landing-page-1",
+            web_contents->GetVisibleURL());
+}
+
+IN_PROC_BROWSER_TEST_F(SearchResultAdTest, SearchResultAdOpenedInNewTab) {
+  brave_ads::MockAdsService ads_service;
+  ScopedTestingAdsServiceSetter scoped_setter(profile(), &ads_service);
   EXPECT_CALL(ads_service, IsEnabled()).WillRepeatedly(Return(true));
 
-  EXPECT_CALL(ads_service, TriggerSearchResultAdEvent(_, _, _)).Times(0);
-  std::move(trigger_callback)
-      .Run(true, "placement-id-2",
-           ads::mojom::SearchResultAdEventType::kViewed);
+  content::WebContents* web_contents =
+      LoadAndCheckSampleSearchResultAdWebPage(&ads_service);
 
-  sent_viewed_events_waiter.WaitForViewedEvents();
+  {
+    content::CreateAndLoadWebContentsObserver observer;
+    EXPECT_TRUE(content::ExecJs(
+        web_contents, "document.getElementById('ad-link-2').click();"));
+    content::WebContents* new_web_contents = observer.Wait();
+
+    EXPECT_EQ("https://brave.com/data-landing-page-2",
+              new_web_contents->GetVisibleURL());
+  }
+
+  {
+    content::CreateAndLoadWebContentsObserver observer;
+    EXPECT_TRUE(content::ExecJs(
+        web_contents, "document.getElementById('ad-link-2').click();"));
+    content::WebContents* new_web_contents = observer.Wait();
+
+    EXPECT_EQ("https://brave.com/data-landing-page-2",
+              new_web_contents->GetVisibleURL());
+  }
 }
 
 IN_PROC_BROWSER_TEST_F(SearchResultAdTest, AdsDisabled) {
@@ -273,10 +323,21 @@ IN_PROC_BROWSER_TEST_F(SearchResultAdTest, AdsDisabled) {
   SentViewedEventsWaiter sent_viewed_events_waiter(
       {"data-creative-instance-id-1", "data-creative-instance-id-1",
        "data-creative-instance-id-2", "not-existant"});
-  LoadTestDataUrl(kAllowedDomain, "/brave_ads/search_result_ad_sample.html");
+  content::WebContents* web_contents = LoadTestDataUrl(
+      kAllowedDomain, "/brave_ads/search_result_ad_sample.html");
 
   run_loop.Run();
   sent_viewed_events_waiter.WaitForViewedEvents();
+
+  content::TestNavigationObserver observer(web_contents);
+  EXPECT_TRUE(content::ExecJs(web_contents,
+                              "document.getElementById('ad-link-1').click();"));
+  observer.Wait();
+
+  EXPECT_EQ(
+      "https://search.anonymous.ads.brave.com/v3/click?"
+      "creativeInstanceId=data-creative-instance-id-1",
+      web_contents->GetVisibleURL());
 }
 
 IN_PROC_BROWSER_TEST_F(SearchResultAdTest, NotAllowedDomain) {
@@ -297,10 +358,21 @@ IN_PROC_BROWSER_TEST_F(SearchResultAdTest, NotAllowedDomain) {
   SentViewedEventsWaiter sent_viewed_events_waiter(
       {"data-creative-instance-id-1", "data-creative-instance-id-1",
        "data-creative-instance-id-2", "not-existant"});
-  LoadTestDataUrl(kNotAllowedDomain, "/brave_ads/search_result_ad_sample.html");
+  content::WebContents* web_contents = LoadTestDataUrl(
+      kNotAllowedDomain, "/brave_ads/search_result_ad_sample.html");
 
   run_loop.Run();
   sent_viewed_events_waiter.WaitForViewedEvents();
+
+  content::TestNavigationObserver observer(web_contents);
+  EXPECT_TRUE(content::ExecJs(web_contents,
+                              "document.getElementById('ad-link-1').click();"));
+  observer.Wait();
+
+  EXPECT_EQ(
+      "https://search.anonymous.ads.brave.com/v3/click?"
+      "creativeInstanceId=data-creative-instance-id-1",
+      web_contents->GetVisibleURL());
 }
 
 IN_PROC_BROWSER_TEST_F(SearchResultAdTest, NoSearchAdMetadata) {
@@ -340,10 +412,21 @@ IN_PROC_BROWSER_TEST_F(SearchResultAdTest, BrokenSearchAdMetadata) {
 
   SentViewedEventsWaiter sent_viewed_events_waiter(
       {"data-creative-instance-id-1"});
-  LoadTestDataUrl(kAllowedDomain, "/brave_ads/search_result_ad_broken.html");
+  content::WebContents* web_contents = LoadTestDataUrl(
+      kAllowedDomain, "/brave_ads/search_result_ad_broken.html");
 
   run_loop.Run();
   sent_viewed_events_waiter.WaitForViewedEvents();
+
+  content::TestNavigationObserver observer(web_contents);
+  EXPECT_TRUE(content::ExecJs(web_contents,
+                              "document.getElementById('ad-link-1').click();"));
+  observer.Wait();
+
+  EXPECT_EQ(
+      "https://search.anonymous.ads.brave.com/v3/click?"
+      "creativeInstanceId=data-creative-instance-id-1",
+      web_contents->GetVisibleURL());
 }
 
 IN_PROC_BROWSER_TEST_F(SearchResultAdTest, IncognitoBrowser) {
@@ -362,4 +445,14 @@ IN_PROC_BROWSER_TEST_F(SearchResultAdTest, IncognitoBrowser) {
   EXPECT_EQ(url, web_contents->GetVisibleURL());
 
   sent_viewed_events_waiter.WaitForViewedEvents();
+
+  content::TestNavigationObserver observer(web_contents);
+  EXPECT_TRUE(content::ExecJs(web_contents,
+                              "document.getElementById('ad-link-1').click();"));
+  observer.Wait();
+
+  EXPECT_EQ(
+      "https://search.anonymous.ads.brave.com/v3/click?"
+      "creativeInstanceId=data-creative-instance-id-1",
+      web_contents->GetVisibleURL());
 }

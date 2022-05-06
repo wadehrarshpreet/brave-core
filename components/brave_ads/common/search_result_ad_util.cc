@@ -15,21 +15,31 @@ namespace brave_ads {
 
 namespace {
 
-constexpr auto kSearchAdsConfirmationVettedHosts =
+constexpr auto kSearchResultAdsConfirmationVettedHosts =
     base::MakeFixedFlatSet<base::StringPiece>(
-        {"search.anonymous.brave.com", "search.anonymous.bravesoftware.com"});
-constexpr char kSearchAdsViewedPath[] = "/v10/view";
+        {"search.anonymous.ads.brave.com",
+         "search.anonymous.ads.bravesoftware.com"});
+constexpr char kSearchResultAdsViewedPath[] = "/v3/view";
+constexpr char kSearchResultAdsClickedPath[] = "/v3/click";
 constexpr char kCreativeInstanceIdParameterName[] = "creativeInstanceId";
 
-}  // namespace
-
-std::string GetCreativeInstanceIdFromSearchAdsViewedUrl(const GURL& url) {
+bool IsSearchResultAdConfirmationUrl(const GURL& url, base::StringPiece path) {
   if (!url.is_valid() || !url.SchemeIs(url::kHttpsScheme) ||
-      url.path_piece() != kSearchAdsViewedPath || !url.has_query()) {
-    return std::string();
+      url.path_piece() != path || !url.has_query()) {
+    return false;
   }
 
-  if (!base::Contains(kSearchAdsConfirmationVettedHosts, url.host_piece())) {
+  if (!base::Contains(kSearchResultAdsConfirmationVettedHosts,
+                      url.host_piece())) {
+    return false;
+  }
+
+  return true;
+}
+
+std::string GetCreativeInstanceIdQueryParameter(const GURL& url,
+                                                base::StringPiece path) {
+  if (!IsSearchResultAdConfirmationUrl(url, path)) {
     return std::string();
   }
 
@@ -44,6 +54,24 @@ std::string GetCreativeInstanceIdFromSearchAdsViewedUrl(const GURL& url) {
   }
 
   return std::string();
+}
+
+}  // namespace
+
+bool IsSearchResultAdViewedConfirmationUrl(const GURL& url) {
+  return IsSearchResultAdConfirmationUrl(url, kSearchResultAdsViewedPath);
+}
+
+std::string GetViewedSearchResultAdCreativeInstanceId(const GURL& url) {
+  return GetCreativeInstanceIdQueryParameter(url, kSearchResultAdsViewedPath);
+}
+
+bool IsSearchResultAdClickedConfirmationUrl(const GURL& url) {
+  return IsSearchResultAdConfirmationUrl(url, kSearchResultAdsClickedPath);
+}
+
+std::string GetClickedSearchResultAdCreativeInstanceId(const GURL& url) {
+  return GetCreativeInstanceIdQueryParameter(url, kSearchResultAdsClickedPath);
 }
 
 }  // namespace brave_ads

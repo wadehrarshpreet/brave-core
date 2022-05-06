@@ -12,7 +12,11 @@ class GURL;
 
 namespace brave_ads {
 
-std::string GetCreativeInstanceIdFromSearchAdsViewedUrl(const GURL& url);
+bool IsSearchResultAdViewedConfirmationUrl(const GURL& url);
+std::string GetViewedSearchResultAdCreativeInstanceId(const GURL& url);
+
+bool IsSearchResultAdClickedConfirmationUrl(const GURL& url);
+std::string GetClickedSearchResultAdCreativeInstanceId(const GURL& url);
 
 }  // namespace brave_ads
 

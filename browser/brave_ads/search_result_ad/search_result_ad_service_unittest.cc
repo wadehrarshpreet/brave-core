@@ -40,8 +40,8 @@ class SearchResultAdServiceTest : public ChromeRenderViewHostTestHarness {
   base::test::ScopedFeatureList feature_list_;
 };
 
-TEST_F(SearchResultAdServiceTest, BraveAdsDisabledTryTriggerAd) {
-  EXPECT_CALL(ads_service_, IsEnabled()).WillOnce(Return(false));
+TEST_F(SearchResultAdServiceTest, BraveAdsDisabledTryTriggerAndClickAd) {
+  EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(false));
 
   SessionID session_id = SessionID::NewUnique();
   NavigateAndCommit(GURL(kAllowedDomain));
@@ -58,9 +58,15 @@ TEST_F(SearchResultAdServiceTest, BraveAdsDisabledTryTriggerAd) {
           base::Unretained(&run_loop)));
 
   run_loop.Run();
+
+  absl::optional<GURL> url =
+      search_result_ad_service_->MaybeTriggerSearchResultAdClickedEvent(
+          "creative_instance_id", session_id);
+  EXPECT_FALSE(url);
 }
 
-TEST_F(SearchResultAdServiceTest, NotAllowedDomainTryTriggerAdBeforeRetrieve) {
+TEST_F(SearchResultAdServiceTest,
+       NotAllowedDomainTryTriggerAndClickAdBeforeRetrieve) {
   EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
 
   SessionID session_id = SessionID::NewUnique();
@@ -81,9 +87,15 @@ TEST_F(SearchResultAdServiceTest, NotAllowedDomainTryTriggerAdBeforeRetrieve) {
                                                          true);
 
   run_loop.Run();
+
+  absl::optional<GURL> url =
+      search_result_ad_service_->MaybeTriggerSearchResultAdClickedEvent(
+          "creative_instance_id", session_id);
+  EXPECT_FALSE(url);
 }
 
-TEST_F(SearchResultAdServiceTest, NotAllowedDomainTryTriggerAdAfterRetrieve) {
+TEST_F(SearchResultAdServiceTest,
+       NotAllowedDomainTryTriggerAndClickAdAfterRetrieve) {
   EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
 
   SessionID session_id = SessionID::NewUnique();
@@ -104,55 +116,14 @@ TEST_F(SearchResultAdServiceTest, NotAllowedDomainTryTriggerAdAfterRetrieve) {
           base::Unretained(&run_loop)));
 
   run_loop.Run();
+
+  absl::optional<GURL> url =
+      search_result_ad_service_->MaybeTriggerSearchResultAdClickedEvent(
+          "creative_instance_id", session_id);
+  EXPECT_FALSE(url);
 }
 
-TEST_F(SearchResultAdServiceTest, TabRestoredTryTriggerAdBeforeRetrieve) {
-  EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
-
-  SessionID session_id = SessionID::NewUnique();
-  NavigateAndCommit(GURL(kAllowedDomain));
-  search_result_ad_service_->OnDidFinishNavigation(session_id);
-
-  base::RunLoop run_loop;
-  search_result_ad_service_->MaybeTriggerSearchResultAdViewedEvent(
-      "creative_instance_id", session_id,
-      base::BindOnce(
-          [](base::RunLoop* run_loop, bool ad_was_triggered) {
-            EXPECT_FALSE(ad_was_triggered);
-            run_loop->Quit();
-          },
-          base::Unretained(&run_loop)));
-
-  search_result_ad_service_->MaybeRetrieveSearchResultAd(main_rfh(), session_id,
-                                                         false);
-
-  run_loop.Run();
-}
-
-TEST_F(SearchResultAdServiceTest, TabRestoredTryTriggerAdAfterRetrieve) {
-  EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
-
-  SessionID session_id = SessionID::NewUnique();
-  NavigateAndCommit(GURL(kAllowedDomain));
-  search_result_ad_service_->OnDidFinishNavigation(session_id);
-
-  search_result_ad_service_->MaybeRetrieveSearchResultAd(main_rfh(), session_id,
-                                                         false);
-
-  base::RunLoop run_loop;
-  search_result_ad_service_->MaybeTriggerSearchResultAdViewedEvent(
-      "creative_instance_id", session_id,
-      base::BindOnce(
-          [](base::RunLoop* run_loop, bool ad_was_triggered) {
-            EXPECT_FALSE(ad_was_triggered);
-            run_loop->Quit();
-          },
-          base::Unretained(&run_loop)));
-
-  run_loop.Run();
-}
-
-TEST_F(SearchResultAdServiceTest, UnknownTabTryTriggerAd) {
+TEST_F(SearchResultAdServiceTest, UnknownTabTryTriggerAndClickAd) {
   EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
 
   SessionID session_id = SessionID::NewUnique();
@@ -168,6 +139,11 @@ TEST_F(SearchResultAdServiceTest, UnknownTabTryTriggerAd) {
           base::Unretained(&run_loop)));
 
   run_loop.Run();
+
+  absl::optional<GURL> url =
+      search_result_ad_service_->MaybeTriggerSearchResultAdClickedEvent(
+          "creative_instance_id", session_id);
+  EXPECT_FALSE(url);
 }
 
 TEST_F(SearchResultAdServiceTest, TryTriggerAdRepeatedNavigation) {
@@ -216,7 +192,7 @@ TEST_F(SearchResultAdServiceTest, TryTriggerAdBeforeTabDeleted) {
   run_loop.Run();
 }
 
-TEST_F(SearchResultAdServiceTest, TryTriggerAdAfterTabDeleted) {
+TEST_F(SearchResultAdServiceTest, TryTriggerAndClickAdAfterTabDeleted) {
   EXPECT_CALL(ads_service_, IsEnabled()).WillRepeatedly(Return(true));
 
   SessionID session_id = SessionID::NewUnique();
@@ -236,6 +212,11 @@ TEST_F(SearchResultAdServiceTest, TryTriggerAdAfterTabDeleted) {
           base::Unretained(&run_loop)));
 
   run_loop.Run();
+
+  absl::optional<GURL> url =
+      search_result_ad_service_->MaybeTriggerSearchResultAdClickedEvent(
+          "creative_instance_id", session_id);
+  EXPECT_FALSE(url);
 }
 
 }  // namespace

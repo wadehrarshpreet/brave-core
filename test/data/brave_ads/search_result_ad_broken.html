@@ -26,12 +26,16 @@
   </script>
   <script>
     const load = () => {
-      fetch('https://search.anonymous.brave.com/v10/view?creativeInstanceId=data-creative-instance-id-1')
+      fetch('https://search.anonymous.ads.brave.com/v3/view?creativeInstanceId=data-creative-instance-id-1')
         .then(response => {})
         .catch((error) => {});
     }
     window.onload = load;
   </script>
 </head>
-<body></body>
+<body>
+  <a id='ad-link-1' href='https://search.anonymous.ads.brave.com/v3/click?creativeInstanceId=data-creative-instance-id-1'>
+    Click me
+  </a>
+</body>
 </html>

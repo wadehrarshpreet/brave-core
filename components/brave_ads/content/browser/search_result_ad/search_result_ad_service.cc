@@ -40,11 +40,10 @@ void SearchResultAdService::MaybeRetrieveSearchResultAd(
     content::RenderFrameHost* render_frame_host,
     SessionID tab_id,
     bool should_trigger_viewed_event) {
-  DCHECK(ads_service_);
   DCHECK(render_frame_host);
   DCHECK(tab_id.is_valid());
 
-  if (!should_trigger_viewed_event || !ads_service_->IsEnabled() ||
+  if (!ads_service_->IsEnabled() ||
       !base::FeatureList::IsEnabled(
           features::kSupportBraveSearchResultAdConfirmationEvents) ||
       !brave_search::IsAllowedHost(render_frame_host->GetLastCommittedURL())) {
@@ -64,9 +63,10 @@ void SearchResultAdService::MaybeRetrieveSearchResultAd(
 
   blink::mojom::DocumentMetadata* raw_document_metadata =
       document_metadata.get();
-  raw_document_metadata->GetEntities(base::BindOnce(
-      &SearchResultAdService::OnRetrieveSearchResultAdEntities,
-      weak_factory_.GetWeakPtr(), std::move(document_metadata), tab_id));
+  raw_document_metadata->GetEntities(
+      base::BindOnce(&SearchResultAdService::OnRetrieveSearchResultAdEntities,
+                     weak_factory_.GetWeakPtr(), std::move(document_metadata),
+                     tab_id, should_trigger_viewed_event));
 }
 
 void SearchResultAdService::OnDidFinishNavigation(SessionID tab_id) {
@@ -87,7 +87,6 @@ void SearchResultAdService::MaybeTriggerSearchResultAdViewedEvent(
     const std::string& creative_instance_id,
     SessionID tab_id,
     base::OnceCallback<void(bool)> callback) {
-  DCHECK(ads_service_);
   DCHECK(!creative_instance_id.empty());
   DCHECK(tab_id.is_valid());
 
@@ -117,6 +116,39 @@ void SearchResultAdService::MaybeTriggerSearchResultAdViewedEvent(
   std::move(callback).Run(event_triggered);
 }
 
+absl::optional<GURL>
+SearchResultAdService::MaybeTriggerSearchResultAdClickedEvent(
+    const std::string& creative_instance_id,
+    SessionID tab_id) {
+  DCHECK(!creative_instance_id.empty());
+  DCHECK(tab_id.is_valid());
+
+  if (!ads_service_->IsEnabled()) {
+    return absl::nullopt;
+  }
+
+  auto ads_it = search_result_ads_.find(tab_id);
+  if (ads_it == search_result_ads_.end()) {
+    return absl::nullopt;
+  }
+  const SearchResultAdMap& tab_ads = ads_it->second;
+  auto it = tab_ads.find(creative_instance_id);
+  if (it == tab_ads.end()) {
+    return absl::nullopt;
+  }
+
+  if (it->second.state != SearchResultAdState::kReadyForClick) {
+    return absl::nullopt;
+  }
+
+  const ads::mojom::SearchResultAdPtr& search_result_ad = it->second.ad;
+  DCHECK(search_result_ad);
+  DCHECK(search_result_ad->target_url.is_valid() &&
+         search_result_ad->target_url.SchemeIs(url::kHttpsScheme));
+
+  return search_result_ad->target_url;
+}
+
 void SearchResultAdService::SetMetadataRequestFinishedCallbackForTesting(
     base::OnceClosure callback) {
   metadata_request_finished_callback_for_testing_ = std::move(callback);
@@ -142,6 +174,7 @@ void SearchResultAdService::ResetState(SessionID tab_id) {
 void SearchResultAdService::OnRetrieveSearchResultAdEntities(
     mojo::Remote<blink::mojom::DocumentMetadata> document_metadata,
     SessionID tab_id,
+    bool should_trigger_viewed_event,
     blink::mojom::WebPagePtr web_page) {
   if (metadata_request_finished_callback_for_testing_) {
     std::move(metadata_request_finished_callback_for_testing_).Run();
@@ -153,8 +186,10 @@ void SearchResultAdService::OnRetrieveSearchResultAdEntities(
     return;
   }
 
-  SearchResultAdMap search_result_ads =
-      ParseWebPageEntities(std::move(web_page));
+  SearchResultAdMap search_result_ads = ParseWebPageEntities(
+      std::move(web_page), should_trigger_viewed_event
+                               ? SearchResultAdState::kReadyForView
+                               : SearchResultAdState::kNotCountView);
 
   search_result_ads_.emplace(tab_id, std::move(search_result_ads));
 
@@ -187,21 +222,34 @@ bool SearchResultAdService::QueueSearchResultAdViewedEvent(
   DCHECK(!creative_instance_id.empty());
   DCHECK(tab_id.is_valid());
 
-  SearchResultAdMap& ad_map = search_result_ads_[tab_id];
-  auto it = ad_map.find(creative_instance_id);
-  if (it == ad_map.end()) {
+  auto ads_it = search_result_ads_.find(tab_id);
+  if (ads_it == search_result_ads_.end()) {
+    return false;
+  }
+  SearchResultAdMap& tab_ads = ads_it->second;
+  auto it = tab_ads.find(creative_instance_id);
+  if (it == tab_ads.end()) {
     return false;
   }
 
-  ad_viewed_event_queue_.push_front(std::move(it->second));
-  ad_map.erase(creative_instance_id);
-  TriggerSearchResultAdViewedEventFromQueue();
+  if (it->second.state == SearchResultAdState::kNotReady ||
+      it->second.state == SearchResultAdState::kReadyForClick) {
+    return false;
+  }
+
+  const ads::mojom::SearchResultAdPtr& search_result_ad = it->second.ad;
+  DCHECK(search_result_ad);
+
+  if (it->second.state == SearchResultAdState::kReadyForView) {
+    ad_viewed_event_queue_.push_front(search_result_ad->Clone());
+    TriggerSearchResultAdViewedEventFromQueue();
+  }
+  it->second.state = SearchResultAdState::kReadyForClick;
 
   return true;
 }
 
 void SearchResultAdService::TriggerSearchResultAdViewedEventFromQueue() {
-  DCHECK(ads_service_);
   DCHECK(!ad_viewed_event_queue_.empty() ||
          !trigger_ad_viewed_event_in_progress_);
 
