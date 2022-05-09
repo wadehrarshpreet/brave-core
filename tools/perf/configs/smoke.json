@@ -10,7 +10,7 @@
   "tests": [
     {
       "benchmark": "system_health.memory_desktop",
-      "pageset_repeat": 1,
+      "pageset-repeat": 1,
       "stories": [
         "browse:search:google:2020",
         "browse:news:hackernews:2020"
