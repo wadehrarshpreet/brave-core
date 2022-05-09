@@ -18,10 +18,16 @@ try:
   from google.oauth2.credentials import Credentials
   from google_auth_oauthlib.flow import InstalledAppFlow
 except ImportError:
-  logging.error(
-      'vpython -m pip install google-auth google-auth-oauthlib'
-  )
-  raise
+  logging.info('Install extra pip libs')
+  import subprocess
+  subprocess.check_call([
+      sys.executable, '-m', 'pip', 'install', 'google-auth',
+      'google-auth-oauthlib'
+  ])
+
+  from google.auth.transport.requests import Request
+  from google.oauth2.credentials import Credentials
+  from google_auth_oauthlib.flow import InstalledAppFlow
 
 SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
 CLIENT_ID_FILE = os.path.join(os.path.expanduser("~"),
