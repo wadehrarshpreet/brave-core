@@ -5,6 +5,7 @@
 
 #include "brave/browser/brave_browser_process_impl.h"
 
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -66,6 +67,7 @@
 
 #if BUILDFLAG(ENABLE_TOR)
 #include "brave/components/tor/brave_tor_client_updater.h"
+#include "brave/components/tor/brave_tor_pluggable_transport_updater.h"
 #include "brave/components/tor/pref_names.h"
 #endif
 
@@ -295,9 +297,22 @@ tor::BraveTorClientUpdater* BraveBrowserProcessImpl::tor_client_updater() {
   base::FilePath user_data_dir;
   base::PathService::Get(chrome::DIR_USER_DATA, &user_data_dir);
 
-  tor_client_updater_.reset(new tor::BraveTorClientUpdater(
-      brave_component_updater_delegate(), local_state(), user_data_dir));
+  tor_client_updater_ = std::make_unique<tor::BraveTorClientUpdater>(
+      brave_component_updater_delegate(), local_state(), user_data_dir);
   return tor_client_updater_.get();
+}
+
+tor::BraveTorPluggableTransportUpdater*
+BraveBrowserProcessImpl::tor_pluggable_transport_updater() {
+  if (!tor_pluggable_transport_updater_) {
+    base::FilePath user_data_dir;
+    base::PathService::Get(chrome::DIR_USER_DATA, &user_data_dir);
+
+    tor_pluggable_transport_updater_ =
+        std::make_unique<tor::BraveTorPluggableTransportUpdater>(
+            brave_component_updater_delegate(), local_state(), user_data_dir);
+  }
+  return tor_pluggable_transport_updater_.get();
 }
 
 void BraveBrowserProcessImpl::OnTorEnabledChanged() {
