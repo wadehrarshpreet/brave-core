@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "target" : "v1.37.5",
+      "label" : "good_v1.37.5",
+      "profile": "old-brave-typical",
+      "extra-browser-args": [],
+      "extra-benchmark-args": ["--use-live-sites"]
+    },
+    {
+      "target" : "v1.37.6",
+      "label" : "bad_v1.37.6",
+      "profile": "old-brave-typical",
+      "extra-browser-args": ["--disable-features=BraveWalletSolana"],
+      "extra-benchmark-args": ["--use-live-sites"]
+    }
+  ],
+  "tests": [
+    {
+      "benchmark": "loading.desktop",
+      "pageset-repeat": 5,
+      "stories": [
+        "Economist_warm"
+      ]
+    }
+  ]
+}
