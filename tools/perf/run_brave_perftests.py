@@ -66,24 +66,39 @@ def RunSingleTest(binary,
                   profile_dir,
                   is_ref,
                   verbose,
-                  extra_browser_args=[],
-                  extra_benchmark_args=[]):
-  args = [
-      sys.executable,
-      os.path.join(path_util.SRC_DIR, 'testing', 'scripts',
-                   'run_performance_tests.py'),
-      os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark')
-  ]
+                  extra_browser_args,
+                  extra_benchmark_args,
+                  is_local_run,
+                  local_run_label=''):
+  args = [sys.executable]
+  if not is_local_run:
+    args.append(
+        os.path.join(path_util.SRC_DIR, 'testing', 'scripts',
+                     'run_performance_tests.py'))
+  args.append(os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark'))
+
   benchmark = config['benchmark']
   if is_ref:
     benchmark += '.reference'
+
+  logs = []
+  if is_local_run:
+    assert (local_run_label != None)
+    args.append(benchmark)
+
+    args.append('--results-label=' + local_run_label)
+    out_dir = os.path.join(out_dir, config['benchmark'])
+    args.append(f'--output-dir={out_dir}')
+    logs.append(config['benchmark'] + ' : file://' + out_dir)
+  else:
+    args.append(f'--benchmarks={benchmark}')
+    args.append('--isolated-script-test-output=' +
+                os.path.join(out_dir, config['benchmark'], 'output.json'))
+
   if profile_dir:
     args.append(f'--profile-dir={profile_dir}')
-  args.append(f'--benchmarks={benchmark}')
   args.append('--browser=exact')
   args.append(f'--browser-executable={binary}')
-  args.append('--isolated-script-test-output=' +
-              os.path.join(out_dir, config['benchmark'], 'output.json'))
   args.append('--pageset-repeat=%d' % config['pageset_repeat'])
   if 'stories' in config:
     for story in config['stories']:
@@ -110,7 +125,7 @@ def RunSingleTest(binary,
     return False
   else:
     logging.debug(result.stdout.decode('utf-8'))
-    return True
+    return True, logs
 
 
 def ReportToDashboard(product, is_ref, configuration_name, revision,
@@ -167,14 +182,15 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
 
 
 def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
-               extra_browser_args, extra_benchmark_args):
+               extra_browser_args, extra_benchmark_args, is_local_run,
+               local_run_label):
   failedLogs = []
   has_failure = False
   for test_config in json_config['tests']:
     benchmark = test_config['benchmark']
     if not RunSingleTest(binary, test_config, output_dir, profile_dir, is_ref,
-                         args.verbose, extra_browser_args,
-                         extra_benchmark_args):
+                         args.verbose, extra_browser_args, extra_benchmark_args,
+                         is_local_run, local_run_label):
       has_failure = True
       error = f'Test case {benchmark} failed on revision {revision}'
       error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
@@ -198,6 +214,7 @@ parser.add_argument('--config', required=True, type=str)
 parser.add_argument('--no-report', action='store_true')
 parser.add_argument('--report-only', action='store_true')
 parser.add_argument('--report-on-failure', action='store_true')
+parser.add_argument('--local-run', action='store_true')
 parser.add_argument('--verbose', action='store_true')
 args = parser.parse_args()
 
@@ -253,7 +270,9 @@ for target in targets:
                                              os.path.join(out_dir, 'results'),
                                              profile_dir, is_ref, args,
                                              configuration.extra_browser_args,
-                                             configuration.extra_benchmark_args)
+                                             configuration.extra_benchmark_args,
+                                             args.local_run,
+                                             tag)
     spent_time = time.time() - start_time
     status_line += f'Run {spent_time:.2f}s '
     status_line += 'OK, ' if binary_success else 'FAILURE, '
@@ -266,7 +285,7 @@ for target in targets:
     status_line += 'Report skipped'
     logging.error(error)
     logs.append(error)
-  elif args.no_report:
+  elif args.no_report or args.local_run:
     logging.debug('skip reporting because report==False')
   else:
     start_time = time.time()
