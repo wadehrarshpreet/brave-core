@@ -131,6 +131,7 @@ def PrepareBinaryByUrl(out_dir, url, is_chromium):
 
 def ParseTarget(target):
   m = re.match('^(v\d+\.\d+\.\d+)(?::(.+)|$)', target)
+  logging.debug(f'Parsed tag: {m.group(1)}, location : {m.group(2)}')
   if not m:
     return None, target
   return m.group(1), m.group(2)
@@ -163,9 +164,7 @@ def PrepareBinaryByTag(out_dir, tag, is_chromium):
                                 BRAVE_NIGHTLY_URL % (tag, tag, platform), False)
 
 
-def PrepareBinary(out_dir, target, is_chromium):
-  tag, location = ParseTarget(target)
-  logging.debug(f'Parsed tag: {tag}, location : {location}')
+def PrepareBinary(out_dir, tag, location, is_chromium):
   if location:  # local binary
     if os.path.exists(location):
       return location
@@ -177,6 +176,6 @@ def PrepareBinary(out_dir, target, is_chromium):
     return PrepareBinaryByTag(out_dir, tag, is_chromium)
 
 
-def GetTagForTarget(target):
-  tag, _ = ParseTarget(target)
-  return tag
+# def GetTagForTarget(target):
+#   tag, _ = ParseTarget(target)
+#   return tag

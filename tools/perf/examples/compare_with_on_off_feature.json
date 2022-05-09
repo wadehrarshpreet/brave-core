@@ -1,16 +1,16 @@
 {
   "configurations": [
     {
-      "target" : "v1.39.73",
+      "target" : "v1.39.73:E:\\work\\tmp\\perf_2\\v1.39.73\\brave.exe",
       "label": "solana_on",
-      "profile_type": "empty",
-      "extra_browser_args": "--enable-features=BraveWalletSolana"
+      "profile": "clean",
+      "extra-browser-args": ["--enable-features=BraveWalletSolana"]
     },
     {
-      "target" : "v1.39.73",
+      "target" : "v1.39.73:E:\\work\\tmp\\perf_2\\v1.39.73\\brave.exe",
       "label": "solana_off",
-      "profile_type": "empty",
-      "extra_browser_args": "--disable-features=BraveWalletSolana"
+      "profile": "clean",
+      "extra-browser-args": ["--disable-features=BraveWalletSolana"]
     }
   ],
   "tests": [
@@ -32,6 +32,5 @@
       "benchmark": "speedometer2",
       "pageset-repeat": 1
     }
-
   ]
 }

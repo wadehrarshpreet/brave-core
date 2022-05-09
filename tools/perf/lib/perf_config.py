@@ -4,38 +4,26 @@
 # you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+from lib import browser_binary_fetcher
 
-class PerfConfiguration(object):
+
+class PerfConfiguration:
+  tag = None
+  location = None
+  label = None
   profile = 'empty'
   extra_browser_args = []
-
-
-class PerfConfigurationWithTarget(PerfConfiguration):
-  target = None
-
-  def __init__(self, config_dict):
-    for key in config_dict:
-      if not hasattr(self, key):
-        raise RuntimeError('Unexpected %s in configuration', key)
-      key = key.replace('-', '_')
-      setattr(self, key, config_dict[key])
-    if not self.target:
-      raise RuntimeError('target should be specified in configuration')
-
-
-class PerfDashboardConfiguration(PerfConfiguration):
-  dashboard_bot_name = None
   extra_benchmark_args = []
   chromium = False
+  dashboard_bot_name = None
 
   def __init__(self, config_dict):
-    if not config_dict:
-      raise RuntimeError('Missing \'configuration\'')
     for key in config_dict:
+      if key == 'target':
+        self.tag, self.location = browser_binary_fetcher.ParseTarget(
+            config_dict[key])
+        continue
       key_ = key.replace('-', '_')
       if not hasattr(self, key_):
-        raise RuntimeError('Unexpected %s in configuration' % key)
+        raise RuntimeError(f'Unexpected {key} in configuration')
       setattr(self, key_, config_dict[key])
-    if not self.dashboard_bot_name:
-      raise RuntimeError(
-          'dashboard_bot_name should be specified in configuration')

@@ -15,10 +15,12 @@ the result flakiness.
 
 Example usage:
  vpython3 run_brave_perftests.py --configuration-name=test-agent
-                                 --work-directory=e:\work\tmp\perf0\
+                                 --working-directory=e:\work\tmp\perf0\
                                  --target v1.36.23
                                  --extra-args="--use-live-sites"
 """
+from __future__ import annotations
+
 import os
 import subprocess
 import json
@@ -27,15 +29,19 @@ import logging
 import shutil
 import time
 import uuid
-from lib import path_util, browser_binary_fetcher, perf_config, perf_profile
+from lib import path_util, browser_binary_fetcher, perf_profile
+from lib.perf_config import PerfConfiguration
 import argparse
 
+
 # Workaround to add our wpr files
-page_set_data_dir = os.path.join(path_util.BRAVE_PERF_DIR, 'page_sets_data')
-chromium_page_set_data_dir = os.path.join(path_util.SRC_DIR, 'tools', 'perf',
-                                          'page_sets', 'data')
-for item in os.listdir(page_set_data_dir):
-  shutil.copy(os.path.join(page_set_data_dir, item), chromium_page_set_data_dir)
+def FixUpWPRs():
+  page_set_data_dir = os.path.join(path_util.BRAVE_PERF_DIR, 'page_sets_data')
+  chromium_page_set_data_dir = os.path.join(path_util.SRC_DIR, 'tools', 'perf',
+                                            'page_sets', 'data')
+  for item in os.listdir(page_set_data_dir):
+    shutil.copy(os.path.join(page_set_data_dir, item),
+                chromium_page_set_data_dir)
 
 
 # Returns pair [revision_number, sha1]. revision_number is a number "primary"
@@ -43,7 +49,7 @@ for item in os.listdir(page_set_data_dir):
 # Use this to get the commit from a revision number:
 # git rev-list --topo-order --first-parent --reverse origin/master
 # | head -n <rev_num> | tail -n 1 | git log -n 1 --stdin
-def GetRevisionNumberAndHash(revision):
+def GetRevisionNumberAndHash(revision: str) -> tuple[str, str]:
   brave_dir = os.path.join(path_util.SRC_DIR, 'brave')
   subprocess.check_call(['git', 'fetch', 'origin', revision],
                         cwd=brave_dir,
@@ -57,7 +63,7 @@ def GetRevisionNumberAndHash(revision):
   ]
   logging.debug('Run binary:' + ' '.join(rev_number_args))
   rev_number = subprocess.check_output(rev_number_args, cwd=brave_dir).rstrip()
-  return [rev_number.decode('utf-8'), hash.decode('utf-8')]
+  return rev_number.decode('utf-8'), hash.decode('utf-8')
 
 
 def RunSingleTest(binary,
@@ -81,15 +87,13 @@ def RunSingleTest(binary,
   if is_ref:
     benchmark += '.reference'
 
-  logs = []
+  logs: list[str] = []
   if is_local_run:
     assert (local_run_label != None)
     args.append(benchmark)
 
     args.append('--results-label=' + local_run_label)
-    out_dir = os.path.join(out_dir, config['benchmark'])
     args.append(f'--output-dir={out_dir}')
-    logs.append(config['benchmark'] + ' : file://' + out_dir)
   else:
     args.append(f'--benchmarks={benchmark}')
     args.append('--isolated-script-test-output=' +
@@ -99,7 +103,7 @@ def RunSingleTest(binary,
     args.append(f'--profile-dir={profile_dir}')
   args.append('--browser=exact')
   args.append(f'--browser-executable={binary}')
-  args.append('--pageset-repeat=%d' % config['pageset_repeat'])
+  args.append('--pageset-repeat=%d' % config['pageset-repeat'])
   if 'stories' in config:
     for story in config['stories']:
       args.append(f'--story={story}')
@@ -128,8 +132,7 @@ def RunSingleTest(binary,
     return True, logs
 
 
-def ReportToDashboard(product, is_ref, configuration_name, revision,
-                      output_dir):
+def ReportToDashboard(is_ref, configuration_name, revision, output_dir):
   args = [
       path_util.VPYTHON_2_PATH,
       os.path.join(path_util.SRC_DIR, 'tools', 'perf',
@@ -139,18 +142,12 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   args.append(f'--task-output-dir={output_dir}')
   args.append('--output-json=' + os.path.join(output_dir, 'results.json'))
 
-  [revision_number, git_hash] = GetRevisionNumberAndHash(revision)
+  revision_number, git_hash = GetRevisionNumberAndHash(revision)
   logging.debug(f'Got revision {revision_number} git_hash {git_hash}')
 
   build_properties = {}
   build_properties['bot_id'] = 'test_bot'
-  if product == 'brave':
-    build_properties['builder_group'] = 'brave.perf'
-  elif product == 'chromium':
-    build_properties[
-        'builder_group'] = 'brave.perf' if is_ref else 'chromium.perf'
-  else:
-    raise RuntimeError('bad product name ' + product)
+  build_properties['builder_group'] = 'brave.perf'
 
   build_properties['parent_builder_group'] = 'chromium.linux'
   build_properties['parent_buildername'] = 'Linux Builder'
@@ -158,7 +155,8 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
   build_properties['slavename'] = 'test_bot'
 
   # keep in sync with _MakeBuildStatusUrl() to make correct build urls.
-  build_properties['buildername'] = product + '/' + revision
+  build_properties['buildername'] = ('chrome'
+                                     if is_ref else 'brave') + '/' + revision
   build_properties['buildnumber'] = '001'
 
   build_properties[
@@ -181,129 +179,266 @@ def ReportToDashboard(product, is_ref, configuration_name, revision,
     return True, [], revision_number
 
 
-def TestBinary(product, revision, binary, output_dir, profile_dir, is_ref, args,
-               extra_browser_args, extra_benchmark_args, is_local_run,
-               local_run_label):
-  failedLogs = []
-  has_failure = False
-  for test_config in json_config['tests']:
-    benchmark = test_config['benchmark']
-    if not RunSingleTest(binary, test_config, output_dir, profile_dir, is_ref,
-                         args.verbose, extra_browser_args, extra_benchmark_args,
-                         is_local_run, local_run_label):
-      has_failure = True
-      error = f'Test case {benchmark} failed on revision {revision}'
-      error += '\nLogs: ' + os.path.join(output_dir, benchmark, benchmark,
-                                         'benchmark_log.txt')
-      logging.error(error)
-      failedLogs.append(error)
+def GetConfigPath(config_path):
+  if os.path.isfile(config_path):
+    return config_path
 
-  return not has_failure, failedLogs
-
-
-logs = []
-has_failure = False
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--targets',
-                    required=True,
-                    type=str,
-                    help='The targets to test')
-parser.add_argument('--work-directory', required=True, type=str)
-parser.add_argument('--config', required=True, type=str)
-parser.add_argument('--no-report', action='store_true')
-parser.add_argument('--report-only', action='store_true')
-parser.add_argument('--report-on-failure', action='store_true')
-parser.add_argument('--local-run', action='store_true')
-parser.add_argument('--verbose', action='store_true')
-args = parser.parse_args()
-
-log_level = logging.DEBUG if args.verbose else logging.INFO
-log_format = '%(asctime)s: %(message)s'
-logging.basicConfig(level=log_level, format=log_format)
-
-config_path = args.config
-if not os.path.isfile(config_path):
   absolute_config = os.path.join(path_util.BRAVE_PERF_DIR, 'configs',
                                  config_path)
   if os.path.isfile(absolute_config):
-    config_path = absolute_config
+    return absolute_config
+  raise RuntimeError(f'Bad config {config_path}')
 
-json_config = {}
-with open(config_path, 'r') as config_file:
-  json_config = json.load(config_file)
-targets = args.targets.split(',')
-configuration = perf_config.PerfDashboardConfiguration(
-    json_config['configuration'])
-binaries = {}
-tags = {}
-out_dirs = {}
-for target in targets:
-  tag = tags[target] = browser_binary_fetcher.GetTagForTarget(target)
-  if not tag:
-    raise RuntimeError(f'Can get the tag from target {target}')
-  out_dir = out_dirs[target] = os.path.join(args.work_directory, tag)
 
-  if not args.report_only:
-    shutil.rmtree(out_dir, True)
-    binaries[target] = browser_binary_fetcher.PrepareBinary(
-        out_dir, target, configuration.chromium)
-    logging.info(f'target {tag} : {binaries[target]} directory {out_dir}')
+def LoadConfig(config: str) -> dict:
+  config_path = GetConfigPath(config)
+  with open(config_path, 'r') as config_file:
+    return json.load(config_file)
 
-for target in targets:
-  status_line = ''
-  tag = tags[target]
-  out_dir = out_dirs[target]
 
-  product = 'chromium' if configuration.chromium else 'brave'
-  is_ref = configuration.chromium
+class CommonOptions:
+  do_run_test = True
+  do_report = False
+  report_on_failure = False
+  local_run = False
+  working_directory = ''
+  tests_config = None
 
-  binary_success = True
-  status_line = f'Tag {tag} : '
-  if not args.report_only:
-    profile_dir = perf_profile.GetProfilePath(configuration.profile,
-                                              binaries[target],
-                                              args.work_directory)
+  @classmethod
+  def make_local(cls, working_directory, tests_config):
+    options = CommonOptions()
+    options.working_directory = working_directory
+    options.tests_config = tests_config
+    options.local_run = True
+    return options
+
+  @classmethod
+  def from_args(cls, args, tests_config):
+    options = CommonOptions()
+    options.do_run_test = not args.report_only
+    options.do_report = not args.no_report and not args.local_run
+    options.report_on_failure = args.report_on_failure
+    options.local_run = args.local_run
+    options.working_directory = args.working_directory
+    options.tests_config = tests_config
+    return options
+
+
+class RunableConfiguration:
+  config: PerfConfiguration
+  binary_path: str
+  out_dir: str
+
+  status_line: str = ''
+  logs: list[str] = []
+  profile_dir: str
+
+  def __init__(self, config: dict, binary_path: str, out_dir: str):
+    self.config = config
+    self.binary_path = binary_path
+    self.out_dir = out_dir
+
+  def PrepareProfile(self, common_options: CommonOptions):
     start_time = time.time()
-    binary_success, binary_logs = TestBinary(product, 'refs/tags/' + tag,
-                                             binaries[target],
-                                             os.path.join(out_dir, 'results'),
-                                             profile_dir, is_ref, args,
-                                             configuration.extra_browser_args,
-                                             configuration.extra_benchmark_args,
-                                             args.local_run,
-                                             tag)
+    self.profile_dir = perf_profile.GetProfilePath(
+        self.config.profile, self.binary_path, common_options.working_directory)
+    self.status_line += f'Prepare {(time.time() - start_time):.2f}s '
+
+  def RunTests(self, common_options: CommonOptions) -> bool:
+    has_failure = False
+
+    self.PrepareProfile(common_options)
+
+    start_time = time.time()
+    for test_config in common_options.tests_config:
+      benchmark = test_config['benchmark']
+      if common_options.local_run:
+        test_out_dir = os.path.join(self.out_dir, os.pardir, benchmark)
+      else:
+        test_out_dir = os.path.join(self.out_dir, 'results')
+      test_success, test_logs = RunSingleTest(
+          self.binary_path, test_config, test_out_dir, self.profile_dir,
+          self.config.chromium, True, self.config.extra_browser_args,
+          self.config.extra_benchmark_args, common_options.local_run,
+          self.config.label)
+      self.logs.extend(test_logs)
+
+      if not test_success:
+        has_failure = True
+        error = f'Test case {benchmark} failed on tag {tag}'
+        error += '\nLogs: ' + os.path.join(test_out_dir, benchmark, benchmark,
+                                           'benchmark_log.txt')
+        logging.error(error)
+        self.logs.append(error)
+
     spent_time = time.time() - start_time
-    status_line += f'Run {spent_time:.2f}s '
-    status_line += 'OK, ' if binary_success else 'FAILURE, '
-    if not binary_success:
-      has_failure = True
-      logs.extend(binary_logs)
+    self.status_line += f'Run {spent_time:.2f}s '
+    self.status_line += 'FAILURE  ' if has_failure else 'OK  '
+    return not has_failure
 
-  if not binary_success and not args.report_on_failure:
-    error = 'Skip reporting because errors for target ' + target
-    status_line += 'Report skipped'
-    logging.error(error)
-    logs.append(error)
-  elif args.no_report or args.local_run:
-    logging.debug('skip reporting because report==False')
-  else:
+  def ReportToDashboard(self) -> bool:
     start_time = time.time()
+    assert (self.config.dashboard_bot_name != None)
     report_success, report_failed_logs, revision_number = ReportToDashboard(
-        product, is_ref, configuration.dashboard_bot_name, 'refs/tags/' + tag,
-        os.path.join(out_dir, 'results'))
+        self.config.chromium, self.config.dashboard_bot_name,
+        'refs/tags/' + self.config.tag, os.path.join(self.out_dir, 'results'))
     spent_time = time.time() - start_time
-    status_line += f'Report {spent_time:.2f}s '
-    status_line += 'OK, ' if binary_success else 'FAILURE, '
-    status_line += f'Revnum: #{revision_number}'
+    self.status_line += f'Report {spent_time:.2f}s '
+    self.status_line += 'OK, ' if report_success else 'FAILURE, '
+    self.status_line += f'Revnum: #{revision_number}'
     if not report_success:
-      has_failure = True
-      logs.extend(report_failed_logs)
-  logs.append(status_line)
+      self.logs.extend(report_failed_logs)
+    return report_success
 
-if logs != []:
-  logging.info('\n' + '\n'.join(logs))
-if has_failure:
-  logging.error(f'Summary: has failure!')
-else:
-  logging.info('Summary: OK')
+  def Run(self, common_options: CommonOptions) -> bool:
+    run_tests_success = True
+    report_ok = True
+
+    if common_options.do_run_test:
+      run_tests_ok = self.RunTests(common_options)
+    if common_options.do_report:
+      if run_tests_ok or common_options.report_on_failure:
+        report_ok = self.ReportToDashboard()
+    self.logs.append(self.status_line)
+
+    return run_tests_success and report_ok, self.logs
+
+
+def PrepareBinariesAndDirectories(
+    configurations: list[PerfConfiguration],
+    common_options: CommonOptions) -> list[RunableConfiguration]:
+  runable_configurations: list[RunableConfiguration] = []
+  for config in configurations:
+    out_dir = os.path.join(common_options.working_directory, config.tag)
+
+    if common_options.do_run_test:
+      shutil.rmtree(out_dir, True)
+      binary_path = browser_binary_fetcher.PrepareBinary(
+          out_dir, config.tag, config.location, config.chromium)
+      if config.tag == config.label:
+        description = config.tag
+      else:
+        description = f'{config.label}(tag {config.tag})'
+      logging.info(f'target {description} : {binary_path} directory {out_dir}')
+    runable_configurations.append(
+        RunableConfiguration(config, binary_path, out_dir))
+  return runable_configurations
+
+
+def SpawnConfigurationsFromTargetList(
+    target_list: list[str],
+    base_configuration: PerfConfiguration) -> list[PerfConfiguration]:
+  configurations: list[PerfConfiguration] = []
+  for target_string in target_list:
+    config = base_configuration
+    config.tag, config.location = browser_binary_fetcher.ParseTarget(
+        target_string)
+    #TODO: add early validation
+    if not config.tag:
+      raise RuntimeError(f'Can get the tag from target {target_string}')
+    config.label = config.tag
+    configurations.append(config)
+  return configurations
+
+
+def ParseConfigurations(
+    configurations_list: list[dict]) -> list[PerfConfiguration]:
+  configurations: list[PerfConfiguration] = []
+  for serialized_config in configurations_list:
+    config = PerfConfiguration(serialized_config)
+    #TODO: add early validation
+    if not config.tag:
+      raise RuntimeError(f'Can get the tag for {serialized_config}')
+    configurations.append(config)
+  return configurations
+
+
+def RunConfigurations(configurations: list[PerfConfiguration],
+                      common_options: CommonOptions) -> bool:
+  runable_configurations = PrepareBinariesAndDirectories(
+      configurations, common_options)
+
+  has_failure = False
+  logs: list[str] = []
+  for config in runable_configurations:
+    result, config_logs = config.Run(common_options)
+    if not result:
+      has_failure = True
+    logs.extend(config_logs)
+
+  if common_options.local_run:
+    for test_config in common_options.tests_config:
+      benchmark = test_config['benchmark']
+      logs.append(benchmark + ' : file://' + os.path.join(
+          common_options.working_directory, benchmark, 'results.html'))
+
+  if logs != []:
+    logging.info('\n' + '\n'.join(logs))
+
+  if has_failure:
+    logging.error(f'Summary: has failure!')
+  else:
+    logging.info('Summary: OK')
+
+
+def compare_main():
+  FixUpWPRs()
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--working-directory', required=True, type=str)
+  parser.add_argument('--config', required=True, type=str)
+  parser.add_argument('--verbose', action='store_true')
+  args = parser.parse_args()
+
+  log_level = logging.DEBUG if args.verbose else logging.INFO
+  log_format = '%(asctime)s: %(message)s'
+  logging.basicConfig(level=log_level, format=log_format)
+
+  json_config = LoadConfig(args.config)
+  tests_config = json_config['tests']
+
+  common_options = CommonOptions.make_local(args.working_directory,
+                                            tests_config)
+
+  configurations = ParseConfigurations(json_config['configurations'])
+
+  return 0 if RunConfigurations(configurations, common_options) else 1
+
+
+def main():
+  FixUpWPRs()
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--targets',
+                      required=True,
+                      type=str,
+                      help='The targets to test')
+  parser.add_argument('--working-directory', required=True, type=str)
+  parser.add_argument('--config', required=True, type=str)
+  parser.add_argument('--no-report', action='store_true')
+  parser.add_argument('--report-only', action='store_true')
+  parser.add_argument('--report-on-failure', action='store_true')
+  parser.add_argument('--local-run', action='store_true')
+  parser.add_argument('--verbose', action='store_true')
+  args = parser.parse_args()
+
+  log_level = logging.DEBUG if args.verbose else logging.INFO
+  log_format = '%(asctime)s: %(message)s'
+  logging.basicConfig(level=log_level, format=log_format)
+
+  json_config = LoadConfig(args.config)
+  targets = args.targets.split(',')
+  base_configuration = PerfConfiguration(json_config['configuration'])
+
+  tests_config = json_config['tests']
+
+  common_options = CommonOptions.from_args(args, tests_config)
+
+  configurations = SpawnConfigurationsFromTargetList(targets,
+                                                     base_configuration)
+
+  return 0 if RunConfigurations(configurations, common_options) else 1
+
+
+if __name__ == '__main__':
+  sys.exit(main())
