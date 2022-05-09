@@ -1,13 +1,13 @@
 {
   "configurations": [
     {
-      "target" : "v1.39.73:E:\\work\\tmp\\perf_2\\v1.39.73\\brave.exe",
+      "target" : "v1.39.73",
       "label": "solana_on",
       "profile": "clean",
       "extra-browser-args": ["--enable-features=BraveWalletSolana"]
     },
     {
-      "target" : "v1.39.73:E:\\work\\tmp\\perf_2\\v1.39.73\\brave.exe",
+      "target" : "v1.39.73",
       "label": "solana_off",
       "profile": "clean",
       "extra-browser-args": ["--disable-features=BraveWalletSolana"]
