@@ -1,0 +1,77 @@
+diff --git a/tools/perf/page_sets/data/loading_desktop.json b/tools/perf/page_sets/data/loading_desktop.json
+index e43c0910aa5a5f99e1419f99c0b22b26698e2bba..f80e8afa5d6bb2ae76de340fce5d0bf4226c0154 100644
+--- a/tools/perf/page_sets/data/loading_desktop.json
++++ b/tools/perf/page_sets/data/loading_desktop.json
+@@ -79,10 +79,10 @@
+             "DEFAULT": "loading_desktop_006.wprgo"
+         },
+         "Economist_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_157a8c1199.wprgo"
+         },
+         "Economist_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_157a8c1199.wprgo"
+         },
+         "Elmundo_cold": {
+             "DEFAULT": "loading_desktop_006.wprgo"
+@@ -115,10 +115,10 @@
+             "DEFAULT": "loading_desktop_006.wprgo"
+         },
+         "Flickr_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_0e0dfbbb83.wprgo"
+         },
+         "Flickr_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_0e0dfbbb83.wprgo"
+         },
+         "FlipKart_cold": {
+             "DEFAULT": "loading_desktop_006.wprgo"
+@@ -157,16 +157,16 @@
+             "DEFAULT": "loading_desktop_006.wprgo"
+         },
+         "IGN_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_7ffde40c9d.wprgo"
+         },
+         "IGN_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_7ffde40c9d.wprgo"
+         },
+         "IMDB_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_1920dedd3e.wprgo"
+         },
+         "IMDB_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_1920dedd3e.wprgo"
+         },
+         "IndiaTimes_cold": {
+             "DEFAULT": "loading_desktop_006.wprgo"
+@@ -331,10 +331,10 @@
+             "DEFAULT": "loading_desktop_001.wprgo"
+         },
+         "ja.wikipedia_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_154fa72931.wprgo"
+         },
+         "ja.wikipedia_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_154fa72931.wprgo"
+         },
+         "money.cnn_cold": {
+             "DEFAULT": "loading_desktop_006.wprgo"
+@@ -343,10 +343,10 @@
+             "DEFAULT": "loading_desktop_006.wprgo"
+         },
+         "ru.wikipedia_cold": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_640a17993d.wprgo"
+         },
+         "ru.wikipedia_warm": {
+-            "DEFAULT": "loading_desktop_006.wprgo"
++            "DEFAULT": "loading_desktop_640a17993d.wprgo"
+         },
+         "uol.com.br_cold": {
+             "DEFAULT": "loading_desktop_006.wprgo"
