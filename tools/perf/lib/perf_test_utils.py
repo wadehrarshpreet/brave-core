@@ -242,6 +242,8 @@ class RunableConfiguration:
         test_out_dir = os.path.join(self.out_dir, os.pardir, benchmark)
       else:
         test_out_dir = os.path.join(self.out_dir, 'results')
+      logging.info(f'Running test {benchmark}')
+
       test_success, test_logs = RunSingleTest(
           self.binary_path, test_config, test_out_dir, self.profile_dir,
           self.config.chromium, True, self.config.extra_browser_args,
@@ -277,6 +279,7 @@ class RunableConfiguration:
     return report_success
 
   def Run(self, common_options: CommonOptions) -> bool:
+    logging.info(f'##Label: {self.config.label} binary {self.binary_path}')
     run_tests_success = True
     report_ok = True
 
@@ -334,7 +337,8 @@ def ParseConfigurations(
     config = PerfConfiguration(serialized_config)
     #TODO: add early validation
     if not config.tag and not config.label:
-     raise RuntimeError(f'label or tag should be specified {serialized_config}')
+      raise RuntimeError(
+          f'label or tag should be specified {serialized_config}')
 
     if not config.tag:
       config.tag = config.label
