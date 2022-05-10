@@ -13,8 +13,8 @@
       "stories": [
         "ru.wikipedia_cold",
         "ru.wikipedia_warm",
-        "IGN_warm",
-        "IGN_cold",
+        // "IGN_warm",
+        // "IGN_cold",
       ]
     },
     {

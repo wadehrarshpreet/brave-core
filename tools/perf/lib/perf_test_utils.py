@@ -265,6 +265,7 @@ class RunableConfiguration:
     return not has_failure
 
   def ReportToDashboard(self) -> bool:
+    logging.info(f'Reporting to dashboard {self.config.label}...')
     start_time = time.time()
     assert (self.config.dashboard_bot_name != None)
     report_success, report_failed_logs, revision_number = ReportToDashboard(
@@ -299,6 +300,7 @@ def PrepareBinariesAndDirectories(
   runable_configurations: list[RunableConfiguration] = []
   for config in configurations:
     out_dir = os.path.join(common_options.working_directory, config.tag)
+    binary_path = None
 
     if common_options.do_run_test:
       shutil.rmtree(out_dir, True)
@@ -368,7 +370,9 @@ def RunConfigurations(configurations: list[PerfConfiguration],
           common_options.working_directory, benchmark, 'results.html'))
 
   if logs != []:
-    logging.info('\n' + '\n'.join(logs))
+    logging.info('Logs:')
+    for item in logs:
+      logging.info(item)
 
   if has_failure:
     logging.error(f'Summary: not ok')
