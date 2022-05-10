@@ -4,11 +4,14 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "brave/components/tor/tor_control.h"
+
+#include <utility>
 #include <vector>
 
 #include "base/bind.h"
 #include "base/callback_helpers.h"
 #include "base/files/file_path.h"
+#include "base/logging.h"
 #include "base/sequence_checker.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
@@ -523,18 +526,6 @@ void TorControl::GetCircuitEstablishedDone(
   std::move(callback).Run(false, result);
 }
 
-void LogResult(const std::string& cmd,
-               bool error,
-               const std::string& status,
-               const std::string& reply) {
-  LOG(ERROR) << cmd;
-  LOG(ERROR) << "    " << reply;
-}
-
-TorControl::CmdCallback LogR(const std::string& cmd) {
-  return base::BindOnce(&LogResult, cmd);
-}
-
 void TorControl::SetupPluggableTransport(
     const base::FilePath& snowflake,
     const base::FilePath& obsf4,
@@ -577,7 +568,18 @@ void TorControl::SetupPluggableTransport(
       base::StrCat({"SETCONF ", snowflake_setup, " ", obsf4_setup});
 
   DoCmd(configure_pluggable_transport, base::DoNothing(),
-        LogR(configure_pluggable_transport));
+        base::BindOnce(&TorControl::OnPluggableTransportsConfigured,
+                       weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+}
+
+void TorControl::OnPluggableTransportsConfigured(
+    base::OnceCallback<void(bool error)> callback,
+    bool error,
+    const std::string& status,
+    const std::string& reply) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(io_sequence_checker_);
+  VLOG(1) << __func__ << " " << reply;
+  std::move(callback).Run(error || status != "250" || reply != "OK");
 }
 
 void TorControl::SetupBridges(const std::vector<std::string>& bridges,
@@ -591,17 +593,29 @@ void TorControl::SetupBridges(const std::vector<std::string>& bridges,
   }
   DCHECK_CALLED_ON_VALID_SEQUENCE(io_sequence_checker_);
   if (bridges.empty()) {
-    DoCmd("RESETCONF UseBridges", base::DoNothing(), base::DoNothing());
-    DoCmd("RESETCONF Bridge", base::DoNothing(), base::DoNothing());
+    DoCmd("RESETCONF UseBridges Bridge", base::DoNothing(),
+          base::BindOnce(&TorControl::OnBrigdesConfigured,
+                         weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
   } else {
     std::string command = "SETCONF ";
     for (const auto& bridge : bridges) {
       command += "Bridge=\"" + bridge + "\" ";
     }
     command += "UseBridges=1";
-    DoCmd(std::move(command), base::DoNothing(), base::DoNothing());
+    DoCmd(std::move(command), base::DoNothing(),
+          base::BindOnce(&TorControl::OnBrigdesConfigured,
+                         weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
   }
-  DoCmd("SAVECONF", base::DoNothing(), base::DoNothing());
+}
+
+void TorControl::OnBrigdesConfigured(
+    base::OnceCallback<void(bool error)> callback,
+    bool error,
+    const std::string& status,
+    const std::string& reply) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(io_sequence_checker_);
+  VLOG(1) << __func__ << " " << reply;
+  std::move(callback).Run(error || status != "250" || reply != "OK");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
