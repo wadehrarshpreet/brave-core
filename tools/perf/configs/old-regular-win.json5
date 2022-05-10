@@ -1,0 +1,33 @@
+{
+  "configuration":
+  {
+    "dashboard-bot-name": "asus-w10-slow-laptop",
+    "chromium" : false,
+    "profile": "clean",
+    "extra-browser-args": [],
+    "extra-benchmark-args": []
+  },
+  "tests": [
+    {
+      "benchmark": "system_health.common_desktop",
+      "pageset-repeat": 10,
+      "stories": [
+        "load:chrome:blank",
+        "load:media:youtube:2018",
+      ]
+    },
+    {
+      "benchmark": "system_health.memory_desktop",
+      "pageset-repeat": 10,
+      "stories": [
+        "load:chrome:blank",
+        "load:media:youtube:2018"
+      ]
+    },
+    {
+      "benchmark": "speedometer2",
+      "pageset-repeat": 1
+    }
+
+  ]
+}

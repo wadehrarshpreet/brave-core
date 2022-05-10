@@ -1,0 +1,28 @@
+{
+  "configurations": [
+    {
+      "target": "v1.40.43",
+      "label": "v1.40.43",
+      "profile": "old-brave-typical",
+      "extra-browser-args": [],
+      "extra-benchmark-args": []
+    },
+    {
+      "target": "v1.40.43",
+      "label": "chrome_v1.40.43",
+      "chromium": true,
+      "profile": "chrome-typical",
+      "extra-browser-args": [],
+      "extra-benchmark-args": []
+    }
+  ],
+  "tests": [
+    {
+      "benchmark": "loading.desktop",
+      "pageset-repeat": 10,
+      "stories": [
+        "ru.wikipedia_cold",
+      ]
+    }
+  ]
+}
