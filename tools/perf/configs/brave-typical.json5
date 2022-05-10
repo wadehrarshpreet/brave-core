@@ -2,18 +2,20 @@
   "configuration":
   {
     "dashboard-bot-name": "asus-w10-slow-laptop-typical",
-    "chromium" : true,
-    "profile": "chrome-typical",
+    "chromium" : false,
+    "profile": "old-brave-typical",
     "extra-browser-args": [],
     "extra-benchmark-args": []
   },
   "tests": [
     {
-      "benchmark": "system_health.common_desktop",
+      "benchmark": "loading.desktop",
       "pageset-repeat": 10,
       "stories": [
-        "load:chrome:blank",
-        "browse:news:hackernews:2020"
+        "ru.wikipedia_cold",
+        "ru.wikipedia_warm",
+        "IGN_warm",
+        "IGN_cold",
       ]
     },
     {

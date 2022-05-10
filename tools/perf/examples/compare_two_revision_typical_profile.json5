@@ -1,29 +1,27 @@
 {
   "configurations": [
     {
-      "target" : "v1.37.5",
-      "label" : "good_v1.37.5",
+      "target": "v1.37.5",
+      "label": "good_v1.37.5",
       "profile": "old-brave-typical",
       "extra-browser-args": [],
-      "extra-benchmark-args": ["--use-live-sites"]
+      "extra-benchmark-args": []
     },
     {
-      "target" : "v1.37.6",
-      "label" : "bad_v1.37.6",
+      "target": "v1.37.6",
+      "label": "bad_v1.37.6",
       "profile": "old-brave-typical",
       "extra-browser-args": [],
-      "extra-benchmark-args": ["--use-live-sites"]
+      "extra-benchmark-args": []
     }
   ],
   "tests": [
     {
       "benchmark": "loading.desktop",
-      "pageset-repeat": 1,
+      "pageset-repeat": 10,
       "stories": [
         "ru.wikipedia_cold",
         "ru.wikipedia_warm",
-        "IMDB_cold",
-        "IMDB_warm",
         "IGN_warm",
         "IGN_cold"
       ]

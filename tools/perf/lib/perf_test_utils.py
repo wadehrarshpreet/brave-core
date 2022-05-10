@@ -280,7 +280,7 @@ class RunableConfiguration:
 
   def Run(self, common_options: CommonOptions) -> bool:
     logging.info(f'##Label: {self.config.label} binary {self.binary_path}')
-    run_tests_success = True
+    run_tests_ok = True
     report_ok = True
 
     if common_options.do_run_test:
@@ -290,7 +290,7 @@ class RunableConfiguration:
         report_ok = self.ReportToDashboard()
     self.logs.append(self.status_line)
 
-    return run_tests_success and report_ok, self.logs
+    return run_tests_ok and report_ok, self.logs
 
 
 def PrepareBinariesAndDirectories(
@@ -371,6 +371,6 @@ def RunConfigurations(configurations: list[PerfConfiguration],
     logging.info('\n' + '\n'.join(logs))
 
   if has_failure:
-    logging.error(f'Summary: has failure!')
+    logging.error(f'Summary: not ok')
   else:
     logging.info('Summary: OK')
