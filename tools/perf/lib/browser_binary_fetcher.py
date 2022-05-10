@@ -131,9 +131,9 @@ def PrepareBinaryByUrl(out_dir, url, is_chromium):
 
 def ParseTarget(target):
   m = re.match('^(v\d+\.\d+\.\d+)(?::(.+)|$)', target)
-  logging.debug(f'Parsed tag: {m.group(1)}, location : {m.group(2)}')
   if not m:
     return None, target
+  logging.debug(f'Parsed tag: {m.group(1)}, location : {m.group(2)}')
   return m.group(1), m.group(2)
 
 
@@ -174,8 +174,3 @@ def PrepareBinary(out_dir, tag, location, is_chromium):
     return PrepareBinaryByUrl(out_dir, location, is_chromium)
   else:
     return PrepareBinaryByTag(out_dir, tag, is_chromium)
-
-
-# def GetTagForTarget(target):
-#   tag, _ = ParseTarget(target)
-#   return tag

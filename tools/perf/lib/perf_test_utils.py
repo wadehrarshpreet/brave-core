@@ -108,7 +108,7 @@ def RunSingleTest(binary,
                           cwd=os.path.join(path_util.SRC_DIR, 'tools', 'perf'))
   if result.returncode != 0:
     logging.error(result.stdout.decode('utf-8'))
-    return False
+    return False, []
   else:
     logging.debug(result.stdout.decode('utf-8'))
     return True, logs
@@ -173,9 +173,13 @@ def GetConfigPath(config_path):
 
 
 def LoadConfig(config: str) -> dict:
+  PYJSON5_DIR = os.path.join(path_util.SRC_DIR, 'third_party', 'pyjson5', 'src')
+  sys.path.insert(0, PYJSON5_DIR)
+  import json5  # pylint: disable=import-error
+
   config_path = GetConfigPath(config)
   with open(config_path, 'r') as config_file:
-    return json.load(config_file)
+    return json5.load(config_file)
 
 
 class CommonOptions:
@@ -247,7 +251,7 @@ class RunableConfiguration:
 
       if not test_success:
         has_failure = True
-        error = f'Test case {benchmark} failed on tag {tag}'
+        error = f'Test case {benchmark} failed on binary {self.binary_path}'
         error += '\nLogs: ' + os.path.join(test_out_dir, benchmark, benchmark,
                                            'benchmark_log.txt')
         logging.error(error)
@@ -329,8 +333,13 @@ def ParseConfigurations(
   for serialized_config in configurations_list:
     config = PerfConfiguration(serialized_config)
     #TODO: add early validation
+    if not config.tag and not config.label:
+     raise RuntimeError(f'label or tag should be specified {serialized_config}')
+
     if not config.tag:
-      raise RuntimeError(f'Can get the tag for {serialized_config}')
+      config.tag = config.label
+    if not config.label:
+      config.label = config.tag
     configurations.append(config)
   return configurations
 

@@ -3,9 +3,9 @@
   {
     "dashboard-bot-name": "asus-w10-slow-laptop-adblock",
     "chromium" : false,
-    "profile": "adblock-profile",
+    "profile": "clear",
     "extra-browser-args": [],
-    "extra-benchmark-args": []
+    "extra-benchmark-args": ["--use-live-sites"]
   },
   "tests": [
     {
