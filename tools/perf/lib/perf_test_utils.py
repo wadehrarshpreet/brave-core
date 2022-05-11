@@ -22,8 +22,9 @@ def FixUpWPRs():
   chromium_page_set_data_dir = os.path.join(path_util.SRC_DIR, 'tools', 'perf',
                                             'page_sets', 'data')
   for item in os.listdir(page_set_data_dir):
-    shutil.copy(os.path.join(page_set_data_dir, item),
-                chromium_page_set_data_dir)
+    if os.path.isfile(item):
+      shutil.copy(os.path.join(page_set_data_dir, item),
+                  chromium_page_set_data_dir)
 
 
 # Returns pair [revision_number, sha1]. revision_number is a number "primary"
