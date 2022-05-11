@@ -1,0 +1,78 @@
+diff --git a/tools/perf/page_sets/loading_desktop.py b/tools/perf/page_sets/loading_desktop.py
+index 1fdff482b81698739f2700e80794deb5f518d1e1..24e9d1abaa8270b8d21eee01061366375823dcfe 100644
+--- a/tools/perf/page_sets/loading_desktop.py
++++ b/tools/perf/page_sets/loading_desktop.py
+@@ -29,7 +29,6 @@ ABRIDGED_STORY_NAMES = [
+     "Orange_warm",
+ ]
+ 
+-
+ class LoadingDesktopStorySet(story.StorySet):
+ 
+   """ A collection of tests to measure loading performance of desktop sites.
+@@ -145,3 +144,65 @@ class LoadingDesktopStorySet(story.StorySet):
+                 tags=page_tags,
+                 name=page_name,
+                 perform_final_navigation=True))
++
++class DelayedSharedDesktopPageState(shared_page_state.SharedDesktopPageState):
++  def RunStory(self, results):
++    import time
++    #time.sleep(20)
++    super(shared_page_state.SharedDesktopPageState, self).RunStory(results)
++
++class BraveLoadingDesktopStorySet(story.StorySet):
++
++  """ A collection of tests to measure loading performance of desktop sites.
++
++  Desktop centric version of loading_mobile.py
++  """
++
++  def __init__(self, cache_temperatures=None):
++    super(BraveLoadingDesktopStorySet, self).__init__(
++        archive_data_file='data/brave_loading_desktop.json',
++        cloud_storage_bucket=story.PARTNER_BUCKET)
++
++    if cache_temperatures is None:
++      cache_temperatures = [
++          cache_temperature_module.COLD, cache_temperature_module.WARM
++      ]
++    # Passed as (story, name) tuple.
++    self.AddStories(
++        ['typical'],
++        [
++            ('https://example.com/', 'example.com'),
++            ('https://search.brave.com/', 'BraveSearch'),
++            ('https://en.wikipedia.org/wiki/HCard', 'wikipedia.com'),
++            ('https://www.economist.com/', 'Economist'),
++            #('https://www.airbnb.com/', 'AirBnB'),
++            #('https://www.imdb.com/title/tt0910970/', 'IMDB'),
++            ('https://www.ign.com/', 'IGN')
++        ],
++        cache_temperatures)
++
++
++
++  def AddStories(self, tags, urls, cache_temperatures):
++    for url, name in urls:
++      for temp in cache_temperatures:
++        if temp == cache_temperature_module.COLD:
++          page_name = name + '_cold'
++          tags.append('cache_temperature_cold')
++        elif temp == cache_temperature_module.WARM:
++          page_name = name + '_warm'
++          tags.append('cache_temperature_warm')
++        else:
++          raise NotImplementedError
++
++        page_tags = tags[:]
++
++        self.AddStory(
++            page_cycler_story.PageCyclerStory(
++                url,
++                self,
++                shared_page_state_class=DelayedSharedDesktopPageState,
++                cache_temperature=temp,
++                tags=page_tags,
++                name=page_name,
++                perform_final_navigation=True))

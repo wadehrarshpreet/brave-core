@@ -1,0 +1,27 @@
+diff --git a/tools/perf/benchmarks/loading.py b/tools/perf/benchmarks/loading.py
+index 21f705aad5da85863e5bb61aec58b869abb50bd0..8b0c058dcb48702bd69fc2a75ecb3ca78d13ab81 100644
+--- a/tools/perf/benchmarks/loading.py
++++ b/tools/perf/benchmarks/loading.py
+@@ -56,6 +56,22 @@ class LoadingDesktop(_LoadingBase):
+   def Name(cls):
+     return 'loading.desktop'
+ 
++@benchmark.Info(emails=['kouhei@chromium.org', 'ksakamoto@chromium.org'],
++                component='Blink>Loader',
++                documentation_url='https://bit.ly/loading-benchmarks')
++class LoadingDesktopBrave(_LoadingBase):
++  """ A benchmark measuring loading performance of desktop sites. """
++  SUPPORTED_PLATFORM_TAGS = [platforms.DESKTOP]
++  SUPPORTED_PLATFORMS = [story.expectations.ALL_DESKTOP]
++
++  def CreateStorySet(self, options):
++    return page_sets.BraveLoadingDesktopStorySet(
++        cache_temperatures=[cache_temperature.COLD, cache_temperature.WARM])
++
++  @classmethod
++  def Name(cls):
++    return 'loading.desktop.brave'
++
+ 
+ @benchmark.Info(emails=['kouhei@chromium.org', 'ksakamoto@chromium.org'],
+                 component='Blink>Loader',
