@@ -10,16 +10,20 @@ index 1fdff482b81698739f2700e80794deb5f518d1e1..24e9d1abaa8270b8d21eee0106136637
  class LoadingDesktopStorySet(story.StorySet):
  
    """ A collection of tests to measure loading performance of desktop sites.
-@@ -145,3 +144,65 @@ class LoadingDesktopStorySet(story.StorySet):
+@@ -145,3 +144,69 @@ class LoadingDesktopStorySet(story.StorySet):
                  tags=page_tags,
                  name=page_name,
                  perform_final_navigation=True))
 +
++
 +class DelayedSharedDesktopPageState(shared_page_state.SharedDesktopPageState):
-+  def RunStory(self, results):
++  def _StartBrowser(self, page):
++    super(shared_page_state.SharedDesktopPageState, self)._StartBrowser(page)
 +    import time
-+    time.sleep(20)
-+    super(shared_page_state.SharedDesktopPageState, self).RunStory(results)
++    time.sleep(15)
++    for extension_page in self.browser.extensions.keys():
++      extension_page.WaitForDocumentReadyStateToBeComplete()
++    time.sleep(5)
 +
 +class BraveLoadingDesktopStorySet(story.StorySet):
 +
