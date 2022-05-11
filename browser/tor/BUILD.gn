@@ -103,6 +103,7 @@ source_set("browser_tests") {
       "//brave/common",
       "//brave/common:switches",
       "//brave/components/brave_ads/browser",
+      "//brave/components/brave_component_updater/browser",
       "//brave/components/ipfs/buildflags",
       "//brave/components/l10n/common",
       "//brave/components/tor",
