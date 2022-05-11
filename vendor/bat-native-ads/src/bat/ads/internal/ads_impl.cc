@@ -71,6 +71,7 @@
 #include "bat/ads/internal/tab_manager/tab_info.h"
 #include "bat/ads/internal/tab_manager/tab_manager.h"
 #include "bat/ads/internal/time_formatting_util.h"
+#include "bat/ads/internal/time_profiler.h"
 #include "bat/ads/internal/url_util.h"
 #include "bat/ads/internal/user_activity/idle_time.h"
 #include "bat/ads/internal/user_activity/user_activity.h"
@@ -529,6 +530,8 @@ bool AdsImpl::ToggleFlaggedAd(const std::string& json) {
 
 void AdsImpl::set(privacy::TokenGeneratorInterface* token_generator) {
   DCHECK(token_generator);
+
+  time_profiler_ = std::make_unique<TimeProfiler>();
 
   diagnostics_ = std::make_unique<Diagnostics>();
 

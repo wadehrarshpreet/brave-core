@@ -21,6 +21,7 @@
 #include "bat/ads/internal/eligible_ads/seen_advertisers.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting/anti_targeting_resource.h"
+#include "bat/ads/internal/time_profiler.h"
 
 namespace ads {
 namespace new_tab_page_ads {
@@ -37,12 +38,19 @@ void EligibleAdsV1::GetForUserModel(
     GetEligibleAdsCallback<CreativeNewTabPageAdList> callback) {
   BLOG(1, "Get eligible new tab page ads:");
 
+  TIME_PROFILER_BEGIN();
+
   database::table::AdEvents database_table;
   database_table.GetForType(
       mojom::AdType::kNewTabPageAd,
       [=](const bool success, const AdEventList& ad_events) {
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("AdEvents.GetForType");
+
         if (!success) {
           BLOG(1, "Failed to get ad events");
+
+          TIME_PROFILER_END();
+
           callback(/* had_opportunity */ false, {});
           return;
         }
@@ -52,6 +60,8 @@ void EligibleAdsV1::GetForUserModel(
         AdsClientHelper::Get()->GetBrowsingHistory(
             max_count, days_ago,
             [=](const BrowsingHistoryList& browsing_history) {
+              TIME_PROFILER_MEASURE_WITH_MESSAGE("GetBrowsingHistory");
+
               GetEligibleAds(user_model, ad_events, browsing_history, callback);
             });
       });
@@ -72,6 +82,8 @@ void EligibleAdsV1::GetForChildSegments(
     const AdEventList& ad_events,
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback<CreativeNewTabPageAdList> callback) {
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForChildSegments");
+
   const SegmentList& segments = ad_targeting::GetTopChildSegments(user_model);
   if (segments.empty()) {
     GetForParentSegments(user_model, ad_events, browsing_history, callback);
@@ -93,6 +105,8 @@ void EligibleAdsV1::GetForChildSegments(
           return;
         }
 
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForSegments");
+
         const CreativeNewTabPageAdList& eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
         if (eligible_creative_ads.empty()) {
@@ -107,6 +121,8 @@ void EligibleAdsV1::GetForChildSegments(
                     << " eligible ads out of " << creative_ads.size()
                     << " ads for child segments");
 
+        TIME_PROFILER_END();
+
         callback(/* had_opportunity */ true, eligible_creative_ads);
       });
 }
@@ -116,6 +132,8 @@ void EligibleAdsV1::GetForParentSegments(
     const AdEventList& ad_events,
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback<CreativeNewTabPageAdList> callback) {
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForParentSegments");
+
   const SegmentList& segments = ad_targeting::GetTopParentSegments(user_model);
   if (segments.empty()) {
     GetForUntargeted(ad_events, browsing_history, callback);
@@ -137,6 +155,8 @@ void EligibleAdsV1::GetForParentSegments(
           return;
         }
 
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForSegments");
+
         const CreativeNewTabPageAdList& eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
         if (eligible_creative_ads.empty()) {
@@ -150,6 +170,8 @@ void EligibleAdsV1::GetForParentSegments(
                     << " eligible ads out of " << creative_ads.size()
                     << " ads for parent segments");
 
+        TIME_PROFILER_END();
+
         callback(/* had_opportunity */ true, eligible_creative_ads);
       });
 }
@@ -159,6 +181,8 @@ void EligibleAdsV1::GetForUntargeted(
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback<CreativeNewTabPageAdList> callback) {
   BLOG(1, "Get eligible ads for untargeted segment");
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForUntargeted");
 
   database::table::CreativeNewTabPageAds database_table;
   database_table.GetForSegments(
@@ -170,6 +194,8 @@ void EligibleAdsV1::GetForUntargeted(
           return;
         }
 
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForSegments");
+
         const CreativeNewTabPageAdList& eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
         if (eligible_creative_ads.empty()) {
@@ -180,6 +206,8 @@ void EligibleAdsV1::GetForUntargeted(
                       << " eligible ads out of " << creative_ads.size()
                       << " ads for untargeted segment");
         }
+
+        TIME_PROFILER_END();
 
         callback(/* had_opportunity */ true, eligible_creative_ads);
       });
@@ -200,16 +228,22 @@ CreativeNewTabPageAdList EligibleAdsV1::FilterCreativeAds(
       browsing_history);
   eligible_creative_ads = ApplyFrequencyCapping(
       eligible_creative_ads, last_served_ad_, &exclusion_rules);
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("ApplyFrequencyCapping");
 
   eligible_creative_ads = FilterSeenAdvertisersAndRoundRobinIfNeeded(
       eligible_creative_ads, AdType::kNewTabPageAd);
+  TIME_PROFILER_MEASURE_WITH_MESSAGE(
+      "FilterSeenAdvertisersAndRoundRobinIfNeeded");
 
   eligible_creative_ads = FilterSeenAdsAndRoundRobinIfNeeded(
       eligible_creative_ads, AdType::kNewTabPageAd);
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("FilterSeenAdsAndRoundRobinIfNeeded");
 
   eligible_creative_ads = PaceAds(eligible_creative_ads);
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("PaceAds");
 
   eligible_creative_ads = PrioritizeAds(eligible_creative_ads);
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("PrioritizeAds");
 
   return eligible_creative_ads;
 }

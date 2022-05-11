@@ -97,6 +97,7 @@ class NewTabPageAd;
 class PromotedContentAd;
 class SearchResultAd;
 class TabManager;
+class TimeProfiler;
 class UserActivity;
 struct AdInfo;
 struct AdNotificationInfo;
@@ -326,6 +327,7 @@ class AdsImpl final : public Ads,
   bool is_initialized_ = false;
 
   std::unique_ptr<AdsClientHelper> ads_client_helper_;
+  std::unique_ptr<TimeProfiler> time_profiler_;
   std::unique_ptr<Diagnostics> diagnostics_;
   std::unique_ptr<BrowserManager> browser_manager_;
   std::unique_ptr<TabManager> tab_manager_;
