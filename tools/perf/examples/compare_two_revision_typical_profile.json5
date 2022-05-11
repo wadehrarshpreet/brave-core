@@ -1,27 +1,30 @@
 {
   "configurations": [
     {
-      "target" : "v1.39.73",
-      "label": "solana_on",
-      "profile": "clean",
-      "extra-browser-args": ["--enable-features=BraveWalletSolana"],
+      "target" : "v1.37.5",
+      "label": "good_1.37.5",
+      "profile": "old-brave-typical",
+      "extra-browser-args": [],
       "extra-benchmark-args": []
     },
     {
-      "target" : "v1.39.73",
-      "label": "solana_off",
-      "profile": "clean",
-      "extra-browser-args": ["--disable-features=BraveWalletSolana"],
+      "target" : "v1.37.6",
+      "label": "bad_1.37.6",
+      "profile": "old-brave-typical",
+      "extra-browser-args": [],
       "extra-benchmark-args": []
     }
   ],
   "tests": [
     {
-      "benchmark": "loading.desktop",
+      "benchmark": "loading.desktop.brave",
       "pageset-repeat": 10,
       "stories": [
-        "ru.wikipedia_cold",
-        "ru.wikipedia_warm",
+        "example.com_cold",
+        "example.com_warm",
+        "wikipedia.com_cold",
+        "wikipedia.com_warm",
+        "IGN_cold",
       ]
     }
   ]
