@@ -2,6 +2,7 @@
   "configurations": [
     {
       "target": "v1.40.43",
+      //"target": "v1.40.43:E:\\work\\tmp\\v1.40.43\\brave.exe",
       "label": "v1.40.43",
       "profile": "old-brave-typical",
       "extra-browser-args": [],
@@ -22,6 +23,9 @@
       "pageset-repeat": 10,
       "stories": [
         "example.com_cold",
+        "example.com_warm",
+        "wikipedia.com_cold",
+        "IGN_cold",
       ]
     }
   ]

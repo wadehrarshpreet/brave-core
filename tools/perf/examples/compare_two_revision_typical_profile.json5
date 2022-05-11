@@ -5,15 +5,15 @@
       "label": "good_1.37.5",
       "profile": "old-brave-typical",
       "extra-browser-args": [],
-      "extra-benchmark-args": []
+      "extra-benchmark-args": ["--pause=after-run-story"]
     },
-    {
-      "target" : "v1.37.6",
-      "label": "bad_1.37.6",
-      "profile": "old-brave-typical",
-      "extra-browser-args": [],
-      "extra-benchmark-args": []
-    }
+    // {
+    //   "target" : "v1.37.6",
+    //   "label": "bad_1.37.6",
+    //   "profile": "old-brave-typical",
+    //   "extra-browser-args": [],
+    //   "extra-benchmark-args": []
+    // }
   ],
   "tests": [
     {

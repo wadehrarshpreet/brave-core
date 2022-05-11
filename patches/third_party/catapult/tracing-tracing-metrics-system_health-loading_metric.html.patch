@@ -1,0 +1,29 @@
+diff --git a/tracing/tracing/metrics/system_health/loading_metric.html b/tracing/tracing/metrics/system_health/loading_metric.html
+index 619e2d96c9817f820126ecb78e477d3a56a57be9..07c148f625c9ccbe5bbf336b2c09602e002b986c 100644
+--- a/tracing/tracing/metrics/system_health/loading_metric.html
++++ b/tracing/tracing/metrics/system_health/loading_metric.html
+@@ -548,6 +548,10 @@ tr.exportTo('tr.metrics.sh', function() {
+       if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(expectation.url)) {
+         continue;
+       }
++
++      if (expectation.url.startsWith('chrome-extension://'))
++        continue;
++
+       const rendererHelper = chromeHelper.rendererHelpers[
+           expectation.renderProcess.pid];
+       if (expectation.fmpEvent !== undefined) {
+@@ -772,6 +776,13 @@ tr.exportTo('tr.metrics.sh', function() {
+       const rendererHelper = chromeHelper.rendererHelpers[pid];
+       if (rendererHelper.isChromeTracingUI) continue;
+ 
++      let labels = rendererHelper.process.labels;
++      if (labels !== undefined &&
++        labels.length === 1 &&
++        labels[0].startsWith('chrome-extension://')) {
++        continue;
++      }
++
+       const samplesSet =
+           collectLoadingMetricsForRenderer(rendererHelper);
+ 
