@@ -34,6 +34,7 @@ bool ParseEthSendRawTransaction(const std::string& json, std::string* tx_hash);
 bool ParseEthCall(const std::string& json, std::string* result);
 bool ParseEthEstimateGas(const std::string& json, std::string* result);
 bool ParseEthGasPrice(const std::string& json, std::string* result);
+bool ParseEthGetLogs(const std::string& json, std::vector<Log>* logs);
 
 bool ParseEnsResolverContentHash(const std::string& json,
                                  std::string* content_hash);
