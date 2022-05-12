@@ -1,7 +1,7 @@
 {
   "configuration": {
     "dashboard-bot-name": "test-agent",
-    "chromium": true,
+    "chromium": false,
     "profile": "old-brave-typical",
 //    "chromium": true,
 //    "profile": "chrome-typical",
