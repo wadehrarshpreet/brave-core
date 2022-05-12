@@ -16,6 +16,7 @@ class PerfConfiguration:
   extra_benchmark_args = []
   chromium = False
   dashboard_bot_name = None
+  save_artifacts = False
 
   def __init__(self, config_dict):
     for key in config_dict:

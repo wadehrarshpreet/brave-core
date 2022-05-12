@@ -2,19 +2,19 @@
   "configuration": {
     "dashboard-bot-name": "test-agent",
     "chromium": false,
-    "profile": "clean",
+    "profile": "old-brave-typical",
     "extra-browser-args": [],
     "extra-benchmark-args": [],
+    "save_artifacts": true,
   },
   "tests": [
     {
-      "benchmark": "loading.desktop",
+      "benchmark": "loading.desktop.brave",
       "pageset-repeat": 1,
       "stories": [
+        "example.com_cold",
         "ru.wikipedia_cold",
-        "ru.wikipedia_warm",
-        // "IGN_warm",
-        // "IGN_cold",
+        "IGN_warm",
       ]
     },
     {
