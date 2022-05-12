@@ -13,6 +13,8 @@ import logging
 import shlex
 import shutil
 import time
+from copy import deepcopy
+
 from lib import path_util, browser_binary_fetcher, perf_profile
 from lib.perf_config import PerfConfiguration
 
@@ -333,7 +335,7 @@ def SpawnConfigurationsFromTargetList(
     base_configuration: PerfConfiguration) -> list[PerfConfiguration]:
   configurations: list[PerfConfiguration] = []
   for target_string in target_list:
-    config = base_configuration
+    config = deepcopy(base_configuration)
     config.tag, config.location = browser_binary_fetcher.ParseTarget(
         target_string)
     #TODO: add more early validation?
