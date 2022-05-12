@@ -9,13 +9,12 @@
   },
   "tests": [
     {
-      "benchmark": "loading.desktop",
+      "benchmark": "loading.desktop.brave",
       "pageset-repeat": 10,
       "stories": [
+        "example.com_cold",
         "ru.wikipedia_cold",
-        "ru.wikipedia_warm",
-        // "IGN_warm",
-        // "IGN_cold",
+        "IGN_warm",
       ]
     },
     {
@@ -23,7 +22,7 @@
       "pageset-repeat": 10,
       "stories": [
         "load:chrome:blank",
-        "browse:news:hackernews:2020"
+        "browse:news:hackernews:2020",
       ]
     },
     {
