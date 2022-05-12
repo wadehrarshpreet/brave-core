@@ -10,20 +10,30 @@ index 1fdff482b81698739f2700e80794deb5f518d1e1..24e9d1abaa8270b8d21eee0106136637
  class LoadingDesktopStorySet(story.StorySet):
  
    """ A collection of tests to measure loading performance of desktop sites.
-@@ -145,3 +144,69 @@ class LoadingDesktopStorySet(story.StorySet):
+@@ -145,3 +144,79 @@ class LoadingDesktopStorySet(story.StorySet):
                  tags=page_tags,
                  name=page_name,
                  perform_final_navigation=True))
 +
 +
 +class DelayedSharedDesktopPageState(shared_page_state.SharedDesktopPageState):
++
 +  def _StartBrowser(self, page):
 +    super(shared_page_state.SharedDesktopPageState, self)._StartBrowser(page)
 +    import time
-+    time.sleep(15)
-+    for extension_page in self.browser.extensions.keys():
-+      extension_page.WaitForDocumentReadyStateToBeComplete()
-+    time.sleep(5)
++    time.sleep(20)
++
++  def _StopBrowser(self):
++    if self._browser:
++      # Try to close all previous tabs to maintain some independence between
++      # individual story runs. Note that the final tab.Close(keep_one=True)
++      # will create a fresh new tab before the last one is closed.
++      while len(self._browser.tabs) > 1:
++        self._browser.tabs[-1].Close()
++      self._browser.tabs[-1].Navigate('chrome://newtab')
++
++    super(shared_page_state.SharedDesktopPageState, self)._StopBrowser()
++
 +
 +class BraveLoadingDesktopStorySet(story.StorySet):
 +

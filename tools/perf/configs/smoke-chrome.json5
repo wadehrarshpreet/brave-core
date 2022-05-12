@@ -1,34 +1,34 @@
 {
-  "configuration":
-  {
-    "dashboard-bot-name": "asus-w10-slow-laptop-typical",
-    "chromium" : true,
-    "profile": "chrome-typical",
+  "configuration": {
+    "dashboard-bot-name": "test-agent",
+   "chromium": true,
+   "profile": "chrome-typical",
     "extra-browser-args": ["--restore-last-session"],
     "extra-benchmark-args": [],
-    "save-artifacts": false,
+    "save-artifacts": true,
   },
   "tests": [
     {
       "benchmark": "loading.desktop.brave",
-      "pageset-repeat": 10,
+      "pageset-repeat": 1,
       "stories": [
         "example.com_cold",
         "wikipedia.com_cold",
         "IGN_warm",
       ]
     },
+    // {
+    //   "benchmark": "speedometer2-chrome-health",
+    //   "pageset-repeat": 1,
+    // },
     {
       "benchmark": "system_health.memory_desktop",
-      "pageset-repeat": 10,
+      "pageset-repeat": 1,
       "stories": [
         "load:chrome:blank",
         "browse:news:hackernews:2020",
+        "load:media:youtube:2018",
       ]
     },
-    {
-      "benchmark": "speedometer2",
-      "pageset-repeat": 1
-    }
   ]
 }
