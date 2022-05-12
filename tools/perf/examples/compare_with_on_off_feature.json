@@ -20,8 +20,9 @@
       "benchmark": "loading.desktop",
       "pageset-repeat": 10,
       "stories": [
-        "ru.wikipedia_cold",
-        "ru.wikipedia_warm",
+        "example.com_cold",
+        "wikipedia.com_cold",
+        "IGN_warm",
       ]
     }
   ]

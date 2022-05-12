@@ -14,7 +14,7 @@
       "pageset-repeat": 10,
       "stories": [
         "example.com_cold",
-        "ru.wikipedia_cold",
+        "wikipedia.com_cold",
         "IGN_warm",
       ]
     },

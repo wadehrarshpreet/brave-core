@@ -5,17 +5,17 @@
     "chromium" : true,
     "profile": "chrome-typical",
     "extra-browser-args": [],
-    "extra-benchmark-args": []
+    "extra-benchmark-args": [],
+    "save-artifacts": false,
   },
   "tests": [
     {
-      "benchmark": "loading.desktop",
+      "benchmark": "loading.desktop.brave",
       "pageset-repeat": 10,
       "stories": [
-        "ru.wikipedia_cold",
-        "ru.wikipedia_warm",
-        // "IGN_warm",
-        // "IGN_cold",
+        "example.com_cold",
+        "wikipedia.com_cold",
+        "IGN_warm",
       ]
     },
     {
@@ -23,7 +23,7 @@
       "pageset-repeat": 10,
       "stories": [
         "load:chrome:blank",
-        "browse:news:hackernews:2020"
+        "browse:news:hackernews:2020",
       ]
     },
     {
