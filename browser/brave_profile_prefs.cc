@@ -125,6 +125,7 @@
 
 #if !BUILDFLAG(IS_ANDROID)
 #include "brave/browser/ui/startup/default_brave_browser_prompt.h"
+#include "brave/components/brave_search_conversion/utils.h"
 #endif
 
 #if BUILDFLAG(ENABLE_SIDEBAR)
@@ -428,6 +429,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
                                 base::Value(true));
   registry->RegisterBooleanPref(kEnableWindowClosingConfirm, false);
   RegisterDefaultBraveBrowserPromptPrefs(registry);
+  brave_search_conversion::RegisterPrefs(registry);
 #endif
 
   registry->SetDefaultPrefValue(prefs::kEnableMediaRouter, base::Value(false));
