@@ -10,6 +10,7 @@ import subprocess
 import hashlib
 import uuid
 import shutil
+import shlex
 
 from zipfile import ZipFile
 
@@ -50,7 +51,8 @@ def GetProfilePath(profile, binary, work_directory):
     dir = os.path.join(work_directory, 'profiles',
                        uuid.uuid4().hex.upper()[0:6])
     shutil.copytree(profile, dir)
-    RebaseProfile(binary, dir)
+    if not RebaseProfile(binary, dir):
+      raise RuntimeError(f'Failed to rebase {dir}')
   else:
     zip_path = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR, profile + '.zip')
     zip_path_sha1 = os.path.join(path_util.BRAVE_PERF_PROFILE_DIR,
@@ -80,7 +82,8 @@ def GetProfilePath(profile, binary, work_directory):
       logging.info(f'Create temp profile dir {dir} for profile {profile}')
       zipfile = ZipFile(zip_path)
       zipfile.extractall(dir)
-      RebaseProfile(binary, dir)
+      if not RebaseProfile(binary, dir):
+        raise RuntimeError(f'Failed to rebase {dir}')
 
   logging.info(f'Use temp profile dir {dir} for profile {profile}')
   GetProfilePath.profiles[profile_id] = dir
@@ -92,20 +95,23 @@ def RebaseProfile(binary, profile_directory, extra_browser_args=[]):
   args = [
       sys.executable,
       os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark'),
-      'system_health.common_desktop'
+      'loading.desktop.brave'
   ]
-  args.append(f'--story=load:media:youtube:2018')
+  args.append('--story=BraveSearch_cold')
   args.append('--browser=exact')
   args.append(f'--browser-executable={binary}')
+  args.append(f'--pageset-repeat=1')
 
   args.append(f'--profile-dir={profile_directory}')
 
+  # See third_party/catapult/telemetry/telemetry/internal/backends/chrome/desktop_browser_finder.py
   extra_browser_args.append('--update-source-profile')
   # TODO: add  is_chromium, see _GetVariationsBrowserArgs
   extra_browser_args.append('--use-brave-field-trial-config')
 
-  args.append('--extra-browser-args=' + ' '.join(extra_browser_args))
+  args.append('--extra-browser-args=' + shlex.join(extra_browser_args))
 
+  args.append('--output-format=none')
   #TODO: add output
 
   logging.debug('Run binary:' + ' '.join(args))

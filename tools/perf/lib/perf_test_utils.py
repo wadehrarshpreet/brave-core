@@ -10,6 +10,7 @@ import subprocess
 import json
 import sys
 import logging
+import shlex
 import shutil
 import time
 from lib import path_util, browser_binary_fetcher, perf_profile
@@ -99,7 +100,7 @@ def RunSingleTest(binary,
   if verbose:
     args.append('--show-stdout')
 
-  args.append('--extra-browser-args=' + ' '.join(extra_browser_args))
+  args.append('--extra-browser-args=' + shlex.join(extra_browser_args))
 
   logging.debug('Run binary:' + ' '.join(args))
 
