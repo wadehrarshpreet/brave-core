@@ -18,8 +18,8 @@ CreativeAdInfo::~CreativeAdInfo() = default;
 bool CreativeAdInfo::operator==(const CreativeAdInfo& rhs) const {
   return creative_instance_id == rhs.creative_instance_id &&
          creative_set_id == rhs.creative_set_id &&
-         campaign_id == rhs.campaign_id && start_at == rhs.start_at &&
-         end_at == rhs.end_at && daily_cap == rhs.daily_cap &&
+         campaign_id == rhs.campaign_id && DoubleEquals(start_at.ToDoubleT(), rhs.start_at.ToDoubleT()) &&
+         DoubleEquals(end_at.ToDoubleT(), rhs.end_at.ToDoubleT()) && daily_cap == rhs.daily_cap &&
          advertiser_id == rhs.advertiser_id && priority == rhs.priority &&
          DoubleEquals(ptr, rhs.ptr) && conversion == rhs.conversion &&
          per_day == rhs.per_day && per_week == rhs.per_week &&
