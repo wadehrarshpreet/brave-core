@@ -5,7 +5,7 @@
     "profile": "old-brave-typical",
     "extra-browser-args": [],
     "extra-benchmark-args": [],
-    "save_artifacts": true,
+    "save-artifacts": true,
   },
   "tests": [
     {
