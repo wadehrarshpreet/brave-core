@@ -281,6 +281,14 @@ class RunableConfiguration:
       self.logs.extend(report_failed_logs)
     return report_success
 
+  def ClearArtifacts(self, common_options: CommonOptions):
+    if common_options.local_run:
+      for test_config in common_options.tests_config:
+        benchmark = test_config['benchmark']
+        artifacts_dir = os.path.join(self.out_dir, os.pardir, benchmark,
+                                     'artifacts')
+        shutil.rmtree(artifacts_dir)
+
   def Run(self, common_options: CommonOptions) -> bool:
     logging.info(f'##Label: {self.config.label} binary {self.binary_path}')
     run_tests_ok = True
@@ -292,6 +300,8 @@ class RunableConfiguration:
       if run_tests_ok or common_options.report_on_failure:
         report_ok = self.ReportToDashboard()
     self.logs.append(self.status_line)
+    if run_tests_ok and report_ok and not self.config.save_artifacts:
+      self.ClearArtifacts(common_options)
 
     return run_tests_ok and report_ok, self.logs
 
@@ -301,18 +311,18 @@ def PrepareBinariesAndDirectories(
     common_options: CommonOptions) -> list[RunableConfiguration]:
   runable_configurations: list[RunableConfiguration] = []
   for config in configurations:
-    out_dir = os.path.join(common_options.working_directory, config.tag)
+    if config.tag == config.label:
+      description = config.tag
+    else:
+      description = f'{config.label}[tag_{config.tag}]'
+    out_dir = os.path.join(common_options.working_directory, description)
     binary_path = None
 
     if common_options.do_run_test:
       shutil.rmtree(out_dir, True)
       binary_path = browser_binary_fetcher.PrepareBinary(
           out_dir, config.tag, config.location, config.chromium)
-      if config.tag == config.label:
-        description = config.tag
-      else:
-        description = f'{config.label}(tag {config.tag})'
-      logging.info(f'target {description} : {binary_path} directory {out_dir}')
+      logging.info(f'{description} : {binary_path} directory {out_dir}')
     runable_configurations.append(
         RunableConfiguration(config, binary_path, out_dir))
   return runable_configurations
@@ -326,7 +336,7 @@ def SpawnConfigurationsFromTargetList(
     config = base_configuration
     config.tag, config.location = browser_binary_fetcher.ParseTarget(
         target_string)
-    #TODO: add early validation
+    #TODO: add more early validation?
     if not config.tag:
       raise RuntimeError(f'Can get the tag from target {target_string}')
     config.label = config.tag
@@ -339,15 +349,14 @@ def ParseConfigurations(
   configurations: list[PerfConfiguration] = []
   for serialized_config in configurations_list:
     config = PerfConfiguration(serialized_config)
-    #TODO: add early validation
-    if not config.tag and not config.label:
-      raise RuntimeError(
-          f'label or tag should be specified {serialized_config}')
-
+    #TODO: add more early validation?
     if not config.tag:
       config.tag = config.label
-    if not config.label:
+    elif not config.label:
       config.label = config.tag
+    else:
+      raise RuntimeError(
+          f'label or tag should be specified {serialized_config}')
     configurations.append(config)
   return configurations
 
