@@ -290,4 +290,34 @@ export default class Amount {
   isNegative (): boolean {
     return this.value !== undefined && this.value.isNegative()
   }
+
+  // Abbreviate number in units of 1000 e.g., 100000 becomes 100k
+  abbreviate (decimals: number, currency?: string): string {
+    const min = 1e3 // 1000
+
+    if (this.value === undefined) {
+      return ''
+    }
+
+    if (this.value.lt(min)) {
+      return currency !== undefined
+        ? `${CurrencySymbols[currency]}${this.value.toFixed(decimals)}`
+        : this.value.toFixed(decimals).toString()
+    }
+
+    const units = ['k', 'M', 'B', 'T']
+    const order = Math.floor(Math.log(this.value.toNumber()) / Math.log(1000))
+    const unit = units[order - 1]
+    const amount = this.div(1000 ** order)
+
+    if (amount.value) {
+      const result = amount.value.toFixed(decimals)
+
+      return currency !== undefined
+        ? `${CurrencySymbols[currency]}${result}${unit}`
+        : `${result}${unit}`
+    }
+
+    return ''
+  }
 }
