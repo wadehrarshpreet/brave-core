@@ -329,7 +329,8 @@ describe('Amount class', () => {
       ['1361000', 2, undefined, '1.36M'],
       ['1361500000', 3, 'USD', '$1.362B'],
       ['1361500000', 2, undefined, '1.36B'],
-      ['1358900000000', 3, 'USD', '$1.359T']
+      ['1358900000000', 3, 'USD', '$1.359T'],
+      ['1358900000000000', 3, 'USD', '$1,358.900T']
     ])('should abbreviate amount %s to have %s decimal places with currency %s as %s', (value: string, decimals: number, currency: string, expected: string) => {
       expect(new Amount(value).abbreviate(decimals, currency)).toBe(expected)
     })
