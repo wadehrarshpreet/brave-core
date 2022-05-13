@@ -352,10 +352,11 @@ def ParseConfigurations(
   for serialized_config in configurations_list:
     config = PerfConfiguration(serialized_config)
     #TODO: add more early validation?
-    if not config.tag:
-      config.tag = config.label
-    elif not config.label:
-      config.label = config.tag
+    if config.tag:
+      if not config.label:
+        config.label = config.tag
+    elif config.label:
+      config.tag = config.label #TODO: do we need this?
     else:
       raise RuntimeError(
           f'label or tag should be specified {serialized_config}')
