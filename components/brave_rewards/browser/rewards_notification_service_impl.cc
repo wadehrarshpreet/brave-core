@@ -52,13 +52,8 @@ void RewardsNotificationServiceImpl::AddNotification(
   DCHECK(type != REWARDS_NOTIFICATION_INVALID);
   if (id.empty()) {
     id = GenerateRewardsNotificationID();
-  } else if (only_once) {
-    if (std::find(
-        rewards_notifications_displayed_.begin(),
-        rewards_notifications_displayed_.end(),
-        id) != rewards_notifications_displayed_.end()) {
-      return;
-    }
+  } else if (only_once && rewards_notifications_displayed_.contains(id)) {
+    return;
   }
 
   RewardsNotification rewards_notification(
@@ -68,7 +63,7 @@ void RewardsNotificationServiceImpl::AddNotification(
   OnNotificationAdded(rewards_notification);
 
   if (only_once) {
-    rewards_notifications_displayed_.push_back(id);
+    rewards_notifications_displayed_.insert(id);
   }
 }
 
@@ -89,6 +84,7 @@ void RewardsNotificationServiceImpl::DeleteNotification(
     rewards_notification = rewards_notifications_[id];
     rewards_notifications_.erase(id);
   }
+
   StoreRewardsNotifications();
 
   OnNotificationDeleted(rewards_notification);
@@ -171,7 +167,7 @@ void RewardsNotificationServiceImpl::ReadRewardsNotificationsJSON() {
       dictionary->FindKeyOfType("displayed", base::Value::Type::LIST);
   if (displayed) {
     for (const auto& it : displayed->GetList()) {
-      rewards_notifications_displayed_.push_back(it.GetString());
+      rewards_notifications_displayed_.insert(it.GetString());
     }
   }
 }
@@ -336,12 +332,14 @@ void RewardsNotificationServiceImpl::OnFetchPromotions(
     return;
   }
 
+  base::flat_set<std::string> active_notifications;
+
   for (const auto& item : list) {
     if (item->status == ledger::type::PromotionStatus::FINISHED) {
       continue;
     }
 
-    const std::string prefix = GetPromotionIdPrefix(item->type);
+    std::string notification_id = GetPromotionIdPrefix(item->type) + item->id;
     auto notification_type = IsAds(item->type)
         ? RewardsNotificationService::REWARDS_NOTIFICATION_GRANT_ADS
         : RewardsNotificationService::REWARDS_NOTIFICATION_GRANT;
@@ -359,8 +357,29 @@ void RewardsNotificationServiceImpl::OnFetchPromotions(
     AddNotification(
         notification_type,
         args,
-        prefix + item->id,
+        notification_id,
         only_once);
+
+    active_notifications.insert(std::move(notification_id));
+  }
+
+  bool displayed_set_updated = false;
+
+  // Remove notifications for promotions that are no longer available. We must
+  // also remove the notification ID from the "displayed set" so that a new
+  // notification will be generated if the promotion is reactivated at a later
+  // time.
+  for (auto& [id, notification] : rewards_notifications_) {
+    if (!active_notifications.contains(id)) {
+      DeleteNotification(id);
+      if (rewards_notifications_displayed_.erase(id) > 0) {
+        displayed_set_updated = true;
+      }
+    }
+  }
+
+  if (displayed_set_updated) {
+    StoreRewardsNotifications();
   }
 }
 
