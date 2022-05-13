@@ -4,9 +4,13 @@
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import * as React from 'react'
-import { getLocale } from '../../../common/locale'
+
+// Utils
+import { getLocale } from '$web-common/locale'
 import { BraveWallet, MarketDataTableColumnTypes, SortOrder } from '../../constants/types'
-import { Table, Cell, Header, Row } from '../shared/datatable'
+import Amount from '../../utils/amount'
+
+// Styled components
 import {
   AssetsColumnItemSpacer,
   AssetsColumnWrapper,
@@ -14,11 +18,9 @@ import {
   TableWrapper,
   TextWrapper
 } from './style'
-import {
-  formatFiatAmountWithCommasAndDecimals,
-  formatPricePercentageChange,
-  formatPriceWithAbbreviation
-} from '../../utils/format-prices'
+
+// Components
+import { Table, Cell, Header, Row } from '../shared/datatable'
 import { AssetNameAndIcon } from '../asset-name-and-icon'
 import { AssetPriceChange } from '../asset-price-change'
 import useOnScreen from '../../common/hooks/on-screen'
@@ -55,10 +57,10 @@ const renderCells = (coinMarkDataItem: BraveWallet.CoinMarket) => {
     totalVolume
   } = coinMarkDataItem
 
-  const formattedPrice = formatFiatAmountWithCommasAndDecimals(currentPrice.toString(), 'USD')
-  const formattedPercentageChange = formatPricePercentageChange(priceChangePercentage24h, 2, true)
-  const formattedMarketCap = formatPriceWithAbbreviation(marketCap.toString(), 'USD', 1)
-  const formattedVolume = formatPriceWithAbbreviation(totalVolume.toString(), 'USD', 1)
+  const formattedPrice = new Amount(currentPrice).divideByDecimals(2).formatAsFiat('USD')
+  const formattedPercentageChange = new Amount(priceChangePercentage24h).value?.absoluteValue().toFixed(2) + '%'
+  const formattedMarketCap = new Amount(marketCap).abbreviate(1, 'USD')
+  const formattedVolume = new Amount(totalVolume).abbreviate(1, 'USD')
   const isDown = priceChange24h < 0
 
   const cellsContent: React.ReactNode[] = [
