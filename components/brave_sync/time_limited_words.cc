@@ -24,10 +24,8 @@ namespace brave_sync {
 
 namespace {
 
-// TODO(alexeybarabash): subject to change
-static constexpr char kWordsv1SunsetDate[] = "Wed, 1 Jun 2022 00:00:00 GMT";
-
-static constexpr char kWordsv2Epoch[] = "Fri, 15 Apr 2022 00:00:00 GMT";
+static constexpr char kWordsv1SunsetDate[] = "Fri, 1 Jul 2022 00:00:00 GMT";
+static constexpr char kWordsv2Epoch[] = "Tue, 10 May 2022 00:00:00 GMT";
 
 }  // namespace
 
