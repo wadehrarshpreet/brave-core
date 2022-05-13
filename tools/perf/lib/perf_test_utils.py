@@ -70,8 +70,6 @@ def RunSingleTest(binary,
   args.append(os.path.join(path_util.SRC_DIR, 'tools', 'perf', 'run_benchmark'))
 
   benchmark = config['benchmark']
-  if is_ref:
-    benchmark += '.reference'
 
   logs: list[str] = []
   if is_local_run:
@@ -81,6 +79,8 @@ def RunSingleTest(binary,
     args.append('--results-label=' + local_run_label)
     args.append(f'--output-dir={out_dir}')
   else:
+    if is_ref:
+      benchmark += '.reference'
     args.append(f'--benchmarks={benchmark}')
     args.append('--isolated-script-test-output=' +
                 os.path.join(out_dir, config['benchmark'], 'output.json'))
