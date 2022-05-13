@@ -59,7 +59,7 @@ const renderCells = (coinMarkDataItem: BraveWallet.CoinMarket) => {
 
   const formattedPrice = new Amount(currentPrice).divideByDecimals(2).formatAsFiat('USD')
   const formattedPercentageChange = new Amount(priceChangePercentage24h).value?.absoluteValue().toFixed(2) + '%'
-  const formattedMarketCap = new Amount(marketCap).abbreviate(1, 'USD')
+  const formattedMarketCap = new Amount(marketCap).abbreviate(1, 'USD', 'billion')
   const formattedVolume = new Amount(totalVolume).abbreviate(1, 'USD')
   const isDown = priceChange24h < 0
 

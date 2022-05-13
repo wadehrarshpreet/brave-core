@@ -681,3 +681,9 @@ export type MarketDataTableColumnTypes =
   | 'marketCap'
   | 'priceChange24h'
   | 'priceChangePercentage24h'
+
+export type AbbreviationOptions =
+  | 'thousand'
+  | 'million'
+  | 'billion'
+  | 'trillion'

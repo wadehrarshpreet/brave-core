@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js'
 
 import { CurrencySymbols } from './currency-symbols'
+import { AbbreviationOptions } from '../constants/types'
 
 type BigNumberIsh =
   | BigNumber
@@ -292,7 +293,7 @@ export default class Amount {
   }
 
   // Abbreviate number in units of 1000 e.g., 100000 becomes 100k
-  abbreviate (decimals: number, currency?: string): string {
+  abbreviate (decimals: number, currency?: string, forceAbbreviation?: AbbreviationOptions): string {
     const powers = {
       trillion: Math.pow(10, 12),
       billion: Math.pow(10, 9),
@@ -313,6 +314,7 @@ export default class Amount {
     const formatter = Intl.NumberFormat(navigator.language, {
       style: currency ? 'currency' : 'decimal',
       currency: currency,
+      currencyDisplay: 'narrowSymbol',
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals
     })
@@ -320,6 +322,13 @@ export default class Amount {
     const abs = this.value.absoluteValue().toNumber()
     let value = this.value.toNumber()
     let abbreviation = ''
+
+    if (forceAbbreviation && abbreviations[forceAbbreviation] && powers[forceAbbreviation]) {
+      abbreviation = abbreviations[forceAbbreviation]
+      value = value / powers[forceAbbreviation]
+
+      return formatter.format(value) + abbreviation
+    }
 
     if (abs >= powers.trillion || Math.round(abs / powers.trillion) === 1) {
       // trillion
