@@ -39,6 +39,10 @@ export const StyledTable = styled('table')`
   min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  
+  tr {
+    cursor: pointer;
+  }
 `
 
 export const StyledTHead = styled('thead')`

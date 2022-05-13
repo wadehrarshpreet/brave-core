@@ -36,6 +36,8 @@ export interface Row {
   id: string
   customStyle?: CSSProperties
   content: Cell[]
+  data: any
+  onClick?: (data: any) => void
 }
 
 export interface Props {
@@ -58,6 +60,12 @@ export const Table = (props: Props) => {
       onSort(headerId, newSortOrder)
     }
   }, [onSort])
+
+  const onRowClick = (row: Row) => {
+    if (row.onClick) {
+      row.onClick(row.data)
+    }
+  }
 
   return (
     <StyledWrapper id={id}>
@@ -98,6 +106,7 @@ export const Table = (props: Props) => {
                     id={row.id}
                     key={i}
                     style={row.customStyle}
+                    onClick={() => onRowClick(row)}
                   >
                     {
                       row.content.map((cell: Cell, j: number) =>

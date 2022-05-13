@@ -22,6 +22,8 @@ import {
 } from '../../constants/types'
 import {
   GetCoinMarketsResponse,
+  ActiveOriginChanged,
+  GetCoinMarketsResponse,
   IsEip1559Changed,
   NewUnapprovedTxAdded,
   SetTransactionProviderErrorType,

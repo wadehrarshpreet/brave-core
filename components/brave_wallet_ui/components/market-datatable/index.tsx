@@ -37,6 +37,7 @@ export interface Props {
   showEmptyState: boolean
   onShowMoreCoins: () => void
   onSort?: (column: MarketDataTableColumnTypes, newSortOrder: SortOrder) => void
+  onSelectCoinMarket: (coinMarket: BraveWallet.CoinMarket) => void
 }
 
 const onScreenOptions = {
@@ -128,7 +129,7 @@ const renderCells = (coinMarkDataItem: BraveWallet.CoinMarket) => {
 }
 
 export const MarketDataTable = (props: Props) => {
-  const { headers, coinMarketData, moreDataAvailable, showEmptyState, onShowMoreCoins, onSort } = props
+  const { headers, coinMarketData, moreDataAvailable, showEmptyState, onShowMoreCoins, onSort, onSelectCoinMarket } = props
   const ref: any = React.useRef<HTMLDivElement>()
   const onScreen = useOnScreen<HTMLDivElement>(ref, onScreenOptions)
 
@@ -142,7 +143,9 @@ export const MarketDataTable = (props: Props) => {
     return coinMarketData.map((coinMarketItem: BraveWallet.CoinMarket) => {
       return {
         id: `coin-row-${coinMarketItem.symbol}-${coinMarketItem.marketCapRank}`,
-        content: renderCells(coinMarketItem)
+        content: renderCells(coinMarketItem),
+        data: coinMarketItem,
+        onClick: onSelectCoinMarket
       }
     })
   }, [coinMarketData])

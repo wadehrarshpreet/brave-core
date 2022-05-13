@@ -59,7 +59,8 @@ import {
   ArrowIcon,
   BalanceRow,
   ShowBalanceButton,
-  NetworkDescription
+  NetworkDescription,
+  AssetNotSupported
 } from './style'
 import { AllNetworksOption } from '../../../../options/network-filter-options'
 import { mojoTimeDeltaToJSDate } from '../../../../../common/mojomUtils'
@@ -71,6 +72,8 @@ export interface Props {
   onClickAddAccount: (tabId: AddAccountNavTypes) => () => void
   onShowVisibleAssetsModal: (showModal: boolean) => void
   showVisibleAssetsModal: boolean
+  isSupportedInBraveWallet: boolean
+  onGoBack
 }
 
 const AssetIconWithPlaceholder = withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 12 })
@@ -80,7 +83,9 @@ const Portfolio = (props: Props) => {
     toggleNav,
     onClickAddAccount,
     onShowVisibleAssetsModal,
-    showVisibleAssetsModal
+    showVisibleAssetsModal,
+    isSupportedInBraveWallet,
+    onGoBack
   } = props
 
   // routing
@@ -303,9 +308,12 @@ const Portfolio = (props: Props) => {
   }
 
   const goBack = () => {
-    selectAsset(undefined)
+    onSelectAsset(undefined)
     setfilteredAssetList(userAssetList)
     toggleNav()
+    if (onGoBack) {
+      onGoBack()
+    }
   }
 
   const onUpdateBalance = (value: number | undefined) => {
@@ -431,16 +439,19 @@ const Portfolio = (props: Props) => {
           selectedNetwork={selectedNetwork}
         />
       } */}
-
-      <AccountsAndTransactionsList
-        formattedFullAssetBalance={formattedFullAssetBalance}
-        fullAssetFiatBalance={fullAssetFiatBalance}
-        selectedAsset={selectedAsset}
-        selectedAssetTransactions={selectedAssetTransactions}
-        onClickAddAccount={onClickAddAccount}
-        hideBalances={hideBalances}
-        networkList={networkList}
-      />
+      {isSupportedInBraveWallet
+        ? <AccountsAndTransactionsList
+            formattedFullAssetBalance={formattedFullAssetBalance}
+            fullAssetFiatBalance={fullAssetFiatBalance}
+            selectedAsset={selectedAsset}
+            selectedAssetTransactions={selectedAssetTransactions}
+            onClickAddAccount={onClickAddAccount}
+            hideBalances={hideBalances}
+            networkList={networkList}
+          />
+        : <AssetNotSupported>{getLocale('braveWalletAssetNotSupported')}</AssetNotSupported>
+      }
+      
 
       {!selectedAsset &&
         <TokenLists

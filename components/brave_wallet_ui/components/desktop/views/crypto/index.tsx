@@ -14,11 +14,10 @@ import {
 import { TopNavOptions } from '../../../../options/top-nav-options'
 import { TopTabNav, WalletBanner, AddAccountModal } from '../../'
 import { getLocale } from '../../../../../common/locale'
-import { PortfolioView, AccountsView } from '../'
+import { PortfolioView, AccountsView, MarketView } from '../'
 import {
   HardwareWalletConnectOpts
 } from '../../popup-modals/add-account-modal/hardware-wallet-connect/types'
-import { MarketView } from '../market'
 
 interface ParamsType {
   category?: TopTabNavTypes
