@@ -38,8 +38,8 @@ export const AssetsColumnWrapper = styled.div`
 
 export const AssetsColumnItemSpacer = styled.div`
   display: inline-flex;
-  align-items: 'center';
-  justify-content: 'center';
+  align-items: center;
+  justify-content: center;
   margin-right: 19px;
 `
 export const TextWrapper = styled.div<StyleProps>`

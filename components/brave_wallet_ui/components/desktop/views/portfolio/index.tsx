@@ -59,13 +59,13 @@ import {
   ArrowIcon,
   BalanceRow,
   ShowBalanceButton,
-  NetworkDescription,
-  AssetNotSupported
+  NetworkDescription
 } from './style'
 import { AllNetworksOption } from '../../../../options/network-filter-options'
 import { mojoTimeDeltaToJSDate } from '../../../../../common/mojomUtils'
 import { WalletPageActions } from '../../../../page/actions'
 import { WalletActions } from '../../../../common/actions'
+import { SubDivider } from '../accounts/style'
 
 export interface Props {
   toggleNav: () => void
@@ -73,7 +73,8 @@ export interface Props {
   onShowVisibleAssetsModal: (showModal: boolean) => void
   showVisibleAssetsModal: boolean
   isSupportedInBraveWallet: boolean
-  onGoBack
+  hideNetworkDescription?: boolean
+  onGoBack?: () => void
 }
 
 const AssetIconWithPlaceholder = withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 12 })
@@ -85,6 +86,7 @@ const Portfolio = (props: Props) => {
     onShowVisibleAssetsModal,
     showVisibleAssetsModal,
     isSupportedInBraveWallet,
+    hideNetworkDescription,
     onGoBack
   } = props
 
@@ -302,7 +304,7 @@ const Portfolio = (props: Props) => {
     }
   }
 
-  const onSelectAsset = (asset: BraveWallet.BlockchainToken) => () => {
+  const onSelectAsset = (asset?: BraveWallet.BlockchainToken) => () => {
     selectAsset(asset)
     toggleNav()
   }
@@ -391,7 +393,7 @@ const Portfolio = (props: Props) => {
                 <AssetIconWithPlaceholder asset={selectedAsset} network={selectedAssetsNetwork} />
                 <AssetColumn>
                   <AssetNameText>{selectedAsset.name}</AssetNameText>
-                  <NetworkDescription>{selectedAsset.symbol} on {selectedAssetsNetwork?.chainName ?? ''}</NetworkDescription>
+                  {!hideNetworkDescription && <NetworkDescription>{selectedAsset.symbol} on {selectedAssetsNetwork?.chainName ?? ''}</NetworkDescription>}
                 </AssetColumn>
               </AssetRow>
               {/* <DetailText>{selectedAsset.name} {getLocale('braveWalletPrice')} ({selectedAsset.symbol})</DetailText> */}
@@ -449,9 +451,11 @@ const Portfolio = (props: Props) => {
             hideBalances={hideBalances}
             networkList={networkList}
           />
-        : <AssetNotSupported>{getLocale('braveWalletAssetNotSupported')}</AssetNotSupported>
+        : <>
+            <SubDivider />
+
+          </>
       }
-      
 
       {!selectedAsset &&
         <TokenLists

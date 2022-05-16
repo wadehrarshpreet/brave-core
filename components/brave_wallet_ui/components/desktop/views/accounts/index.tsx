@@ -42,8 +42,6 @@ import {
   WalletIcon
 } from './style'
 
-import { TransactionPlaceholderText, Spacer } from '../portfolio/components/portfolio-top-section/style'
-
 // Components
 import { BackButton, Tooltip } from '../../../shared'
 import {
@@ -56,6 +54,7 @@ import {
 
 // Hooks
 import { useBalance } from '../../../../common/hooks'
+import { Spacer, TransactionPlaceholderText } from '../portfolio/style'
 
 export interface Props {
   accounts: WalletAccountType[]

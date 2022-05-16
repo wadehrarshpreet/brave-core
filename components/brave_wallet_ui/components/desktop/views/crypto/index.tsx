@@ -247,6 +247,7 @@ const CryptoView = (props: Props) => {
           onClickAddAccount={onClickAddAccount}
           showVisibleAssetsModal={showVisibleAssetsModal}
           onShowVisibleAssetsModal={onShowVisibleAssetsModal}
+          isSupportedInBraveWallet={true}
         />
       </Route>
       <Route path={WalletRoutes.AccountsSub} exact={true}>
@@ -269,8 +270,13 @@ const CryptoView = (props: Props) => {
           networkList={networkList}
         />
       </Route>
-      <Route path={WalletRoutes.Market} exact={true}>
-        <MarketView />
+      <Route path={WalletRoutes.MarketSub} exact={true}>
+        <MarketView
+          toggleNav={toggleNav}
+          onClickAddAccount={onClickAddAccount}
+          showVisibleAssetsModal={showVisibleAssetsModal}
+          onShowVisibleAssetsModal={onShowVisibleAssetsModal}
+        />
       </Route>
 
       {showAddModal &&

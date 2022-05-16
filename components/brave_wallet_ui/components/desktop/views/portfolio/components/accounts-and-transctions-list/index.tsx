@@ -12,6 +12,7 @@ import {
 // Utils
 import { getLocale } from '../../../../../../../common/locale'
 import Amount from '../../../../../../utils/amount'
+import { getTokensCoinType, getTokensNetwork } from '../../../../../../utils/network-utils'
 
 // Components
 import {
@@ -35,7 +36,6 @@ import {
   DividerRow,
   CoinGeckoText
 } from '../../style'
-import { getTokensCoinType, getTokensNetwork } from '../../../../../../utils/network-utils'
 
 export interface Props {
   selectedAsset: BraveWallet.BlockchainToken | undefined
