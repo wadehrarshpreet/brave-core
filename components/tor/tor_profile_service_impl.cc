@@ -124,7 +124,7 @@ TorProfileServiceImpl::TorProfileServiceImpl(
     : context_(context),
       local_state_(local_state),
       tor_client_updater_(tor_client_updater),
-      tor_pluggable_transport_udater_(tor_pluggable_transport_updater),
+      tor_pluggable_transport_updater_(tor_pluggable_transport_updater),
       tor_launcher_factory_(TorLauncherFactory::GetInstance()),
       weak_ptr_factory_(this) {
   if (tor_launcher_factory_) {
@@ -135,8 +135,8 @@ TorProfileServiceImpl::TorProfileServiceImpl(
     tor_client_updater_->AddObserver(this);
   }
 
-  if (tor_pluggable_transport_udater_) {
-    tor_pluggable_transport_udater_->AddObserver(this);
+  if (tor_pluggable_transport_updater_) {
+    tor_pluggable_transport_updater_->AddObserver(this);
   }
 
   pref_change_registrar_.Init(local_state_.get());
@@ -151,8 +151,8 @@ TorProfileServiceImpl::~TorProfileServiceImpl() {
     tor_client_updater_->RemoveObserver(this);
   }
 
-  if (tor_pluggable_transport_udater_) {
-    tor_pluggable_transport_udater_->RemoveObserver(this);
+  if (tor_pluggable_transport_updater_) {
+    tor_pluggable_transport_updater_->RemoveObserver(this);
   }
 }
 
@@ -175,16 +175,16 @@ void TorProfileServiceImpl::OnBridgesConfigChanged() {
   auto config = tor::BridgesConfig::FromValue(
                     local_state_->GetDictionary(tor::prefs::kBridgesConfig))
                     .value_or(tor::BridgesConfig());
-  if (!tor_pluggable_transport_udater_ ||
-      !tor_pluggable_transport_udater_->IsReady()) {
+  if (!tor_pluggable_transport_updater_ ||
+      !tor_pluggable_transport_updater_->IsReady()) {
     if (config.use_bridges)
-      tor_pluggable_transport_udater_->Register();
+      tor_pluggable_transport_updater_->Register();
     return;
   }
 
   tor_launcher_factory_->SetupPluggableTransport(
-      tor_pluggable_transport_udater_->GetSnowflakeExecutable(),
-      tor_pluggable_transport_udater_->GetObfs4Executable());
+      tor_pluggable_transport_updater_->GetSnowflakeExecutable(),
+      tor_pluggable_transport_updater_->GetObfs4Executable());
   tor_launcher_factory_->SetupBridges(std::move(config));
 }
 
@@ -218,7 +218,7 @@ void TorProfileServiceImpl::RegisterTorClientUpdater() {
   if (tor_client_updater_) {
     tor_client_updater_->Register();
   }
-  if (tor_pluggable_transport_udater_) {
+  if (tor_pluggable_transport_updater_) {
     pref_change_registrar_.Add(
         tor::prefs::kBridgesConfig,
         base::BindRepeating(&TorProfileServiceImpl::OnBridgesConfigChanged,
@@ -231,8 +231,8 @@ void TorProfileServiceImpl::UnregisterTorClientUpdater() {
   if (tor_client_updater_) {
     tor_client_updater_->Unregister();
   }
-  if (tor_pluggable_transport_udater_) {
-    tor_pluggable_transport_udater_->Unregister();
+  if (tor_pluggable_transport_updater_) {
+    tor_pluggable_transport_updater_->Unregister();
   }
 }
 
