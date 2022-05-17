@@ -1,4 +1,5 @@
 import { BraveWallet, PageState } from '../../constants/types'
+import { mockedMnemonic } from './user-accounts'
 
 export const mockPageState: PageState = {
   hasInitialized: false,
@@ -19,5 +20,6 @@ export const mockPageState: PageState = {
   setupStillInProgress: false,
   showAddModal: false,
   showIsRestoring: false,
-  showRecoveryPhrase: false
+  showRecoveryPhrase: false,
+  mnemonic: mockedMnemonic
 }
