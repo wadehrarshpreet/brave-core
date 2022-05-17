@@ -460,4 +460,8 @@
   </message>
   <message name="IDS_WALLET_FIL_SEND_TRANSACTION_TO" desc="Error message if transaction 'to' is empty">Transaction data 'to' must be specified</message>
   <message name="IDS_WALLET_FIL_SEND_TRANSACTION_FROM_INVALID" desc="Transaction data is not validated">Transaction data 'from' must be a valid Filecoin address</message>
+  <message name="IDS_BRAVE_WALLET_INFORMATION" desc="Information label shown in coin market detail view">Information</message>
+  <message name="IDS_BRAVE_WALLET_RANK_STAT" desc="Label show in coin market detail view for coin market rank">Rank</message>
+  <message name="IDS_BRAVE_WALLET_VOLUME_STAT" desc="Label show in coin market detail view for coin market 24 hour volume">24h Volume</message>
+  <message name="IDS_BRAVE_WALLET_MARKET_CAP_STAT" desc="Label show in coin market detail view for coin market marketcap">Market Cap</message>
 </grit-part>

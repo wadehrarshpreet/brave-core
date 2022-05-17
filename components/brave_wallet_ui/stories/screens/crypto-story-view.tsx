@@ -27,6 +27,7 @@ import { PortfolioView, AccountsView, MarketView } from '../../components/deskto
 import {
   HardwareWalletConnectOpts
 } from '../../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
+import { MemoryRouter } from 'react-router'
 
 export interface Props {
   defaultCurrencies: DefaultCurrencies
@@ -233,6 +234,7 @@ const CryptoStoryView = (props: Props) => {
           onClickAddAccount={onClickAddAccount}
           onShowVisibleAssetsModal={onShowVisibleAssetsModal}
           showVisibleAssetsModal={showVisibleAssetsModal}
+          isSupportedInBraveWallet={true}
         />
       }
       {selectedTab === 'accounts' &&
@@ -257,7 +259,14 @@ const CryptoStoryView = (props: Props) => {
       }
 
       {selectedTab === 'market' &&
-          <MarketView />
+          <MemoryRouter>
+            <MarketView
+              toggleNav={toggleNav}
+              onClickAddAccount={onClickAddAccount}
+              onShowVisibleAssetsModal={onShowVisibleAssetsModal}
+              showVisibleAssetsModal={showVisibleAssetsModal}
+            />
+          </MemoryRouter>
       }
 
       {showAddModal &&

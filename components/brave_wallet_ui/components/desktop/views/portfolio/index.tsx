@@ -31,6 +31,7 @@ import {
   EditVisibleAssetsModal,
   WithHideBalancePlaceholder
 } from '../../'
+import { CoinStats } from './components/coin-stats/coin-stats'
 
 // import NFTDetails from './components/nft-details'
 import TokenLists from './components/token-lists'
@@ -59,7 +60,8 @@ import {
   ArrowIcon,
   BalanceRow,
   ShowBalanceButton,
-  NetworkDescription
+  NetworkDescription,
+  CoinGeckoText
 } from './style'
 import { AllNetworksOption } from '../../../../options/network-filter-options'
 import { mojoTimeDeltaToJSDate } from '../../../../../common/mojomUtils'
@@ -75,6 +77,7 @@ export interface Props {
   isSupportedInBraveWallet: boolean
   hideNetworkDescription?: boolean
   onGoBack?: () => void
+  selectedCoinMarket?: BraveWallet.CoinMarket
 }
 
 const AssetIconWithPlaceholder = withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 12 })
@@ -87,7 +90,8 @@ const Portfolio = (props: Props) => {
     showVisibleAssetsModal,
     isSupportedInBraveWallet,
     hideNetworkDescription,
-    onGoBack
+    onGoBack,
+    selectedCoinMarket
   } = props
 
   // routing
@@ -453,8 +457,19 @@ const Portfolio = (props: Props) => {
           />
         : <>
             <SubDivider />
-
           </>
+      }
+
+      {selectedCoinMarket &&
+        <CoinStats
+          marketCapRank={selectedCoinMarket.marketCapRank}
+          marketCap={selectedCoinMarket.marketCap}
+          volume={selectedCoinMarket.totalVolume}
+        />
+      }
+
+      {selectedAsset &&
+        <CoinGeckoText>{getLocale('braveWalletPoweredByCoinGecko')}</CoinGeckoText>
       }
 
       {!selectedAsset &&

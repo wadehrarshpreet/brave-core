@@ -498,5 +498,11 @@ provideStrings({
 
   // Network Filter
   braveWalletNetworkFilterAll: 'All Networks',
-  braveWalletNetworkFilterSecondary: 'Secondary Networks'
+  braveWalletNetworkFilterSecondary: 'Secondary Networks',
+
+  // Market Coin Detail Screen
+  braveWalletInformation: 'Information',
+  braveWalletRankStat: 'Rank',
+  braveWalletVolumeStat: '24h Volume',
+  braveWalletMarketCapStat: 'Market Cap'
 })

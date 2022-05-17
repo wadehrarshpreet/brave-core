@@ -32,7 +32,8 @@ storiesOf('Wallet/Desktop/Components', module)
             content: '4',
             customStyle: rowTheme
           }
-        ]
+        ],
+        data: ''
       },
       {
         id: 'row-2',
@@ -48,7 +49,8 @@ storiesOf('Wallet/Desktop/Components', module)
             content: '2',
             customStyle: rowTheme
           }
-        ]
+        ],
+        data: ''
       }
     ]
 

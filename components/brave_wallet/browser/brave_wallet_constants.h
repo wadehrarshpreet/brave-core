@@ -620,7 +620,11 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletMarketDataVolumeColumn",
      IDS_BRAVE_WALLET_MARKET_DATA_VOLUME_COLUMN},
     {"braveWalletMarketDataNoAssetsFound",
-     IDS_BRAVE_WALLET_MARKET_DATA_NO_ASSETS_FOUND}};
+     IDS_BRAVE_WALLET_MARKET_DATA_NO_ASSETS_FOUND},
+    {"braveWalletInformation", IDS_BRAVE_WALLET_INFORMATION},
+    {"braveWalletRankStat", IDS_BRAVE_WALLET_RANK_STAT},
+    {"braveWalletVolumeStat", IDS_BRAVE_WALLET_VOLUME_STAT},
+    {"braveWalletMarketCapStat", IDS_BRAVE_WALLET_MARKET_CAP_STAT}};
 
 // Swap constants
 constexpr char kRopstenSwapBaseAPIURL[] = "https://ropsten.api.0x.org/";

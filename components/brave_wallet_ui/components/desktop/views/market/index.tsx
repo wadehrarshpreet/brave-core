@@ -181,6 +181,7 @@ export const MarketView = (props: Props) => {
             isSupportedInBraveWallet={isSupportedInBraveWallet}
             hideNetworkDescription={true}
             onGoBack={onGoBack}
+            selectedCoinMarket={selectedCoinMarket}
           />
         : <>
             <TopRow>

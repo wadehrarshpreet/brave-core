@@ -4,7 +4,7 @@
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { AssetFilter } from '../constants/types'
-import { getLocale } from '$web-common/locale'
+import { getLocale } from '../../common/locale'
 
 export const AssetFilterOptions: AssetFilter[] = [
   {
