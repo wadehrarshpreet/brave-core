@@ -15,7 +15,7 @@ export interface Props {
   position?: 'left' | 'right'
   text: React.ReactNode
   verticalPosition?: 'above' | 'below'
-  horizontalMarginPx?: number
+  horizontalMargin?: string
   pointerPosition?: 'left' | 'right' | 'center'
 }
 
@@ -29,7 +29,7 @@ function Tooltip (props: Props) {
     text,
     verticalPosition = 'below',
     pointerPosition,
-    horizontalMarginPx
+    horizontalMargin
   } = props
   const [active, setActive] = React.useState(!!disableHoverEvents)
 
@@ -43,7 +43,7 @@ function Tooltip (props: Props) {
 
   const toolTipPointer = React.useMemo(() => (
     <Pointer
-      position={pointerPosition ?? position ?? 'center'}
+      position={pointerPosition ?? 'center'}
       verticalPosition={verticalPosition ?? 'below'}
     />
   ), [position, verticalPosition, pointerPosition])
@@ -52,16 +52,12 @@ function Tooltip (props: Props) {
     <TipWrapper
       position={position ?? 'center'}
       verticalPosition={verticalPosition ?? 'below'}
-      horizontalMarginPx={horizontalMarginPx}
+      horizontalMargin={horizontalMargin}
     >
 
       {verticalPosition === 'below' && toolTipPointer}
 
-      <Tip
-        isAddress={isAddress}
-        position={position ?? 'center'}
-        verticalPosition={verticalPosition ?? 'below'}
-      >
+      <Tip isAddress={isAddress}>
         {text}
       </Tip>
 
@@ -74,7 +70,7 @@ function Tooltip (props: Props) {
     verticalPosition,
     isAddress,
     text,
-    horizontalMarginPx
+    horizontalMargin
   ])
 
   return (
