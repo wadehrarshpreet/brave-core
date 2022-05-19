@@ -81,7 +81,8 @@ def DownloadWinInstallerAndExtract(out_dir, url, expected_install_path, binary):
   with open(installer_filename, 'wb') as output_file:
     output_file.write(data)
   logging.info(f'Run installer {installer_filename}')
-  subprocess.check_call([installer_filename, '--chrome-sxs'])
+  subprocess.check_call(
+      [installer_filename, '--chrome-sxs', '--do-not-launch-chrome'])
   try:
     subprocess.check_call(['taskkill.exe', '/f', '/im', binary])
   except subprocess.CalledProcessError:
