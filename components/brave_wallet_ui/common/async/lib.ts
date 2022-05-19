@@ -100,6 +100,11 @@ export async function getChecksumEthAddress (value: string) {
   return (await keyringService.getChecksumEthAddress(value))
 }
 
+export async function isBase58EncodedSolanaPubkey (value: string) {
+  const { braveWalletService } = getAPIProxy()
+  return braveWalletService.isBase58EncodedSolanaPubkey(value)
+}
+
 export async function isStrongPassword (value: string) {
   const apiProxy = getAPIProxy()
   return (await apiProxy.keyringService.isStrongPassword(value)).result
@@ -700,6 +705,7 @@ export async function sendFilTransaction (payload: SendFilTransactionParams) {
     gasLimit: payload.gasLimit || '',
     maxFee: payload.maxFee || '0',
     to: payload.to,
+    from: payload.from,
     value: payload.value
   }
   // @ts-expect-error google closure is ok with undefined for other fields but mojom runtime is not

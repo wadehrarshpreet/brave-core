@@ -106,6 +106,7 @@ export type PanelTypes =
   | 'assets'
   | 'provideEncryptionKey' // For grep: 'getEncryptionPublicKey'
   | 'allowReadingEncryptedMessage' // For grep: 'decryptRequest'
+  | 'createAccount'
 
 export type NavTypes =
   | 'crypto'
@@ -402,7 +403,6 @@ export interface SendFilTransactionParams extends BaseTransactionParams {
   gasFeeCap?: string
   gasLimit?: string
   maxFee?: string
-  cid?: string
 }
 
 export interface SendSolTransactionParams extends BaseTransactionParams {
@@ -447,6 +447,8 @@ export interface GetBlockchainTokenInfoReturnInfo {
 export type GetIsStrongPassswordReturnInfo = BraveWallet.KeyringService_IsStrongPassword_ResponseParams
 
 export type GetChecksumEthAddressReturnInfo = BraveWallet.KeyringService_GetChecksumEthAddress_ResponseParams
+
+export type IsBase58EncodedSolanaPubkeyReturnInfo = BraveWallet.BraveWalletService_IsBase58EncodedSolanaPubkey_ResponseParams
 
 export interface RecoveryObject {
   value: string
@@ -629,8 +631,8 @@ export interface TransactionProviderErrorRegistry {
 }
 
 export const SupportedCoinTypes = [
-  BraveWallet.CoinType.ETH,
   BraveWallet.CoinType.SOL,
+  BraveWallet.CoinType.ETH,
   BraveWallet.CoinType.FIL
 ]
 

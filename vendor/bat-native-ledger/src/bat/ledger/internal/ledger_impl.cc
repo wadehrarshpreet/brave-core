@@ -10,14 +10,13 @@
 #include "bat/ledger/internal/common/security_util.h"
 #include "bat/ledger/internal/common/time_util.h"
 #include "bat/ledger/internal/constants.h"
-#include "bat/ledger/internal/core/bat_ledger_context.h"
-#include "bat/ledger/internal/core/bat_ledger_initializer.h"
 #include "bat/ledger/internal/ledger_impl.h"
 #include "bat/ledger/internal/legacy/media/helper.h"
 #include "bat/ledger/internal/legacy/static_values.h"
 #include "bat/ledger/internal/publisher/publisher_status_helper.h"
 #include "bat/ledger/internal/sku/sku_factory.h"
 #include "bat/ledger/internal/sku/sku_merchant.h"
+#include "bat/ledger/internal/wallet/wallet_util.h"
 
 using std::placeholders::_1;
 
@@ -25,7 +24,6 @@ namespace ledger {
 
 LedgerImpl::LedgerImpl(LedgerClient* client)
     : ledger_client_(client),
-      context_(std::make_unique<BATLedgerContext>(this)),
       promotion_(std::make_unique<promotion::Promotion>(this)),
       publisher_(std::make_unique<publisher::Publisher>(this)),
       media_(std::make_unique<braveledger_media::Media>(this)),
@@ -45,10 +43,6 @@ LedgerImpl::LedgerImpl(LedgerClient* client)
 }
 
 LedgerImpl::~LedgerImpl() = default;
-
-BATLedgerContext& LedgerImpl::context() {
-  return *context_;
-}
 
 LedgerClient* LedgerImpl::ledger_client() const {
   return ledger_client_;
@@ -94,10 +88,6 @@ database::Database* LedgerImpl::database() const {
   return database_.get();
 }
 
-recovery::Recovery* LedgerImpl::recovery() const {
-  return recovery_.get();
-}
-
 bitflyer::Bitflyer* LedgerImpl::bitflyer() const {
   return bitflyer_.get();
 }
@@ -127,6 +117,18 @@ void LedgerImpl::LoadURL(
   ledger_client_->LoadURL(std::move(request), callback);
 }
 
+void LedgerImpl::StartServices() {
+  DCHECK(ready_state_ == ReadyState::kInitializing);
+
+  publisher()->SetPublisherServerListTimer();
+  contribution()->SetReconcileTimer();
+  promotion()->Refresh(false);
+  contribution()->Initialize();
+  promotion()->Initialize();
+  api()->Initialize();
+  recovery_->Check();
+}
+
 void LedgerImpl::Initialize(bool execute_create_script,
                             ResultCallback callback) {
   if (ready_state_ != ReadyState::kUninitialized) {
@@ -136,16 +138,28 @@ void LedgerImpl::Initialize(bool execute_create_script,
   }
 
   ready_state_ = ReadyState::kInitializing;
-
-  context().Get<BATLedgerInitializer>().Initialize().Then(callback_adapter_(
-      [this, callback](bool success) { OnInitialized(callback, success); }));
+  InitializeDatabase(execute_create_script, callback);
 }
 
-void LedgerImpl::OnInitialized(ResultCallback callback, bool success) {
+void LedgerImpl::InitializeDatabase(bool execute_create_script,
+                                    ResultCallback callback) {
   DCHECK(ready_state_ == ReadyState::kInitializing);
 
-  if (!success) {
-    context().LogError(FROM_HERE) << "Failed to initialize ledger";
+  ResultCallback finish_callback =
+      std::bind(&LedgerImpl::OnInitialized, this, _1, std::move(callback));
+
+  auto database_callback =
+      std::bind(&LedgerImpl::OnDatabaseInitialized, this, _1, finish_callback);
+  database()->Initialize(execute_create_script, database_callback);
+}
+
+void LedgerImpl::OnInitialized(type::Result result, ResultCallback callback) {
+  DCHECK(ready_state_ == ReadyState::kInitializing);
+
+  if (result == type::Result::LEDGER_OK) {
+    StartServices();
+  } else {
+    BLOG(0, "Failed to initialize wallet " << result);
   }
 
   while (!ready_callbacks_.empty()) {
@@ -155,7 +169,36 @@ void LedgerImpl::OnInitialized(ResultCallback callback, bool success) {
   }
 
   ready_state_ = ReadyState::kReady;
-  callback(CallbackAdapter::ResultCode(success));
+
+  callback(result);
+}
+
+void LedgerImpl::OnDatabaseInitialized(type::Result result,
+                                       ResultCallback callback) {
+  DCHECK(ready_state_ == ReadyState::kInitializing);
+
+  if (result != type::Result::LEDGER_OK) {
+    BLOG(0, "Database could not be initialized. Error: " << result);
+    callback(result);
+    return;
+  }
+
+  auto state_callback =
+      std::bind(&LedgerImpl::OnStateInitialized, this, _1, callback);
+
+  state()->Initialize(state_callback);
+}
+
+void LedgerImpl::OnStateInitialized(type::Result result,
+                                    ResultCallback callback) {
+  DCHECK(ready_state_ == ReadyState::kInitializing);
+
+  if (result != type::Result::LEDGER_OK) {
+    BLOG(0, "Failed to initialize state");
+    return;
+  }
+
+  callback(type::Result::LEDGER_OK);
 }
 
 void LedgerImpl::CreateWallet(ResultCallback callback) {
@@ -690,45 +733,25 @@ void LedgerImpl::GetExternalWallet(const std::string& wallet_type,
       return;
     }
 
-    if (wallet_type == constant::kWalletUphold) {
-      uphold()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
-        }
+    auto on_generated = [this, wallet_type, callback](type::Result result) {
+      if (result == type::Result::CONTINUE) {
+        result = type::Result::LEDGER_OK;
+      }
+      callback(result, wallet::GetWallet(this, wallet_type));
+    };
 
-        auto wallet = uphold()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
-      });
+    if (wallet_type == constant::kWalletUphold) {
+      uphold()->GenerateWallet(on_generated);
       return;
     }
 
     if (wallet_type == constant::kWalletBitflyer) {
-      bitflyer()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
-        }
-
-        auto wallet = bitflyer()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
-      });
+      bitflyer()->GenerateWallet(on_generated);
       return;
     }
 
     if (wallet_type == constant::kWalletGemini) {
-      gemini()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
-        }
-
-        auto wallet = gemini()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
-      });
+      gemini()->GenerateWallet(on_generated);
       return;
     }
 

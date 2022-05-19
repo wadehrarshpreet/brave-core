@@ -80,11 +80,17 @@ provideStrings({
   braveWalletSlippageToleranceWarning: 'Transaction may be frontrun',
   braveWalletSlippageToleranceTitle: 'Slippage tolerance',
   braveWalletExpiresInTitle: 'Expires in',
-  braveWalletSendPlaceholder: '0x address or url',
+  braveWalletSendPlaceholder: 'Wallet address or URL',
+  braveWalletSendNoURLPlaceholder: 'Wallet address',
   braveWalletSwapDisclaimer: 'Brave uses $10x$2 as a DEX aggregator.',
   braveWalletSwapDisclaimerDescription: '0x will process the Ethereum address and IP address to fulfill a transaction (including getting quotes). 0x will ONLY use this data for the purposes of processing transactions.',
   braveWalletSwapFeesNotice: 'Quote includes a 0.875% Brave fee.',
   braveWalletDecimalPlacesError: 'Too many decimal places',
+
+  // Create Account Tab
+  braveWalletCreateAccountDescription: 'You don’t yet have a $1 account. Create one now?',
+  braveWalletCreateAccountYes: 'Yes',
+  braveWalletCreateAccountNo: 'No',
 
   // Buttons
   braveWalletButtonContinue: 'Continue',
@@ -439,6 +445,7 @@ provideStrings({
   // Send Input Errors
   braveWalletNotValidFilAddress: 'Not a valid FIL address',
   braveWalletNotValidEthAddress: 'Not a valid ETH address',
+  braveWalletNotValidSolAddress: 'Not a valid SOL address',
   braveWalletNotValidAddress: 'Not a valid address',
   braveWalletNotDomain: 'Domain is not registered',
   braveWalletSameAddressError: 'The receiving address is your own address',

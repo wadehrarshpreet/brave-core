@@ -32,33 +32,13 @@
 #include "extensions/common/manifest_constants.h"
 #include "extensions/common/permissions/api_permission.h"
 #include "ui/base/theme_provider.h"
+#include "ui/color/color_provider_manager.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/image/canvas_image_source.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/gfx/paint_vector_icon.h"
 #include "ui/gfx/scoped_canvas.h"
-
-// static
-std::unique_ptr<BraveActionViewController> BraveActionViewController::Create(
-    const extensions::ExtensionId& extension_id,
-    Browser* browser,
-    ExtensionsContainer* extensions_container) {
-  DCHECK(browser);
-
-  auto* registry = extensions::ExtensionRegistry::Get(browser->profile());
-  scoped_refptr<const extensions::Extension> extension =
-      registry->enabled_extensions().GetByID(extension_id);
-  DCHECK(extension);
-  extensions::ExtensionAction* extension_action =
-      extensions::ExtensionActionManager::Get(browser->profile())
-          ->GetExtensionAction(*extension);
-  DCHECK(extension_action);
-
-  // WrapUnique() because the constructor is private.
-  return base::WrapUnique(new BraveActionViewController(
-      std::move(extension), browser, extension_action, registry,
-      extensions_container));
-}
+#include "ui/native_theme/native_theme.h"
 
 BraveActionViewController::BraveActionViewController(
     scoped_refptr<const extensions::Extension> extension,
@@ -156,8 +136,16 @@ BraveActionViewController::GetIconImageSource(
   content::WebContents* web_contents, const gfx::Size& size) {
   int tab_id = sessions::SessionTabHelper::IdForTab(web_contents).id();
   // generate icon
+  // `web_contents` may be null during tab closure or in tests.  Fall back on a
+  // generic color provider.
+  const auto* const color_provider =
+      web_contents
+          ? &web_contents->GetColorProvider()
+          : ui::ColorProviderManager::Get().GetColorProviderFor(
+                ui::NativeTheme::GetInstanceForNativeUi()->GetColorProviderKey(
+                    nullptr));
   std::unique_ptr<BraveActionIconWithBadgeImageSource> image_source(
-      new BraveActionIconWithBadgeImageSource(size));
+      new BraveActionIconWithBadgeImageSource(size, color_provider));
   image_source->SetIcon(icon_factory_.GetIcon(tab_id));
   // set text
   std::unique_ptr<IconWithBadgeImageSource::Badge> badge;

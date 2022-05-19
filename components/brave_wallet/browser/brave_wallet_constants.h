@@ -97,11 +97,17 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
      IDS_BRAVE_WALLET_SLIPPAGE_TOLERANCE_TITLE},
     {"braveWalletExpiresInTitle", IDS_BRAVE_WALLET_EXPIRES_IN_TITLE},
     {"braveWalletSendPlaceholder", IDS_BRAVE_WALLET_SEND_PLACEHOLDER},
+    {"braveWalletSendNoURLPlaceholder",
+     IDS_BRAVE_WALLET_SEND_NO_URL_PLACEHOLDER},
     {"braveWalletSwapDisclaimer", IDS_BRAVE_WALLET_SWAP_DISCLAIMER},
     {"braveWalletSwapDisclaimerDescription",
      IDS_BRAVE_WALLET_SWAP_DISCLAIMER_DESCRIPTION},
     {"braveWalletSwapFeesNotice", IDS_BRAVE_WALLET_SWAP_FEES_NOTICE},
     {"braveWalletDecimalPlacesError", IDS_BRAVE_WALLET_DECIMAL_PLACES_ERROR},
+    {"braveWalletCreateAccountDescription",
+     IDS_BRAVE_WALLET_CREATE_ACCOUNT_DESCRIPTION},
+    {"braveWalletCreateAccountYes", IDS_BRAVE_WALLET_CREATE_ACCOUNT_YES},
+    {"braveWalletCreateAccountNo", IDS_BRAVE_WALLET_CREATE_ACCOUNT_NO},
     {"braveWalletButtonContinue", IDS_BRAVE_WALLET_BUTTON_CONTINUE},
     {"braveWalletButtonCopy", IDS_BRAVE_WALLET_BUTTON_COPY},
     {"braveWalletButtonCopied", IDS_BRAVE_WALLET_BUTTON_COPIED},
@@ -528,6 +534,7 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletEditPermissionsCustomAllowance",
      IDS_BRAVE_WALLET_EDIT_PERMISSIONS_CUSTOM_ALLOWANCE},
     {"braveWalletNotValidEthAddress", IDS_BRAVE_WALLET_NOT_VALID_ETH_ADDRESS},
+    {"braveWalletNotValidSolAddress", IDS_BRAVE_WALLET_NOT_VALID_SOL_ADDRESS},
     {"braveWalletNotValidAddress", IDS_BRAVE_WALLET_NOT_VALID_ADDRESS},
     {"braveWalletNotDomain", IDS_BRAVE_WALLET_NOT_DOMAIN},
     {"braveWalletSameAddressError", IDS_BRAVE_WALLET_SAME_ADDRESS_ERROR},
@@ -652,6 +659,7 @@ constexpr char kCryptoEthAddressKey[] = "crypto.ETH.address";
 
 // ERC-165 identifier for ERC721 interface.
 constexpr char kERC1155InterfaceId[] = "0xd9b67a26";
+constexpr char kERC1155MetadataInterfaceId[] = "0x0e89341c";
 constexpr char kERC721InterfaceId[] = "0x80ac58cd";
 constexpr char kERC721MetadataInterfaceId[] = "0x5b5e139f";
 

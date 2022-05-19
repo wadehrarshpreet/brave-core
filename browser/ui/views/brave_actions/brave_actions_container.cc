@@ -15,6 +15,7 @@
 #include "brave/browser/extensions/brave_component_loader.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/ui/brave_actions/brave_action_view_controller.h"
+#include "brave/browser/ui/brave_actions/brave_action_view_controller_factory.h"
 #include "brave/browser/ui/views/brave_actions/brave_action_view.h"
 #include "brave/browser/ui/views/brave_actions/brave_rewards_action_stub_view.h"
 #include "brave/browser/ui/views/brave_actions/brave_shields_action_view.h"
@@ -98,8 +99,8 @@ void BraveActionsContainer::Init() {
                                     kSeparatorWidth + kSeparatorMargin*2,
                                     GetLayoutConstant(LOCATION_BAR_ICON_SIZE)));
   // separator left & right margin
-  brave_button_separator_->SetBorder(
-      views::CreateEmptyBorder(0, kSeparatorMargin, 0, kSeparatorMargin));
+  brave_button_separator_->SetBorder(views::CreateEmptyBorder(
+      gfx::Insets::TLBR(0, kSeparatorMargin, 0, kSeparatorMargin)));
   // Just in case the extensions load before this function does (not likely!)
   // make sure separator is at index 0
   AddChildViewAt(brave_button_separator_, 0);
@@ -163,7 +164,7 @@ void BraveActionsContainer::AddAction(const extensions::Extension* extension) {
     actions_[id].Reset();
     // Create a ExtensionActionViewController for the extension
     actions_[id].view_controller_ =
-        BraveActionViewController::Create(id, browser_, this);
+        BraveActionViewControllerFactory::Create(id, browser_, this);
     // The button view
     actions_[id].view_ = std::make_unique<BraveActionView>(
         actions_[id].view_controller_.get(), this);

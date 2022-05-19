@@ -19,6 +19,7 @@
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/guid.h"
+#include "base/hash/hash.h"
 #include "base/i18n/time_formatting.h"
 #include "base/json/json_reader.h"
 #include "base/logging.h"
@@ -97,6 +98,7 @@
 #include "services/network/public/cpp/simple_url_loader.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/models/image_model.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/message_center/public/cpp/notification.h"
 #include "ui/message_center/public/cpp/notification_types.h"
@@ -125,7 +127,7 @@ const unsigned int kRetriesCountOnNetworkChange = 1;
 
 constexpr char kAdNotificationUrlPrefix[] = "https://www.brave.com/ads/?";
 
-const base::Feature kAdServing{"AdServing", base::FEATURE_ENABLED_BY_DEFAULT};
+const base::Feature kServing{"AdServing", base::FEATURE_ENABLED_BY_DEFAULT};
 
 int GetDataResourceId(const std::string& name) {
   if (name == ads::g_catalog_json_schema_data_resource_name) {
@@ -518,7 +520,7 @@ int64_t AdsServiceImpl::GetAdsPerHour() const {
   int64_t ads_per_hour = GetInt64Pref(ads::prefs::kAdsPerHour);
   if (ads_per_hour == -1) {
     ads_per_hour = base::GetFieldTrialParamByFeatureAsInt(
-        kAdServing, "default_ad_notifications_per_hour",
+        kServing, "default_ad_notifications_per_hour",
         ads::kDefaultAdNotificationsPerHour);
   }
 
@@ -1500,7 +1502,8 @@ bool AdsServiceImpl::MigratePrefs(const int source_version,
                 {{7, 8}, &AdsServiceImpl::MigratePrefsVersion7To8},
                 {{8, 9}, &AdsServiceImpl::MigratePrefsVersion8To9},
                 {{9, 10}, &AdsServiceImpl::MigratePrefsVersion9To10},
-                {{10, 11}, &AdsServiceImpl::MigratePrefsVersion10To11}});
+                {{10, 11}, &AdsServiceImpl::MigratePrefsVersion10To11},
+                {{11, 12}, &AdsServiceImpl::MigratePrefsVersion11To12}});
 
   // Cycle through migration paths, i.e. if upgrading from version 2 to 5 we
   // should migrate version 2 to 3, then 3 to 4 and finally version 4 to 5
@@ -1735,6 +1738,21 @@ void AdsServiceImpl::MigratePrefsVersion10To11() {
   }
 }
 
+void AdsServiceImpl::MigratePrefsVersion11To12() {
+  std::string value;
+
+  if (base::ReadFileToString(base_path_.AppendASCII("confirmations.json"),
+                             &value)) {
+    const uint64_t hash = static_cast<uint64_t>(base::PersistentHash(value));
+    SetUint64Pref(ads::prefs::kConfirmationsHash, hash);
+  }
+
+  if (base::ReadFileToString(base_path_.AppendASCII("client.json"), &value)) {
+    const uint64_t hash = static_cast<uint64_t>(base::PersistentHash(value));
+    SetUint64Pref(ads::prefs::kClientHash, hash);
+  }
+}
+
 bool AdsServiceImpl::IsUpgradingFromPreBraveAdsBuild() {
   // Brave ads was hidden in 0.62.x however due to a bug |prefs::kEnabled| was
   // set to true causing "https://github.com/brave/brave-browser/issues/5434"
@@ -1905,7 +1923,7 @@ void AdsServiceImpl::ShowNotification(const ads::AdNotificationInfo& info) {
     std::unique_ptr<message_center::Notification> notification =
         std::make_unique<message_center::Notification>(
             message_center::NOTIFICATION_TYPE_SIMPLE, info.placement_id, title,
-            body, gfx::Image(), std::u16string(), url,
+            body, ui::ImageModel(), std::u16string(), url,
             message_center::NotifierId(
                 message_center::NotifierType::SYSTEM_COMPONENT,
                 "service.ads_service"),

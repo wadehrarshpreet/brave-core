@@ -17,6 +17,7 @@
     <output filename="brave_generated_resources_bs.pak" type="data_package" lang="bs" />
     <output filename="brave_generated_resources_ca.pak" type="data_package" lang="ca" />
     <output filename="brave_generated_resources_cs.pak" type="data_package" lang="cs" />
+    <output filename="brave_generated_resources_cy.pak" type="data_package" lang="cy" />
     <output filename="brave_generated_resources_da.pak" type="data_package" lang="da" />
     <output filename="brave_generated_resources_de.pak" type="data_package" lang="de" />
     <output filename="brave_generated_resources_el.pak" type="data_package" lang="el" />
@@ -423,6 +424,11 @@ Or change later at <ph name="SETTINGS_EXTENIONS_LINK">$2<ex>brave://settings/ext
           Report a Broken Site
         </message>
       </if>
+
+      <!-- Brave Rewards Extension -->
+      <message name="IDS_HIDE_BRAVE_REWARDS_ACTION_ICON" desc="The menu item to hide the Brave Rewards icon on the location bar">
+        Hide Brave Rewards icon
+      </message>
 
       <!-- Brave Wallet Extension -->
       <message name="IDS_HIDE_BRAVE_WALLET_ICON_ON_TOOLBAR" desc="The description for hiding the Brave wallet panel icon on the toolbar">

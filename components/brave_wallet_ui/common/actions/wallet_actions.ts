@@ -22,6 +22,7 @@ import {
   UpdateUnapprovedTransactionSpendAllowanceType,
   UpdateUnapprovedTransactionNonceType,
   SetTransactionProviderErrorType,
+  SelectedAccountChangedPayloadType,
   GetCoinMarketPayload,
   GetCoinMarketsResponse
 } from '../constants/action_types'
@@ -43,6 +44,8 @@ import {
   SolFeeEstimates,
   SPLTransferFromParams
 } from '../../constants/types'
+
+import { AddAccountPayloadType } from '../../page/constants/action_types'
 
 export const initialize = createAction('initialize')
 export const initialized = createAction<WalletInfo>('initialized')
@@ -70,7 +73,7 @@ export const locked = createAction('locked')
 export const unlocked = createAction('unlocked')
 export const backedUp = createAction('backedUp')
 export const accountsChanged = createAction('accountsChanged')
-export const selectedAccountChanged = createAction('selectedAccountChanged')
+export const selectedAccountChanged = createAction<SelectedAccountChangedPayloadType>('selectedAccountChanged')
 export const setAllTokensList = createAction<BraveWallet.BlockchainToken[]>('setAllTokensList')
 export const getAllTokensList = createAction('getAllTokensList')
 export const nativeAssetBalancesUpdated = createAction<GetNativeAssetBalancesPayload>('nativeAssetBalancesUpdated')
@@ -125,3 +128,4 @@ export const setCoinMarkets = createAction<GetCoinMarketsResponse>('setCoinMarke
 export const setSelectedNetworkFilter = createAction<BraveWallet.NetworkInfo>('setSelectedNetworkFilter')
 export const setDefaultAccounts = createAction<BraveWallet.AccountInfo[]>('setDefaultAccounts')
 export const setShowTestNetworks = createAction<boolean>('setShowTestNetworks')
+export const addAccount = createAction<AddAccountPayloadType>('addAccount')

@@ -1,5 +1,4 @@
 import("//brave/build/cargo.gni")
-import("//brave/components/bls/buildflags.gni")
 
 if (is_mac) {
   import("//build/config/mac/mac_sdk.gni")
@@ -23,15 +22,11 @@ cargo_build("rust_lib") {
     "//brave/components/brave_today/rust:rust_lib",
     "//brave/components/brave_wallet/rust:rust_lib",
     "//brave/components/challenge_bypass_ristretto:rust_lib",
+    "//brave/components/filecoin:rust_lib",
     "//brave/components/json:rust_lib",
     "//brave/components/skus/browser/rs:rust_lib",
     "//brave/components/speedreader/rust/lib",
   ]
-  rustflags = []
-  if (enable_rust_bls) {
-    rustflags += [ "--cfg=feature=\"enable_rust_bls\"" ]
-    deps += [ "//brave/components/bls:rust_lib" ]
-  }
 }
 
 if (is_apple) {
@@ -50,6 +45,12 @@ if (is_apple) {
       "--input=" + rebase_path(rust_lib_output_path, root_build_dir),
       "--output=" + rebase_path(unexport_list_path, root_build_dir),
     ]
+
+    # Temporary workaround to avoid bitcode-related problem when opaque pointers
+    # are enabled on iOS (see https://github.com/llvm/llvm-project/issues/55506)
+    if (is_ios) {
+      args += [ "--disable_bitcode_reader" ]
+    }
 
     deps = [ ":rust_lib" ]
   }

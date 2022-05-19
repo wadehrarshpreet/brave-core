@@ -37,9 +37,11 @@ class FilTransaction {
   int64_t gas_limit() const { return gas_limit_; }
   std::string max_fee() const { return max_fee_; }
   FilAddress to() const { return to_; }
+  const FilAddress& from() const { return from_; }
   std::string value() const { return value_; }
 
-  void set_to(FilAddress to) { to_ = to; }
+  void set_to(const FilAddress& to) { to_ = to; }
+  void set_from(const FilAddress& from) { from_ = from; }
   void set_value(const std::string& value) { value_ = value; }
   void set_nonce(absl::optional<uint64_t> nonce) { nonce_ = nonce; }
   void set_gas_premium(const std::string& gas_premium) {
@@ -51,9 +53,11 @@ class FilTransaction {
   void set_gas_limit(int64_t gas_limit) { gas_limit_ = gas_limit; }
   void set_max_fee(const std::string& max_fee) { max_fee_ = max_fee; }
 
-  std::string GetMessageToSign() const;
+  absl::optional<std::string> GetMessageToSign() const;
   base::Value ToValue() const;
   mojom::FilTxDataPtr ToFilTxData() const;
+  absl::optional<std::string> GetSignedTransaction(
+      const std::vector<uint8_t>& private_key) const;
   static absl::optional<FilTransaction> FromValue(const base::Value& value);
 
  private:
@@ -64,8 +68,8 @@ class FilTransaction {
   std::string gas_fee_cap_;
   int64_t gas_limit_ = 0;
   std::string max_fee_;
-  std::string cid_;
   FilAddress to_;
+  FilAddress from_;
   std::string value_;
 
   std::string signature_;
@@ -77,8 +81,8 @@ class FilTransaction {
                  int64_t gas_limit,
                  const std::string& max_fee,
                  const FilAddress& to,
-                 const std::string& value,
-                 const std::string& cid);
+                 const FilAddress& from,
+                 const std::string& value);
 };
 
 }  // namespace brave_wallet

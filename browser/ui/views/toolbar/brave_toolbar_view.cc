@@ -11,9 +11,12 @@
 
 #include "base/bind.h"
 #include "brave/app/brave_command_ids.h"
+#include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
 #include "brave/browser/ui/views/toolbar/bookmark_button.h"
+#include "brave/browser/ui/views/toolbar/wallet_button.h"
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_vpn/buildflags/buildflags.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/defaults.h"
@@ -27,9 +30,6 @@
 #include "components/prefs/pref_service.h"
 #include "ui/base/window_open_disposition.h"
 #include "ui/events/event.h"
-#include "brave/browser/brave_wallet/brave_wallet_context_utils.h"
-#include "brave/browser/ui/views/toolbar/wallet_button.h"
-#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
 #include "brave/browser/brave_vpn/vpn_utils.h"
@@ -91,7 +91,7 @@ gfx::Insets CalcLocationBarMargin(int toolbar_width,
       location_bar_margin_h - location_bar_center_offset;
   const int location_bar_margin_r =
       location_bar_margin_h + location_bar_center_offset;
-  return {0, location_bar_margin_l, 0, location_bar_margin_r};
+  return gfx::Insets::TLBR(0, location_bar_margin_l, 0, location_bar_margin_r);
 }
 
 bool HasMultipleUserProfiles() {
@@ -132,6 +132,10 @@ void BraveToolbarView::Init() {
   edit_bookmarks_enabled_.Init(
       bookmarks::prefs::kEditBookmarksEnabled, profile->GetPrefs(),
       base::BindRepeating(&BraveToolbarView::OnEditBookmarksEnabledChanged,
+                          base::Unretained(this)));
+  show_bookmarks_button_.Init(
+      kShowBookmarksButton, browser_->profile()->GetPrefs(),
+      base::BindRepeating(&BraveToolbarView::OnShowBookmarksButtonChanged,
                           base::Unretained(this)));
   // track changes in wide locationbar setting
   location_bar_is_wide_.Init(
@@ -191,6 +195,13 @@ void BraveToolbarView::OnEditBookmarksEnabledChanged() {
   Update(nullptr);
 }
 
+void BraveToolbarView::OnShowBookmarksButtonChanged() {
+  if (!bookmark_)
+    return;
+
+  UpdateBookmarkVisibility();
+}
+
 void BraveToolbarView::OnLocationBarIsWideChanged() {
   DCHECK_EQ(DisplayMode::NORMAL, display_mode_);
 
@@ -229,11 +240,9 @@ void BraveToolbarView::LoadImages() {
 
 void BraveToolbarView::Update(content::WebContents* tab) {
   ToolbarView::Update(tab);
+
   // Decide whether to show the bookmark button
-  if (bookmark_) {
-    bookmark_->SetVisible(browser_defaults::bookmarks_enabled &&
-                          edit_bookmarks_enabled_.GetValue());
-  }
+  UpdateBookmarkVisibility();
 
   // Remove avatar menu if only a single user profile exists.
   // Always show if private / tor / guest window, as an indicator.
@@ -244,6 +253,16 @@ void BraveToolbarView::Update(content::WebContents* tab) {
         !IsAvatarButtonHideable(profile) || HasMultipleUserProfiles();
     avatar_button->SetVisible(should_show_profile);
   }
+}
+
+void BraveToolbarView::UpdateBookmarkVisibility() {
+  if (!bookmark_)
+    return;
+
+  DCHECK_EQ(DisplayMode::NORMAL, display_mode_);
+  bookmark_->SetVisible(browser_defaults::bookmarks_enabled &&
+                        edit_bookmarks_enabled_.GetValue() &&
+                        show_bookmarks_button_.GetValue());
 }
 
 void BraveToolbarView::ShowBookmarkBubble(
