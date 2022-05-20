@@ -50,7 +50,7 @@ public class HighlightView extends FrameLayout {
     private float mInnerRadius;
     private float mOuterRadius;
     private int mColor = -1;
-    private int mStatusBarHeight = 0;
+    private int mStatusBarHeight;
 
     public HighlightView(Context context, AttributeSet attrs) {
         super(context, attrs);

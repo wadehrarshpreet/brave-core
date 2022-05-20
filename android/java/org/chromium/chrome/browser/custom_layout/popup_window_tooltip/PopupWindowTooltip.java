@@ -387,7 +387,7 @@ public class PopupWindowTooltip implements PopupWindow.OnDismissListener {
         private boolean dismissOnInsideTouch = true;
         private boolean dismissOnOutsideTouch = true;
         private boolean modal;
-        private boolean backgroundDimDisabled = false;
+        private boolean backgroundDimDisabled;
         private View contentView;
         private View anchorView;
         private int arrowDirection = ArrowColorDrawable.AUTO;
