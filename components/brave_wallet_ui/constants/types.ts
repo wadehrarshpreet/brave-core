@@ -76,6 +76,10 @@ export interface RPCResponseType {
   transactions: RPCTransactionType[]
 }
 
+export type PanelHeaderStyles =
+  | 'regular'
+  | 'slim'
+
 export interface PanelTitleObjectType {
   title: string
   id: PanelTypes
