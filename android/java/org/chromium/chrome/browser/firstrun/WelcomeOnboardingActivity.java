@@ -32,8 +32,10 @@ import org.chromium.chrome.browser.onboarding.OnboardingPrefManager;
 import org.chromium.chrome.browser.preferences.BravePrefServiceBridge;
 import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
 import org.chromium.chrome.browser.preferences.SharedPreferencesManager;
+import org.chromium.chrome.browser.privacy.settings.PrivacyPreferencesManagerImpl;
 import org.chromium.chrome.browser.set_default_browser.BraveSetDefaultBrowserUtils;
 import org.chromium.chrome.browser.util.BraveConstants;
+import org.chromium.chrome.browser.util.PackageUtils;
 import org.chromium.ui.base.DeviceFormFactor;
 
 import java.lang.Math;
@@ -190,10 +192,23 @@ public class WelcomeOnboardingActivity extends FirstRunActivityBase {
             mBtnPositive.setText(getResources().getString(R.string.continue_text));
             mBtnNegative.setText(getResources().getString(R.string.learn_more_onboarding));
 
-            if (getPackageName().equals(BraveConstants.BRAVE_NIGHTLY_PACKAGE_NAME)
-                    || getPackageName().equals(BraveConstants.BRAVE_BETA_PACKAGE_NAME)) {
+            if (PackageUtils.isFirstInstall(this)
+                    && (getPackageName().equals(BraveConstants.BRAVE_NIGHTLY_PACKAGE_NAME)
+                            || getPackageName().equals(BraveConstants.BRAVE_BETA_PACKAGE_NAME))
+                    && !OnboardingPrefManager.getInstance().isP3aCrashReportingMessageShown()) {
                 mCheckboxCrash.setChecked(true);
                 UmaSessionStats.changeMetricsReportingConsent(true);
+                OnboardingPrefManager.getInstance().setP3aCrashReportingMessageShown(true);
+            } else {
+                boolean isCrashReporting = false;
+                try {
+                    isCrashReporting = PrivacyPreferencesManagerImpl.getInstance()
+                                               .isUsageAndCrashReportingPermittedByUser();
+
+                } catch (Exception e) {
+                    Log.e("isCrashReportingOnboarding", e.getMessage());
+                }
+                mCheckboxCrash.setChecked(isCrashReporting);
             }
 
             mCheckboxCrash.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
