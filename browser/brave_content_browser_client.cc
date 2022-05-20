@@ -930,6 +930,7 @@ BraveContentBrowserClient::CreateThrottlesForNavigation(
               g_brave_browser_process->ad_block_service()
                   ->custom_filters_provider(),
               EphemeralStorageServiceFactory::GetForContext(context),
+              debounce::DebounceServiceFactory::GetForBrowserContext(context),
               HostContentSettingsMapFactory::GetForProfile(
                   Profile::FromBrowserContext(context)),
               g_browser_process->GetApplicationLocale()))

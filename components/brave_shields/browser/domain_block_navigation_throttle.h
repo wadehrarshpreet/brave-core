@@ -22,6 +22,10 @@ class NavigationHandle;
 class WebContents;
 }  // namespace content
 
+namespace debounce {
+class DebounceService;
+}  // namespace debounce
+
 namespace ephemeral_storage {
 class EphemeralStorageService;
 }  // namespace ephemeral_storage
@@ -38,6 +42,7 @@ class DomainBlockNavigationThrottle : public content::NavigationThrottle {
       AdBlockService* ad_block_service,
       AdBlockCustomFiltersProvider* ad_block_custom_filters_provider,
       ephemeral_storage::EphemeralStorageService* ephemeral_storage_service,
+      debounce::DebounceService* debounce_service,
       HostContentSettingsMap* content_settings,
       const std::string& locale);
   ~DomainBlockNavigationThrottle() override;
@@ -51,6 +56,7 @@ class DomainBlockNavigationThrottle : public content::NavigationThrottle {
       AdBlockService* ad_block_service,
       AdBlockCustomFiltersProvider* ad_block_custom_filters_provider,
       ephemeral_storage::EphemeralStorageService* ephemeral_storage_service,
+      debounce::DebounceService* debounce_service,
       HostContentSettingsMap* content_settings,
       const std::string& locale);
 
@@ -71,6 +77,7 @@ class DomainBlockNavigationThrottle : public content::NavigationThrottle {
   AdBlockCustomFiltersProvider* ad_block_custom_filters_provider_ = nullptr;
   ephemeral_storage::EphemeralStorageService* ephemeral_storage_service_ =
       nullptr;
+  debounce::DebounceService* debounce_service_ = nullptr;
   HostContentSettingsMap* content_settings_ = nullptr;
   std::string locale_;
 

@@ -18,6 +18,7 @@
 #include "brave/components/brave_shields/browser/domain_block_page.h"
 #include "brave/components/brave_shields/browser/domain_block_tab_storage.h"
 #include "brave/components/brave_shields/common/features.h"
+#include "brave/components/debounce/browser/debounce_service.h"
 #include "components/content_settings/core/browser/host_content_settings_map.h"
 #include "components/prefs/pref_service.h"
 #include "components/security_interstitials/content/security_interstitial_tab_helper.h"
@@ -61,6 +62,7 @@ DomainBlockNavigationThrottle::MaybeCreateThrottleFor(
     AdBlockService* ad_block_service,
     AdBlockCustomFiltersProvider* ad_block_custom_filters_provider,
     ephemeral_storage::EphemeralStorageService* ephemeral_storage_service,
+    debounce::DebounceService* debounce_service,
     HostContentSettingsMap* content_settings,
     const std::string& locale) {
   if (!ad_block_service || !ad_block_custom_filters_provider)
@@ -72,7 +74,7 @@ DomainBlockNavigationThrottle::MaybeCreateThrottleFor(
     return nullptr;
   return std::make_unique<DomainBlockNavigationThrottle>(
       navigation_handle, ad_block_service, ad_block_custom_filters_provider,
-      ephemeral_storage_service, content_settings, locale);
+      ephemeral_storage_service, debounce_service, content_settings, locale);
 }
 
 DomainBlockNavigationThrottle::DomainBlockNavigationThrottle(
@@ -80,12 +82,14 @@ DomainBlockNavigationThrottle::DomainBlockNavigationThrottle(
     AdBlockService* ad_block_service,
     AdBlockCustomFiltersProvider* ad_block_custom_filters_provider,
     ephemeral_storage::EphemeralStorageService* ephemeral_storage_service,
+    debounce::DebounceService* debounce_service,
     HostContentSettingsMap* content_settings,
     const std::string& locale)
     : content::NavigationThrottle(navigation_handle),
       ad_block_service_(ad_block_service),
       ad_block_custom_filters_provider_(ad_block_custom_filters_provider),
       ephemeral_storage_service_(ephemeral_storage_service),
+      debounce_service_(debounce_service),
       content_settings_(content_settings),
       locale_(locale) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
@@ -120,6 +124,11 @@ DomainBlockNavigationThrottle::WillStartRequest() {
   DomainBlockTabStorage* tab_storage =
       DomainBlockTabStorage::GetOrCreate(web_contents);
   if (tab_storage->IsProceeding())
+    return content::NavigationThrottle::PROCEED;
+
+  // If this URL is about to be debounced, don't show an interstitial.
+  GURL debounced_url;
+  if (debounce_service_->Debounce(request_url, &debounced_url))
     return content::NavigationThrottle::PROCEED;
 
   // Otherwise, call the ad block service on a task runner to determine whether
