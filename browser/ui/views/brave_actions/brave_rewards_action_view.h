@@ -20,9 +20,9 @@
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "chrome/browser/ui/views/bubble/webui_bubble_manager.h"
+#include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "ui/gfx/geometry/skia_conversions.h"
-#include "ui/views/controls/button/label_button.h"
 #include "ui/views/widget/widget_observer.h"
 
 class Profile;
@@ -30,7 +30,7 @@ class TabStripModel;
 
 // A button that lives in the actions container and opens the Rewards panel.
 class BraveRewardsActionView
-    : public views::LabelButton,
+    : public ToolbarButton,
       public views::WidgetObserver,
       public TabStripModelObserver,
       public brave_rewards::RewardsTabHelper::Observer,

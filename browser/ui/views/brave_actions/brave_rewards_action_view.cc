@@ -17,15 +17,16 @@
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "brave/components/l10n/common/locale_util.h"
+#include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_action_view.h"
-#include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
 #include "components/grit/brave_components_strings.h"
 #include "components/prefs/pref_service.h"
 #include "extensions/common/constants.h"
+#include "ui/base/models/simple_menu_model.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/image/image.h"
 #include "ui/gfx/image/image_skia.h"
@@ -84,10 +85,49 @@ const ui::ColorProvider* GetColorProviderForWebContents(
       ui::NativeTheme::GetInstanceForNativeUi()->GetColorProviderKey(nullptr));
 }
 
+class RewardsActionMenuModel : public ui::SimpleMenuModel,
+                               public ui::SimpleMenuModel::Delegate {
+ public:
+  explicit RewardsActionMenuModel(PrefService* prefs)
+      : SimpleMenuModel(this), prefs_(prefs) {
+    Build();
+  }
+
+  ~RewardsActionMenuModel() override = default;
+  RewardsActionMenuModel(const RewardsActionMenuModel&) = delete;
+  RewardsActionMenuModel& operator=(const RewardsActionMenuModel&) = delete;
+
+ private:
+  enum ContextMenuCommand {
+    kHideBraveRewardsIcon
+  };
+
+  // ui::SimpleMenuModel::Delegate override:
+  void ExecuteCommand(int command_id, int event_flags) override {
+    if (command_id == kHideBraveRewardsIcon) {
+      prefs_->SetBoolean(brave_rewards::prefs::kShowButton, false);
+    }
+  }
+
+  void Build() {
+    AddItemWithStringId(kHideBraveRewardsIcon,
+                        IDS_HIDE_BRAVE_REWARDS_ACTION_ICON);
+  }
+
+  raw_ptr<PrefService> prefs_ = nullptr;
+};
+
 }  // namespace
 
 BraveRewardsActionView::BraveRewardsActionView(Browser* browser)
-    : browser_(browser),
+    : ToolbarButton(
+          base::BindRepeating(&BraveRewardsActionView::OnButtonPressed,
+                              base::Unretained(this)),
+          std::make_unique<RewardsActionMenuModel>(
+              browser->profile()->GetPrefs()),
+          nullptr,
+          false),
+      browser_(browser),
       bubble_manager_(this,
                       browser_->profile(),
                       GURL(kBraveRewardsPanelURL),
@@ -103,17 +143,13 @@ BraveRewardsActionView::BraveRewardsActionView(Browser* browser)
   views::HighlightPathGenerator::Install(
       this, std::make_unique<ButtonHighlightPathGenerator>());
 
-  auto* ink_drop = views::InkDrop::Get(this);
-  DCHECK(ink_drop);
-  ink_drop->SetMode(views::InkDropHost::InkDropMode::ON);
-  ink_drop->SetVisibleOpacity(kToolbarInkDropVisibleOpacity);
-  ink_drop->SetBaseColorCallback(base::BindRepeating(
-      [](views::View* host) { return GetToolbarInkDropBaseColor(host); },
-      this));
+  // The highlight opacity set by |ToolbarButton| is different that the default
+  // highlight opacity used by the other buttons in the actions container. Unset
+  // the highlight opacity to match.
+  views::InkDrop::Get(this)->SetHighlightOpacity({});
 
-  SetHasInkDropActionOnClick(true);
   SetHorizontalAlignment(gfx::ALIGN_CENTER);
-
+  SetLayoutInsets(gfx::Insets(0));
   SetAccessibleName(
       brave_l10n::GetLocalizedResourceUTF16String(IDS_BRAVE_UI_BRAVE_REWARDS));
 
