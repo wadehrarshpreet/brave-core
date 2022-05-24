@@ -17,6 +17,7 @@ import EyeOnIcon from '../../assets/svg-icons/eye-on-icon.svg'
 import EyeOffIcon from '../../assets/svg-icons/eye-off-icon.svg'
 import CheckmarkSvg from '../../assets/svg-icons/big-checkmark.svg'
 import CloseSvg from '../../assets/svg-icons/close.svg'
+import { Link } from 'react-router-dom'
 
 // Text
 export const ErrorText = styled.span`
@@ -95,6 +96,16 @@ export const ErrorXIcon = styled.div`
 
 // Buttons
 export const WalletButton = styled.button<{
+  isDraggedOver?: boolean
+}>`
+  &:focus-visible {
+    outline-style: solid;
+    outline-color: ${p => p.theme.palette.blurple300};
+    outline-width: 2px;
+  }
+ `
+
+export const WalletButtonLink = styled(Link)<{
   isDraggedOver?: boolean
 }>`
   &:focus-visible {
