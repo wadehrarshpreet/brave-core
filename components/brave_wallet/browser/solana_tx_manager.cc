@@ -204,7 +204,8 @@ void SolanaTxManager::OnGetSignatureStatuses(
       continue;
 
     if (!signature_statuses[i]) {
-      if (meta->tx()->message()->last_valid_block_height() < block_height) {
+      if (meta->tx()->message()->last_valid_block_height() &&
+          meta->tx()->message()->last_valid_block_height() < block_height) {
         meta->set_status(mojom::TransactionStatus::Dropped);
         tx_state_manager_->AddOrUpdateTx(*meta);
       }
