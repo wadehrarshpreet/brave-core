@@ -27,7 +27,7 @@ constexpr uint64_t kLastValidBlockHeight = 3090;
 
 }  // namespace
 
-TEST(SolanaMessageUnitTest, Serialize) {
+TEST(SolanaMessageUnitTest, SerializeDeserialize) {
   // Test serializing a message for transfering SOL.
   SolanaInstruction instruction(
       // Program ID
@@ -76,6 +76,19 @@ TEST(SolanaMessageUnitTest, Serialize) {
       2, 0, 0, 0, 128, 150, 152, 0, 0, 0, 0, 0  // data
   };
   EXPECT_EQ(message_bytes.value(), expected_bytes);
+
+  // Deserialize and serialize message again should have the same byte array.
+  auto deserialized_message = SolanaMessage::Deserialize(*message_bytes);
+  ASSERT_TRUE(deserialized_message);
+  signers.clear();
+  auto serialized_message = deserialized_message->Serialize(&signers);
+  ASSERT_TRUE(serialized_message);
+  EXPECT_EQ(serialized_message, *message_bytes);
+  EXPECT_EQ(signers, std::vector<std::string>({kFromAccount}));
+
+  std::vector<uint8_t> msg_with_left_over_bytes(expected_bytes);
+  msg_with_left_over_bytes.push_back(0);
+  EXPECT_FALSE(SolanaMessage::Deserialize(msg_with_left_over_bytes));
 
   SolanaMessage message_without_blockhash("", 0, kFromAccount, {instruction});
   EXPECT_FALSE(message_without_blockhash.Serialize(nullptr));
