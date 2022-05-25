@@ -33,17 +33,9 @@ namespace {
 
 /*
 
-Functional:
-
-- When rewards icon is hidden and we open the panel, the anchoring is a bit off.
-  It seems like it figures out where to place the panel before the button is
-  made visible. This only happens when using cached web contents, probably
-  because "ShowUI" is called before the button is made visible. Should we just
-  not show the button in this case?
-
-Code Quality:
-
 - Tests for new code.
+- We are no longer showing the button while the panel is open, due to anchoring
+  difficulties. Is that OK?
 - Better method name for GetPublisherActivityFromUrl?
 - Import locale strings from messages.json files?
 - Verify that using RewardsInitialized in tab helper is correct. Do we even need
