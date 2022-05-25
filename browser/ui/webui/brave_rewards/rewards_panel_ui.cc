@@ -33,7 +33,15 @@ namespace {
 
 /*
 
-Next Steps:
+Functional:
+
+- When rewards icon is hidden and we open the panel, the anchoring is a bit off.
+  It seems like it figures out where to place the panel before the button is
+  made visible. This only happens when using cached web contents, probably
+  because "ShowUI" is called before the button is made visible. Should we just
+  not show the button in this case?
+
+Code Quality:
 
 - Tests for new code.
 - Better method name for GetPublisherActivityFromUrl?
@@ -42,16 +50,8 @@ Next Steps:
   to listen for that? Can we do that on tab reloads instead?
 - Better (decent) debugging for panel "spinner" stalls and the Rewards panel in
   general.
-- When rewards icon is hidden and we open the panel, the anchoring is a bit off.
-  It seems like it figures out where to place the panel before the button is
-  made visible. This only happens when using cached web contents, probably
-  because "ShowUI" is called before the button is made visible. Should we just
-  not show the button in this case?
 - Replace WebUI message handlers with a Mojo thing.
-- We've lost the "hide button" context menu. When using ToolbarButton as a base
-  class instead of LabelButton, the button no longer looks correct. We could
-  move the Rewards button outside of the action container and make it a regular
-  toolbar button.
+- Rewards button context menu has different padding and corner radius
 
 */
 

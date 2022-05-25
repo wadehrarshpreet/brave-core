@@ -48,6 +48,9 @@ class BraveRewardsActionView
 
   void ClosePanelForTesting();
 
+  // views::View:
+  gfx::Rect GetAnchorBoundsInScreen() const override;
+
   // views::LabelButton:
   std::unique_ptr<views::LabelButtonBorder> CreateDefaultBorder()
       const override;

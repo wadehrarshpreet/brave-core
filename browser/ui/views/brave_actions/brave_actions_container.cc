@@ -373,7 +373,6 @@ void BraveActionsContainer::ChildPreferredSizeChanged(views::View* child) {
 }
 
 void BraveActionsContainer::ChildVisibilityChanged(views::View* child) {
-  LOG(ERROR) << "zenparsing: ChildVisibilityChanged";
   UpdateVisibility();
 }
 

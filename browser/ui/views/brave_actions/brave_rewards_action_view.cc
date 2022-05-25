@@ -22,6 +22,8 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
+#include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/location_bar/location_bar_view.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_action_view.h"
 #include "components/grit/brave_components_strings.h"
 #include "components/prefs/pref_service.h"
@@ -98,9 +100,7 @@ class RewardsActionMenuModel : public ui::SimpleMenuModel,
   RewardsActionMenuModel& operator=(const RewardsActionMenuModel&) = delete;
 
  private:
-  enum ContextMenuCommand {
-    kHideBraveRewardsIcon
-  };
+  enum ContextMenuCommand { kHideBraveRewardsIcon };
 
   // ui::SimpleMenuModel::Delegate override:
   void ExecuteCommand(int command_id, int event_flags) override {
@@ -209,21 +209,27 @@ void BraveRewardsActionView::ClosePanelForTesting() {
   }
 }
 
+gfx::Rect BraveRewardsActionView::GetAnchorBoundsInScreen() const {
+  if (!GetVisible()) {
+    // If the button is currently hidden, then anchor the bubble to the
+    // location bar instead.
+    auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser_);
+    DCHECK(browser_view);
+    return browser_view->GetLocationBarView()->GetAnchorBoundsInScreen();
+  }
+  return ToolbarButton::GetAnchorBoundsInScreen();
+}
+
 std::unique_ptr<views::LabelButtonBorder>
 BraveRewardsActionView::CreateDefaultBorder() const {
-  auto border = LabelButton::CreateDefaultBorder();
+  auto border = ToolbarButton::CreateDefaultBorder();
   border->set_insets(gfx::Insets::TLBR(0, 0, 0, 0));
   return border;
 }
 
 void BraveRewardsActionView::OnWidgetDestroying(views::Widget* widget) {
-  auto* bubble_widget = bubble_manager_.GetBubbleWidget();
-  DCHECK_EQ(bubble_widget, widget);
-  DCHECK(bubble_observation_.IsObservingSource(bubble_widget));
-
+  DCHECK(bubble_observation_.IsObservingSource(widget));
   bubble_observation_.Reset();
-  SetVisible(ShouldShow());
-
   if (panel_service_) {
     panel_service_->NotifyPanelClosed(browser_);
   }
@@ -282,14 +288,16 @@ void BraveRewardsActionView::OnNotificationDeleted(
 }
 
 void BraveRewardsActionView::OnButtonPressed() {
-  // TODO(zenparsing): We should probably DCHECK on having the panel service?
-  // None of this really works without it right?
-  if (IsPanelOpen() || !panel_service_) {
+  if (IsPanelOpen()) {
     ToggleRewardsPanel();
     return;
   }
 
-  panel_service_->OpenRewardsPanel();
+  // TODO(zenparsing): Comment here on why we send control through the panel
+  // service even though we could open the panel directly here.
+  if (panel_service_) {
+    panel_service_->OpenRewardsPanel();
+  }
 }
 
 void BraveRewardsActionView::OnPreferencesChanged(const std::string& key) {
@@ -346,7 +354,6 @@ void BraveRewardsActionView::ToggleRewardsPanel() {
 
   DCHECK(!bubble_observation_.IsObserving());
   bubble_observation_.Observe(bubble_manager_.GetBubbleWidget());
-  SetVisible(ShouldShow());
 }
 
 gfx::ImageSkia BraveRewardsActionView::GetRewardsIcon() {
@@ -387,12 +394,6 @@ size_t BraveRewardsActionView::GetRewardsNotificationCount() {
 }
 
 bool BraveRewardsActionView::ShouldShow() {
-  // If the rewards panel is open, then we should show the button regardless of
-  // any other state.
-  if (IsPanelOpen()) {
-    return true;
-  }
-
   // Don't show the button if this profile does not have a Rewards service.
   if (!GetRewardsService()) {
     return false;
