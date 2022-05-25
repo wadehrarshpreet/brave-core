@@ -51,7 +51,6 @@ import androidx.core.content.res.ResourcesCompat;
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.BraveReflectionUtil;
 import org.chromium.base.ContextUtils;
-import org.chromium.base.Log;
 import org.chromium.base.MathUtils;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.supplier.BooleanSupplier;

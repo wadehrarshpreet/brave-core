@@ -247,12 +247,10 @@ public class BraveShieldsHandler implements BraveRewardsHelper.LargeIconReadyCal
 
     private String loadDisconnectEntityJSONFromAsset() {
         String json = null;
-        try {
-            InputStream is = mContext.getAssets().open("disconnect_entitylist.json");
-            int size = is.available();
+        try (InputStream inputStream = mContext.getAssets().open("disconnect_entitylist.json")) {
+            int size = inputStream.available();
             byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
+            inputStream.read(buffer);
             json = new String(buffer, "UTF-8");
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -283,8 +281,9 @@ public class BraveShieldsHandler implements BraveRewardsHelper.LargeIconReadyCal
 
     private BlockersInfo addBlockerNames(BlockersInfo blockersInfo, String subresource) {
         String domainName = getDomainName(subresource);
-        if (!blockersInfo.mBlockerNames.contains(domainName)) {
-            blockersInfo.mBlockerNames.add(domainName);
+        String companyName = getBlockerCompanyName(domainName);
+        if (!blockersInfo.mBlockerNames.contains(companyName)) {
+            blockersInfo.mBlockerNames.add(companyName);
         }
         return blockersInfo;
     }
@@ -457,7 +456,7 @@ public class BraveShieldsHandler implements BraveRewardsHelper.LargeIconReadyCal
         return blockersInfo.mBlockerNames;
     }
 
-    public String getBlockerCompanyName(String url) {
+    private String getBlockerCompanyName(String url) {
         String companyName = url;
         for (Map.Entry<String, DisconnectEntity> entry : mDisconnectEntity.entrySet())
 

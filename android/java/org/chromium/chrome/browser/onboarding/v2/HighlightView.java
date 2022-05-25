@@ -28,6 +28,7 @@ import androidx.annotation.Keep;
 import androidx.core.content.ContextCompat;
 
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.app.BraveActivity;
 
 public class HighlightView extends FrameLayout {
 
@@ -63,15 +64,21 @@ public class HighlightView extends FrameLayout {
         }
 
         if (context instanceof Activity) {
-            Rect rectangle = new Rect();
-            Window window = ((Activity) context).getWindow();
-            window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
-            mStatusBarHeight = rectangle.top;
+            calculateStatusBarHeight((Activity) context);
+        } else if (BraveActivity.getBraveActivity() != null) {
+            calculateStatusBarHeight(BraveActivity.getBraveActivity());
         }
         eraserPaint.setColor(0xFFFFFF);
         eraserPaint.setAlpha(0);
         eraserPaint.setXfermode(xfermode);
         eraserPaint.setAntiAlias(true);
+    }
+
+    private void calculateStatusBarHeight(Activity activity) {
+        Rect rectangle = new Rect();
+        Window window = activity.getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
+        mStatusBarHeight = rectangle.top;
     }
 
     public void setColor(int color) {
