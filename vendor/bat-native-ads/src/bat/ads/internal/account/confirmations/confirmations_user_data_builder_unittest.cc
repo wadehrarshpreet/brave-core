@@ -64,7 +64,7 @@ TEST_F(BatAdsConfirmationUserDataTest, BuildForNonConversionConfirmationType) {
     base::JSONWriter::Write(user_data, &json);
 
     const std::string pattern =
-        R"~({"buildChannel":"release","catalog":\[{"id":"29e5c8bc0ba319069980bb390d8e8f9b58c05a20"}],"countryCode":"US","createdAtTimestamp":"2020-11-18T12:00:00.000Z","mutated":true,"odyssey":"host","platform":"windows","studies":\[],"systemTimestamp":"2020-11-18T12:00:00.000Z","versionNumber":"\d{1,}\.\d{1,}\.\d{1,}\.\d{1,}"})~";
+        R"~({"buildChannel":"release","catalog":\[{"id":"29e5c8bc0ba319069980bb390d8e8f9b58c05a20"}],"countryCode":"US","createdAtTimestamp":"2020-11-18T12:00:00.000Z","mutated":true,"odyssey":"host","platform":"windows","rotating_hash":"3063771545","studies":\[],"systemTimestamp":"2020-11-18T12:00:00.000Z","versionNumber":"\d{1,}\.\d{1,}\.\d{1,}\.\d{1,}"})~";
     EXPECT_TRUE(RE2::FullMatch(json, pattern));
   });
 }
@@ -95,7 +95,7 @@ TEST_F(BatAdsConfirmationUserDataTest, BuildForConversionConfirmationType) {
     base::JSONWriter::Write(user_data, &json);
 
     const std::string pattern =
-        R"~({"buildChannel":"release","catalog":\[{"id":"29e5c8bc0ba319069980bb390d8e8f9b58c05a20"}],"conversionEnvelope":{"alg":"crypto_box_curve25519xsalsa20poly1305","ciphertext":"(.{64})","epk":"(.{44})","nonce":"(.{32})"},"countryCode":"US","createdAtTimestamp":"2020-11-18T12:00:00.000Z","mutated":true,"odyssey":"host","platform":"windows","studies":\[],"systemTimestamp":"2020-11-18T12:00:00.000Z","versionNumber":"\d{1,}\.\d{1,}\.\d{1,}\.\d{1,}"})~";
+        R"~({"buildChannel":"release","catalog":\[{"id":"29e5c8bc0ba319069980bb390d8e8f9b58c05a20"}],"conversionEnvelope":{"alg":"crypto_box_curve25519xsalsa20poly1305","ciphertext":"(.{64})","epk":"(.{44})","nonce":"(.{32})"},"countryCode":"US","createdAtTimestamp":"2020-11-18T12:00:00.000Z","mutated":true,"odyssey":"host","platform":"windows","rotating_hash":"3063771545","studies":\[],"systemTimestamp":"2020-11-18T12:00:00.000Z","versionNumber":"\d{1,}\.\d{1,}\.\d{1,}\.\d{1,}"})~";
     EXPECT_TRUE(RE2::FullMatch(json, pattern));
   });
 }

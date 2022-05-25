@@ -12,6 +12,7 @@ enum Environment {
 };
 
 struct SysInfo {
+  string device_id;
   bool is_uncertain_future;
 };
 

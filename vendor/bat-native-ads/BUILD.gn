@@ -204,6 +204,8 @@ source_set("ads") {
     "src/bat/ads/internal/account/user_data/odyssey_user_data.h",
     "src/bat/ads/internal/account/user_data/platform_user_data.cc",
     "src/bat/ads/internal/account/user_data/platform_user_data.h",
+    "src/bat/ads/internal/account/user_data/rotating_hash_user_data.cc",
+    "src/bat/ads/internal/account/user_data/rotating_hash_user_data.h",
     "src/bat/ads/internal/account/user_data/studies_user_data.cc",
     "src/bat/ads/internal/account/user_data/studies_user_data.h",
     "src/bat/ads/internal/account/user_data/system_timestamp_user_data.cc",
