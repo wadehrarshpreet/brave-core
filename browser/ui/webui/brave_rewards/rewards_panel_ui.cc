@@ -33,6 +33,18 @@ namespace {
 
 /*
 
+Functional issues:
+
+- The button was unresponsive for a while during testing for an unkown reason,
+  perhaps because the front-end was not calling "showUI". We need to know why
+  that happened.
+- When we press "Refresh" to update a publisher status, the badge is not updated
+  as expected.
+- Switching between verified publisher tabs should not result in a visible flash
+  of the verified checkmark.
+
+Other issues:
+
 - Tests for new code.
 - We are no longer showing the button while the panel is open, due to anchoring
   difficulties. Is that OK?
@@ -52,6 +64,7 @@ using brave_rewards::RewardsPanelServiceFactory;
 using brave_rewards::RewardsServiceFactory;
 using brave_rewards::RewardsTabHelper;
 
+// TODO(zenparsing): Alphabetize this list.
 static constexpr webui::LocalizedString kStrings[] = {
     {"summary", IDS_REWARDS_PANEL_SUMMARY},
     {"tip", IDS_REWARDS_PANEL_TIP},

@@ -249,12 +249,14 @@ void BraveRewardsActionView::OnPublisherUpdated(
   // TODO(zenparsing): Consider an LRUCache for this initialization.
   publisher_registered_ = {publisher_id, false};
 
+  bool status_pending = false;
   if (!publisher_id.empty()) {
     if (auto* rewards_service = GetRewardsService()) {
       // TODO(zenparsing): When rewards is enabled, should we automatically
       // check this again? Unfortunately we don't have a way to listen for
       // Rewards being enabled. Perhaps initialized will work?
       if (rewards_service->IsRewardsEnabled()) {
+        status_pending = true;
         rewards_service->IsPublisherRegistered(
             publisher_id,
             base::BindOnce(
@@ -264,7 +266,9 @@ void BraveRewardsActionView::OnPublisherUpdated(
     }
   }
 
-  Update();
+  if (!status_pending) {
+    Update();
+  }
 }
 
 void BraveRewardsActionView::OnRewardsPanelRequested(Browser* browser) {
