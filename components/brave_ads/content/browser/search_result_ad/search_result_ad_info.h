@@ -8,10 +8,6 @@
 
 #include "brave/vendor/bat-native-ads/include/bat/ads/public/interfaces/ads.mojom.h"
 
-namespace content {
-class RenderFrameHost;
-}
-
 namespace brave_ads {
 
 enum class SearchResultAdState {
@@ -23,8 +19,8 @@ enum class SearchResultAdState {
 
 struct SearchResultAdInfo {
   SearchResultAdInfo();
-  SearchResultAdInfo(SearchResultAdInfo&& info);
-  SearchResultAdInfo& operator=(SearchResultAdInfo&& info);
+  SearchResultAdInfo(SearchResultAdInfo&& info) noexcept;
+  SearchResultAdInfo& operator=(SearchResultAdInfo&& info) noexcept;
   ~SearchResultAdInfo();
 
   ads::mojom::SearchResultAdPtr ad;

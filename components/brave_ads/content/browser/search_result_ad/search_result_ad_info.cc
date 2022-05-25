@@ -9,10 +9,11 @@ namespace brave_ads {
 
 SearchResultAdInfo::SearchResultAdInfo() = default;
 
-SearchResultAdInfo::SearchResultAdInfo(SearchResultAdInfo&& info) = default;
-
-SearchResultAdInfo& SearchResultAdInfo::operator=(SearchResultAdInfo&& info) =
+SearchResultAdInfo::SearchResultAdInfo(SearchResultAdInfo&& info) noexcept =
     default;
+
+SearchResultAdInfo& SearchResultAdInfo::operator=(
+    SearchResultAdInfo&& info) noexcept = default;
 
 SearchResultAdInfo::~SearchResultAdInfo() = default;
 

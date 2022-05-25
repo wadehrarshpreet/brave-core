@@ -241,13 +241,12 @@ absl::optional<SearchResultAdMap> ParseSearchResultAdMapEntityProperties(
         return SearchResultAdMap();
       }
 
-      const std::string creative_instance_id =
-          search_result_ad->creative_instance_id;
+      std::string creative_instance_id = search_result_ad->creative_instance_id;
 
       SearchResultAdInfo search_result_ad_info;
       search_result_ad_info.state = state;
       search_result_ad_info.ad = std::move(search_result_ad);
-      search_result_ads.emplace(creative_instance_id,
+      search_result_ads.emplace(std::move(creative_instance_id),
                                 std::move(search_result_ad_info));
     }
 
