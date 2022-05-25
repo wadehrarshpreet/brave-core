@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "content/public/browser/navigation_throttle.h"
@@ -73,12 +74,13 @@ class DomainBlockNavigationThrottle : public content::NavigationThrottle {
   void ShowInterstitial();
   void Enable1PESAndResume();
 
-  AdBlockService* ad_block_service_ = nullptr;
-  AdBlockCustomFiltersProvider* ad_block_custom_filters_provider_ = nullptr;
-  ephemeral_storage::EphemeralStorageService* ephemeral_storage_service_ =
+  raw_ptr<AdBlockService> ad_block_service_ = nullptr;
+  raw_ptr<AdBlockCustomFiltersProvider> ad_block_custom_filters_provider_ =
       nullptr;
-  debounce::DebounceService* debounce_service_ = nullptr;
-  HostContentSettingsMap* content_settings_ = nullptr;
+  raw_ptr<ephemeral_storage::EphemeralStorageService>
+      ephemeral_storage_service_ = nullptr;
+  raw_ptr<debounce::DebounceService> debounce_service_ = nullptr;
+  raw_ptr<HostContentSettingsMap> content_settings_ = nullptr;
   std::string locale_;
 
   DomainBlockingType domain_blocking_type_ = DomainBlockingType::kNone;
