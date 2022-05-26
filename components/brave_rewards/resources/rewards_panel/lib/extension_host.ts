@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
-import { addWebUIListener } from 'chrome://resources/js/cr.m'
+import * as mojom from 'gen/brave/components/brave_rewards/common/brave_rewards_panel.mojom.m.js'
 
 import { Host, GrantCaptchaStatus } from './interfaces'
 import { GrantInfo } from '../../shared/lib/grant_info'
@@ -49,18 +48,36 @@ function openTab (url: string) {
   chrome.tabs.create({ url })
 }
 
-function closePanel () {
-  chrome.send('hideUI')
-}
-
 function getString (key: string) {
-  return String(self['loadTimeData'].getString(key) || '')
+  return String((window as any).loadTimeData.getString(key) || '')
 }
 
 export function createHost (): Host {
   const stateManager = createStateManager(getInitialState())
   const storage = createLocalStorageScope<LocalStorageKey>('rewards-panel')
   const grants = new Map<string, GrantInfo>()
+
+  const panelHandler = new mojom.PanelHandlerRemote()
+
+  const uiHandler = new mojom.UIHandlerReceiver({
+    onRewardsPanelRequested (panelArgs) {
+      loadPanelData().then(() => {
+        stateManager.update({
+          openTime: Date.now(),
+          requestedView: null
+        })
+        handleRewardsPanelArgs(String(panelArgs || ''))
+      }).catch(console.error)
+    }
+  })
+
+  mojom.PanelHandlerFactory.getRemote().createPanelHandler(
+    panelHandler.$.bindNewPipeAndPassReceiver(),
+    uiHandler.$.bindNewPipeAndPassRemote())
+
+  function closePanel () {
+    panelHandler.closeUI()
+  }
 
   async function updatePublisherInfo () {
     const tabInfo = await getCurrentTabInfo()
@@ -187,42 +204,44 @@ export function createHost (): Host {
     const shouldLoadAdaptiveCaptcha = storage.readJSON('load-adaptive-captcha')
     if (shouldLoadAdaptiveCaptcha) {
       loadAdaptiveCaptcha()
-      return
+      return true
     }
 
     const storedGrantId = storage.readJSON('catcha-grant-id')
     if (storedGrantId && typeof storedGrantId === 'string') {
       loadGrantCaptcha(storedGrantId, 'pending')
-      return
+      return true
     }
+
+    return false
   }
 
   function handleRewardsPanelArgs (args: string) {
     // TODO(zenparsing): Consider making these keys into an enumerated type.
     const params = new URLSearchParams(args)
 
-    stateManager.update({ requestedView: null })
-
     const grantId = params.get('claim-grant')
     if (grantId) {
       loadGrantCaptcha(grantId, 'pending')
-      return
+      return true
     }
 
     if (params.has('adaptive-captcha')) {
       loadAdaptiveCaptcha()
-      return
+      return true
     }
 
     if (params.has('rewards-tour')) {
-      stateManager.update({ requestedView: 'rewards-tour'})
-      return
+      stateManager.update({ requestedView: 'rewards-tour' })
+      return true
     }
 
     if (params.has('brave-talk-opt-in')) {
-      stateManager.update({ requestedView: 'brave-talk-opt-in'})
-      return
+      stateManager.update({ requestedView: 'brave-talk-opt-in' })
+      return true
     }
+
+    return false
   }
 
   function updateGrants (list: GrantInfo[]) {
@@ -263,17 +282,6 @@ export function createHost (): Host {
   }
 
   function addListeners () {
-    addWebUIListener('error', (type: any) => {
-      console.error(new Error(`WebUI error "${type}"`))
-    })
-
-    addWebUIListener('rewardsPanelRequested', (args: any) => {
-      loadPanelData().then(() => {
-        stateManager.update({ openTime: Date.now() })
-        handleRewardsPanelArgs(String(args || ''))
-      }).catch(console.error)
-    })
-
     // Update user settings and other data after rewards has been enabled.
     apiAdapter.onRewardsEnabled(() => {
       stateManager.update({ rewardsEnabled: true })
@@ -367,11 +375,7 @@ export function createHost (): Host {
     // the data that we have, rather than a stalled loading indicator.
     setTimeout(() => { stateManager.update({ loading: false }) }, 3000)
 
-    chrome.send('pageReady')
-
-    await new Promise<void>((resolve) => {
-      addWebUIListener('rewardsStarted', resolve)
-    })
+    await panelHandler.startRewards()
 
     await loadPanelData()
 
@@ -597,7 +601,7 @@ export function createHost (): Host {
     openTab,
 
     onAppRendered () {
-      chrome.send('showUI')
+      panelHandler.showUI()
     }
   }
 }

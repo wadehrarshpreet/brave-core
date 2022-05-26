@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 The Brave Authors. All rights reserved.
+/* Copyright (c) 2022 The Brave Authors. All rights reserved.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -6,9 +6,15 @@
 #ifndef BRAVE_BROWSER_UI_WEBUI_BRAVE_REWARDS_REWARDS_PANEL_UI_H_
 #define BRAVE_BROWSER_UI_WEBUI_BRAVE_REWARDS_REWARDS_PANEL_UI_H_
 
+#include <memory>
+
+#include "brave/components/brave_rewards/common/brave_rewards_panel.mojom.h"
+#include "mojo/public/cpp/bindings/pending_receiver.h"
+#include "mojo/public/cpp/bindings/receiver.h"
 #include "ui/webui/mojo_bubble_web_ui_controller.h"
 
-class RewardsPanelUI : public ui::MojoBubbleWebUIController {
+class RewardsPanelUI : public ui::MojoBubbleWebUIController,
+                       public brave_rewards::mojom::PanelHandlerFactory {
  public:
   explicit RewardsPanelUI(content::WebUI* web_ui);
   ~RewardsPanelUI() override;
@@ -16,7 +22,17 @@ class RewardsPanelUI : public ui::MojoBubbleWebUIController {
   RewardsPanelUI(const RewardsPanelUI&) = delete;
   RewardsPanelUI& operator=(const RewardsPanelUI&) = delete;
 
+  void BindInterface(mojo::PendingReceiver<PanelHandlerFactory> receiver);
+
  private:
+  // brave_rewards::mojom::PanelHandlerFactory:
+  void CreatePanelHandler(
+      mojo::PendingReceiver<brave_rewards::mojom::PanelHandler> panel_handler,
+      mojo::PendingRemote<brave_rewards::mojom::UIHandler> ui_handler) override;
+
+  std::unique_ptr<brave_rewards::mojom::PanelHandler> panel_handler_;
+  mojo::Receiver<PanelHandlerFactory> panel_factory_receiver_{this};
+
   WEB_UI_CONTROLLER_TYPE_DECL();
 };
 

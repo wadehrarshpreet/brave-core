@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 The Brave Authors. All rights reserved.
+/* Copyright (c) 2022 The Brave Authors. All rights reserved.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -9,12 +9,15 @@
 #include <string>
 #include <utility>
 
+#include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "brave/browser/brave_rewards/rewards_panel_service.h"
 #include "brave/browser/brave_rewards/rewards_panel_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_tab_helper.h"
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/brave_adaptive_captcha/server_util.h"
+#include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_panel_generated_map.h"
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_resources.h"
 #include "chrome/browser/profiles/profile.h"
@@ -26,7 +29,6 @@
 #include "components/grit/brave_components_strings.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_ui.h"
-#include "content/public/browser/web_ui_message_handler.h"
 #include "services/network/public/mojom/content_security_policy.mojom.h"
 
 namespace {
@@ -40,8 +42,8 @@ Functional issues:
   that happened.
 - When we press "Refresh" to update a publisher status, the badge is not updated
   as expected.
-- Switching between verified publisher tabs should not result in a visible flash
-  of the verified checkmark.
+- After "starting" rewards and downloading the publisher index, the checkmark
+  should update without having to switch tabs.
 
 Other issues:
 
@@ -54,98 +56,68 @@ Other issues:
   to listen for that? Can we do that on tab reloads instead?
 - Better (decent) debugging for panel "spinner" stalls and the Rewards panel in
   general.
-- Replace WebUI message handlers with a Mojo thing.
 - Rewards button context menu has different padding and corner radius
 
 */
 
-using brave_rewards::RewardsPanelService;
-using brave_rewards::RewardsPanelServiceFactory;
-using brave_rewards::RewardsServiceFactory;
-using brave_rewards::RewardsTabHelper;
-
-// TODO(zenparsing): Alphabetize this list.
 static constexpr webui::LocalizedString kStrings[] = {
-    {"summary", IDS_REWARDS_PANEL_SUMMARY},
-    {"tip", IDS_REWARDS_PANEL_TIP},
-    {"unverifiedCreator", IDS_REWARDS_PANEL_UNVERIFIED_CREATOR},
-    {"verifiedCreator", IDS_REWARDS_PANEL_VERIFIED_CREATOR},
-    {"refreshStatus", IDS_REWARDS_PANEL_REFRESH_STATUS},
-    {"pendingTipText", IDS_REWARDS_PANEL_PENDING_TIP_TEXT},
-    {"pendingTipTitle", IDS_REWARDS_PANEL_PENDING_TIP_TITLE},
-    {"pendingTipTitleRegistered",
-     IDS_REWARDS_PANEL_PENDING_TIP_TITLE_REGISTERED},
-    {"platformPublisherTitle", IDS_REWARDS_PANEL_PLATFORM_PUBLISHER_TITLE},
     {"attention", IDS_REWARDS_PANEL_ATTENTION},
-    {"sendTip", IDS_REWARDS_PANEL_SEND_TIP},
-    {"includeInAutoContribute", IDS_REWARDS_PANEL_INCLUDE_IN_AUTO_CONTRIBUTE},
-    {"monthlyTip", IDS_REWARDS_PANEL_MONTHLY_TIP},
-    {"ok", IDS_REWARDS_PANEL_OK},
-    {"set", IDS_REWARDS_PANEL_SET},
-    {"changeAmount", IDS_REWARDS_PANEL_CHANGE_AMOUNT},
+    {"braveTalkBraveRewardsDescription",
+     IDS_REWARDS_BRAVE_TALK_BRAVE_REWARDS_DESCRIPTION},
+    {"braveTalkCanStartFreeCall", IDS_REWARDS_BRAVE_TALK_CAN_START_FREE_CALL},
+    {"braveTalkClickAnywhereToBraveTalk",
+     IDS_REWARDS_BRAVE_TALK_CLICK_ANYWHERE_TO_BRAVE_TALK},
+    {"braveTalkOptInRewardsTerms", IDS_REWARDS_BRAVE_TALK_OPT_IN_REWARDS_TERMS},
+    {"braveTalkPrivateAdsDescription",
+     IDS_REWARDS_BRAVE_TALK_PRIVATE_ADS_DESCRIPTION},
+    {"braveTalkTurnOnPrivateAds", IDS_REWARDS_BRAVE_TALK_TURN_ON_PRIVATE_ADS},
+    {"braveTalkTurnOnPrivateAdsToStartCall",
+     IDS_REWARDS_BRAVE_TALK_TURN_ON_PRIVATE_ADS_TO_START_CALL},
+    {"braveTalkTurnOnRewards", IDS_REWARDS_BRAVE_TALK_TURN_ON_REWARDS},
+    {"braveTalkTurnOnRewardsToStartCall",
+     IDS_REWARDS_BRAVE_TALK_TURN_ON_REWARDS_TO_START_CALL},
+    {"braveTalkWantLearnMore", IDS_REWARDS_BRAVE_TALK_WANT_LEARN_MORE},
     {"cancel", IDS_REWARDS_PANEL_CANCEL},
-    {"grantCaptchaTitle", IDS_REWARDS_GRANT_CAPTCHA_TITLE},
+    {"captchaContactSupport", IDS_REWARDS_CAPTCHA_CONTACT_SUPPORT},
+    {"captchaDismiss", IDS_REWARDS_CAPTCHA_DISMISS},
+    {"captchaMaxAttemptsExceededText",
+     IDS_REWARDS_CAPTCHA_MAX_ATTEMPTS_EXCEEDED_TEXT},
+    {"captchaMaxAttemptsExceededTitle",
+     IDS_REWARDS_CAPTCHA_MAX_ATTEMPTS_EXCEEDED_TITLE},
+    {"captchaSolvedText", IDS_REWARDS_CAPTCHA_SOLVED_TEXT},
+    {"captchaSolvedTitle", IDS_REWARDS_CAPTCHA_SOLVED_TITLE},
+    {"changeAmount", IDS_REWARDS_PANEL_CHANGE_AMOUNT},
+    {"grantCaptchaAmountAds", IDS_REWARDS_GRANT_CAPTCHA_AMOUNT_ADS},
+    {"grantCaptchaAmountUGP", IDS_REWARDS_GRANT_CAPTCHA_AMOUNT_UGP},
+    {"grantCaptchaErrorText", IDS_REWARDS_GRANT_CAPTCHA_ERROR_TEXT},
+    {"grantCaptchaErrorTitle", IDS_REWARDS_GRANT_CAPTCHA_ERROR_TITLE},
+    {"grantCaptchaExpiration", IDS_REWARDS_GRANT_CAPTCHA_EXPIRATION},
     {"grantCaptchaFailedTitle", IDS_REWARDS_GRANT_CAPTCHA_FAILED_TITLE},
     {"grantCaptchaHint", IDS_REWARDS_GRANT_CAPTCHA_HINT},
-    {"grantCaptchaPassedTitleUGP", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TITLE_UGP},
-    {"grantCaptchaPassedTextUGP", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TEXT_UGP},
-    {"grantCaptchaAmountUGP", IDS_REWARDS_GRANT_CAPTCHA_AMOUNT_UGP},
-    {"grantCaptchaPassedTitleAds", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TITLE_ADS},
     {"grantCaptchaPassedTextAds", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TEXT_ADS},
-    {"grantCaptchaAmountAds", IDS_REWARDS_GRANT_CAPTCHA_AMOUNT_ADS},
-    {"grantCaptchaExpiration", IDS_REWARDS_GRANT_CAPTCHA_EXPIRATION},
-    {"grantCaptchaErrorTitle", IDS_REWARDS_GRANT_CAPTCHA_ERROR_TITLE},
-    {"grantCaptchaErrorText", IDS_REWARDS_GRANT_CAPTCHA_ERROR_TEXT},
-    {"rewardsLogInToSeeBalance", IDS_REWARDS_LOG_IN_TO_SEE_BALANCE},
-    {"rewardsPaymentCheckStatus", IDS_REWARDS_PAYMENT_CHECK_STATUS},
-    {"rewardsPaymentCompleted", IDS_REWARDS_PAYMENT_COMPLETED},
-    {"rewardsPaymentPending", IDS_REWARDS_PAYMENT_PENDING},
-    {"rewardsPaymentProcessing", IDS_REWARDS_PAYMENT_PROCESSING},
-    {"walletAccountLink", IDS_REWARDS_WALLET_ACCOUNT_LINK},
-    {"walletAddFunds", IDS_REWARDS_WALLET_ADD_FUNDS},
-    {"walletAutoContribute", IDS_REWARDS_WALLET_AUTO_CONTRIBUTE},
-    {"walletDisconnected", IDS_REWARDS_WALLET_DISCONNECTED},
-    {"walletDisconnectLink", IDS_REWARDS_WALLET_DISCONNECT_LINK},
-    {"walletEstimatedEarnings", IDS_REWARDS_WALLET_ESTIMATED_EARNINGS},
-    {"walletLogIntoYourAccount", IDS_REWARDS_WALLET_LOG_INTO_YOUR_ACCOUNT},
-    {"walletMonthlyTips", IDS_REWARDS_WALLET_MONTHLY_TIPS},
-    {"walletOneTimeTips", IDS_REWARDS_WALLET_ONE_TIME_TIPS},
-    {"walletPending", IDS_REWARDS_WALLET_PENDING},
-    {"walletPendingText", IDS_REWARDS_WALLET_PENDING_TEXT},
-    {"walletRewardsFromAds", IDS_REWARDS_WALLET_REWARDS_FROM_ADS},
-    {"walletRewardsSummary", IDS_REWARDS_WALLET_REWARDS_SUMMARY},
-    {"walletUnverified", IDS_REWARDS_WALLET_UNVERIFIED},
-    {"walletVerified", IDS_REWARDS_WALLET_VERIFIED},
-    {"walletYourBalance", IDS_REWARDS_WALLET_YOUR_BALANCE},
+    {"grantCaptchaPassedTextUGP", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TEXT_UGP},
+    {"grantCaptchaPassedTitleAds", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TITLE_ADS},
+    {"grantCaptchaPassedTitleUGP", IDS_REWARDS_GRANT_CAPTCHA_PASSED_TITLE_UGP},
+    {"grantCaptchaTitle", IDS_REWARDS_GRANT_CAPTCHA_TITLE},
+    {"includeInAutoContribute", IDS_REWARDS_PANEL_INCLUDE_IN_AUTO_CONTRIBUTE},
+    {"monthlyTip", IDS_REWARDS_PANEL_MONTHLY_TIP},
     {"notificationAddFunds", IDS_REWARDS_NOTIFICATION_ADD_FUNDS},
-    {"notificationReconnect", IDS_REWARDS_NOTIFICATION_RECONNECT},
-    {"notificationClaimRewards", IDS_REWARDS_NOTIFICATION_CLAIM_REWARDS},
-    {"notificationClaimTokens", IDS_REWARDS_NOTIFICATION_CLAIM_TOKENS},
-    {"notificationAddFundsTitle", IDS_REWARDS_NOTIFICATION_ADD_FUNDS_TITLE},
     {"notificationAddFundsText", IDS_REWARDS_NOTIFICATION_ADD_FUNDS_TEXT},
-    {"notificationAutoContributeCompletedTitle",
-     IDS_REWARDS_NOTIFICATION_AUTO_CONTRIBUTE_COMPLETED_TITLE},
-    {"notificationAutoContributeCompletedText",
-     IDS_REWARDS_NOTIFICATION_AUTO_CONTRIBUTE_COMPLETED_TEXT},
-    {"notificationBackupWalletTitle",
-     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_TITLE},
-    {"notificationBackupWalletText",
-     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_TEXT},
-    {"notificationBackupWalletAction",
-     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_ACTION},
-    {"notificationWalletDisconnectedTitle",
-     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_TITLE},
-    {"notificationWalletDisconnectedText",
-     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_TEXT},
-    {"notificationWalletDisconnectedAction",
-     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_ACTION},
-    {"notificationWalletVerifiedTitle",
-     IDS_REWARDS_NOTIFICATION_WALLET_VERIFIED_TITLE},
-    {"notificationWalletVerifiedText",
-     IDS_REWARDS_NOTIFICATION_WALLET_VERIFIED_TEXT},
-    {"notificationTokenGrantTitle", IDS_REWARDS_NOTIFICATION_TOKEN_GRANT_TITLE},
+    {"notificationAddFundsTitle", IDS_REWARDS_NOTIFICATION_ADD_FUNDS_TITLE},
     {"notificationAdGrantAmount", IDS_REWARDS_NOTIFICATION_AD_GRANT_AMOUNT},
     {"notificationAdGrantTitle", IDS_REWARDS_NOTIFICATION_AD_GRANT_TITLE},
+    {"notificationAutoContributeCompletedText",
+     IDS_REWARDS_NOTIFICATION_AUTO_CONTRIBUTE_COMPLETED_TEXT},
+    {"notificationAutoContributeCompletedTitle",
+     IDS_REWARDS_NOTIFICATION_AUTO_CONTRIBUTE_COMPLETED_TITLE},
+    {"notificationBackupWalletAction",
+     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_ACTION},
+    {"notificationBackupWalletText",
+     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_TEXT},
+    {"notificationBackupWalletTitle",
+     IDS_REWARDS_NOTIFICATION_BACKUP_WALLET_TITLE},
+    {"notificationClaimRewards", IDS_REWARDS_NOTIFICATION_CLAIM_REWARDS},
+    {"notificationClaimTokens", IDS_REWARDS_NOTIFICATION_CLAIM_TOKENS},
     {"notificationGrantDaysRemaining",
      IDS_REWARDS_NOTIFICATION_GRANT_DAYS_REMAINING},
     {"notificationInsufficientFundsText",
@@ -154,20 +126,73 @@ static constexpr webui::LocalizedString kStrings[] = {
      IDS_REWARDS_NOTIFICATION_MONTHLY_CONTRIBUTION_FAILED_TEXT},
     {"notificationMonthlyContributionFailedTitle",
      IDS_REWARDS_NOTIFICATION_MONTHLY_CONTRIBUTION_FAILED_TITLE},
-    {"notificationMonthlyTipCompletedTitle",
-     IDS_REWARDS_NOTIFICATION_MONTHLY_TIP_COMPLETED_TITLE},
     {"notificationMonthlyTipCompletedText",
      IDS_REWARDS_NOTIFICATION_MONTHLY_TIP_COMPLETED_TEXT},
-    {"notificationPublisherVerifiedTitle",
-     IDS_REWARDS_NOTIFICATION_PUBLISHER_VERIFIED_TITLE},
-    {"notificationPublisherVerifiedText",
-     IDS_REWARDS_NOTIFICATION_PUBLISHER_VERIFIED_TEXT},
-    {"notificationPendingTipFailedTitle",
-     IDS_REWARDS_NOTIFICATION_PENDING_TIP_FAILED_TITLE},
+    {"notificationMonthlyTipCompletedTitle",
+     IDS_REWARDS_NOTIFICATION_MONTHLY_TIP_COMPLETED_TITLE},
     {"notificationPendingTipFailedText",
      IDS_REWARDS_NOTIFICATION_PENDING_TIP_FAILED_TEXT},
+    {"notificationPendingTipFailedTitle",
+     IDS_REWARDS_NOTIFICATION_PENDING_TIP_FAILED_TITLE},
+    {"notificationPublisherVerifiedText",
+     IDS_REWARDS_NOTIFICATION_PUBLISHER_VERIFIED_TEXT},
+    {"notificationPublisherVerifiedTitle",
+     IDS_REWARDS_NOTIFICATION_PUBLISHER_VERIFIED_TITLE},
+    {"notificationReconnect", IDS_REWARDS_NOTIFICATION_RECONNECT},
+    {"notificationWalletDisconnectedAction",
+     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_ACTION},
+    {"notificationWalletDisconnectedText",
+     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_TEXT},
+    {"notificationWalletDisconnectedTitle",
+     IDS_REWARDS_NOTIFICATION_WALLET_DISCONNECTED_TITLE},
+    {"notificationTokenGrantTitle", IDS_REWARDS_NOTIFICATION_TOKEN_GRANT_TITLE},
+    {"notificationWalletVerifiedText",
+     IDS_REWARDS_NOTIFICATION_WALLET_VERIFIED_TEXT},
+    {"notificationWalletVerifiedTitle",
+     IDS_REWARDS_NOTIFICATION_WALLET_VERIFIED_TITLE},
+    {"ok", IDS_REWARDS_PANEL_OK},
     {"onboardingEarnHeader", IDS_BRAVE_REWARDS_ONBOARDING_EARN_HEADER},
     {"onboardingEarnText", IDS_BRAVE_REWARDS_ONBOARDING_EARN_TEXT},
+    {"onboardingPanelAcHeader", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_AC_HEADER},
+    {"onboardingPanelAcText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_AC_TEXT},
+    {"onboardingPanelAdsHeader", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_ADS_HEADER},
+    {"onboardingPanelAdsText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_ADS_TEXT},
+    {"onboardingPanelBitflyerLearnMore",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_LEARN_MORE},
+    {"onboardingPanelBitflyerNote",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_NOTE},
+    {"onboardingPanelBitflyerText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_TEXT},
+    {"onboardingPanelCompleteHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_COMPLETE_HEADER},
+    {"onboardingPanelCompleteText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_COMPLETE_TEXT},
+    {"onboardingPanelRedeemHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_REDEEM_HEADER},
+    {"onboardingPanelRedeemText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_REDEEM_TEXT},
+    {"onboardingPanelScheduleHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SCHEDULE_HEADER},
+    {"onboardingPanelScheduleText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SCHEDULE_TEXT},
+    {"onboardingPanelSetupHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SETUP_HEADER},
+    {"onboardingPanelSetupText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SETUP_TEXT},
+    {"onboardingPanelTippingHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_TIPPING_HEADER},
+    {"onboardingPanelTippingText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_TIPPING_TEXT},
+    {"onboardingPanelVerifyHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_HEADER},
+    {"onboardingPanelVerifyLater",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_LATER},
+    {"onboardingPanelVerifyNow", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_NOW},
+    {"onboardingPanelVerifySubtext",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_SUBTEXT},
+    {"onboardingPanelWelcomeHeader",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_WELCOME_HEADER},
+    {"onboardingPanelWelcomeText",
+     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_WELCOME_TEXT},
     {"onboardingSetupAdsHeader", IDS_BRAVE_REWARDS_ONBOARDING_SETUP_ADS_HEADER},
     {"onboardingSetupAdsSubheader",
      IDS_BRAVE_REWARDS_ONBOARDING_SETUP_ADS_SUBHEADER},
@@ -186,192 +211,124 @@ static constexpr webui::LocalizedString kStrings[] = {
     {"onboardingTourSkip", IDS_BRAVE_REWARDS_ONBOARDING_TOUR_SKIP},
     {"onboardingTourSkipForNow",
      IDS_BRAVE_REWARDS_ONBOARDING_TOUR_SKIP_FOR_NOW},
-    {"onboardingPanelWelcomeHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_WELCOME_HEADER},
-    {"onboardingPanelWelcomeText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_WELCOME_TEXT},
-    {"onboardingPanelAdsHeader", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_ADS_HEADER},
-    {"onboardingPanelAdsText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_ADS_TEXT},
-    {"onboardingPanelScheduleHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SCHEDULE_HEADER},
-    {"onboardingPanelScheduleText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SCHEDULE_TEXT},
-    {"onboardingPanelAcHeader", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_AC_HEADER},
-    {"onboardingPanelAcText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_AC_TEXT},
-    {"onboardingPanelTippingHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_TIPPING_HEADER},
-    {"onboardingPanelTippingText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_TIPPING_TEXT},
-    {"onboardingPanelRedeemHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_REDEEM_HEADER},
-    {"onboardingPanelRedeemText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_REDEEM_TEXT},
-    {"onboardingPanelSetupHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SETUP_HEADER},
-    {"onboardingPanelSetupText", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_SETUP_TEXT},
-    {"onboardingPanelCompleteHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_COMPLETE_HEADER},
-    {"onboardingPanelCompleteText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_COMPLETE_TEXT},
-    {"onboardingPanelVerifyHeader",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_HEADER},
-    {"onboardingPanelVerifySubtext",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_SUBTEXT},
-    {"onboardingPanelVerifyLater",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_LATER},
-    {"onboardingPanelVerifyNow", IDS_BRAVE_REWARDS_ONBOARDING_PANEL_VERIFY_NOW},
-    {"onboardingPanelBitflyerNote",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_NOTE},
-    {"onboardingPanelBitflyerText",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_TEXT},
-    {"onboardingPanelBitflyerLearnMore",
-     IDS_BRAVE_REWARDS_ONBOARDING_PANEL_BITFLYER_LEARN_MORE},
-    {"captchaMaxAttemptsExceededText",
-     IDS_REWARDS_CAPTCHA_MAX_ATTEMPTS_EXCEEDED_TEXT},
-    {"captchaMaxAttemptsExceededTitle",
-     IDS_REWARDS_CAPTCHA_MAX_ATTEMPTS_EXCEEDED_TITLE},
-    {"captchaSolvedTitle", IDS_REWARDS_CAPTCHA_SOLVED_TITLE},
-    {"captchaSolvedText", IDS_REWARDS_CAPTCHA_SOLVED_TEXT},
-    {"captchaContactSupport", IDS_REWARDS_CAPTCHA_CONTACT_SUPPORT},
-    {"captchaDismiss", IDS_REWARDS_CAPTCHA_DISMISS},
-    {"braveTalkTurnOnRewardsToStartCall",
-     IDS_REWARDS_BRAVE_TALK_TURN_ON_REWARDS_TO_START_CALL},
-    {"braveTalkBraveRewardsDescription",
-     IDS_REWARDS_BRAVE_TALK_BRAVE_REWARDS_DESCRIPTION},
-    {"braveTalkTurnOnRewards", IDS_REWARDS_BRAVE_TALK_TURN_ON_REWARDS},
-    {"braveTalkOptInRewardsTerms", IDS_REWARDS_BRAVE_TALK_OPT_IN_REWARDS_TERMS},
-    {"braveTalkTurnOnPrivateAdsToStartCall",
-     IDS_REWARDS_BRAVE_TALK_TURN_ON_PRIVATE_ADS_TO_START_CALL},
-    {"braveTalkPrivateAdsDescription",
-     IDS_REWARDS_BRAVE_TALK_PRIVATE_ADS_DESCRIPTION},
-    {"braveTalkTurnOnPrivateAds", IDS_REWARDS_BRAVE_TALK_TURN_ON_PRIVATE_ADS},
-    {"braveTalkCanStartFreeCall", IDS_REWARDS_BRAVE_TALK_CAN_START_FREE_CALL},
-    {"braveTalkClickAnywhereToBraveTalk",
-     IDS_REWARDS_BRAVE_TALK_CLICK_ANYWHERE_TO_BRAVE_TALK},
-    {"braveTalkWantLearnMore", IDS_REWARDS_BRAVE_TALK_WANT_LEARN_MORE}};
+    {"pendingTipText", IDS_REWARDS_PANEL_PENDING_TIP_TEXT},
+    {"pendingTipTitle", IDS_REWARDS_PANEL_PENDING_TIP_TITLE},
+    {"pendingTipTitleRegistered",
+     IDS_REWARDS_PANEL_PENDING_TIP_TITLE_REGISTERED},
+    {"platformPublisherTitle", IDS_REWARDS_PANEL_PLATFORM_PUBLISHER_TITLE},
+    {"refreshStatus", IDS_REWARDS_PANEL_REFRESH_STATUS},
+    {"rewardsLogInToSeeBalance", IDS_REWARDS_LOG_IN_TO_SEE_BALANCE},
+    {"rewardsPaymentCheckStatus", IDS_REWARDS_PAYMENT_CHECK_STATUS},
+    {"rewardsPaymentCompleted", IDS_REWARDS_PAYMENT_COMPLETED},
+    {"rewardsPaymentPending", IDS_REWARDS_PAYMENT_PENDING},
+    {"rewardsPaymentProcessing", IDS_REWARDS_PAYMENT_PROCESSING},
+    {"sendTip", IDS_REWARDS_PANEL_SEND_TIP},
+    {"set", IDS_REWARDS_PANEL_SET},
+    {"summary", IDS_REWARDS_PANEL_SUMMARY},
+    {"tip", IDS_REWARDS_PANEL_TIP},
+    {"unverifiedCreator", IDS_REWARDS_PANEL_UNVERIFIED_CREATOR},
+    {"verifiedCreator", IDS_REWARDS_PANEL_VERIFIED_CREATOR},
+    {"walletAccountLink", IDS_REWARDS_WALLET_ACCOUNT_LINK},
+    {"walletAddFunds", IDS_REWARDS_WALLET_ADD_FUNDS},
+    {"walletAutoContribute", IDS_REWARDS_WALLET_AUTO_CONTRIBUTE},
+    {"walletDisconnected", IDS_REWARDS_WALLET_DISCONNECTED},
+    {"walletDisconnectLink", IDS_REWARDS_WALLET_DISCONNECT_LINK},
+    {"walletEstimatedEarnings", IDS_REWARDS_WALLET_ESTIMATED_EARNINGS},
+    {"walletLogIntoYourAccount", IDS_REWARDS_WALLET_LOG_INTO_YOUR_ACCOUNT},
+    {"walletMonthlyTips", IDS_REWARDS_WALLET_MONTHLY_TIPS},
+    {"walletOneTimeTips", IDS_REWARDS_WALLET_ONE_TIME_TIPS},
+    {"walletPending", IDS_REWARDS_WALLET_PENDING},
+    {"walletPendingText", IDS_REWARDS_WALLET_PENDING_TEXT},
+    {"walletRewardsFromAds", IDS_REWARDS_WALLET_REWARDS_FROM_ADS},
+    {"walletRewardsSummary", IDS_REWARDS_WALLET_REWARDS_SUMMARY},
+    {"walletUnverified", IDS_REWARDS_WALLET_UNVERIFIED},
+    {"walletVerified", IDS_REWARDS_WALLET_VERIFIED},
+    {"walletYourBalance", IDS_REWARDS_WALLET_YOUR_BALANCE}};
 
-std::string TakeRewardsPanelArgs(content::WebUI* web_ui) {
-  DCHECK(web_ui);
-  auto* panel_service =
-      RewardsPanelServiceFactory::GetForProfile(Profile::FromWebUI(web_ui));
+using brave_rewards::RewardsPanelService;
+using brave_rewards::RewardsPanelServiceFactory;
+using brave_rewards::RewardsServiceFactory;
+using brave_rewards::RewardsTabHelper;
 
+std::string TakeRewardsPanelArgs(Profile* profile) {
+  DCHECK(profile);
+  auto* panel_service = RewardsPanelServiceFactory::GetForProfile(profile);
   return panel_service ? panel_service->TakePanelArguments() : "";
 }
 
-class MessageHandler : public content::WebUIMessageHandler,
-                       public RewardsPanelService::Observer {
+class PanelHandlerImpl : public brave_rewards::mojom::PanelHandler,
+                         public RewardsPanelService::Observer {
  public:
-  MessageHandler() = default;
-  ~MessageHandler() override = default;
+  PanelHandlerImpl(
+      mojo::PendingReceiver<brave_rewards::mojom::PanelHandler> receiver,
+      mojo::PendingRemote<brave_rewards::mojom::UIHandler> ui_handler,
+      base::WeakPtr<ui::MojoBubbleWebUIController::Embedder> embedder,
+      Profile* profile)
+      : receiver_(this, std::move(receiver)),
+        ui_handler_(std::move(ui_handler)),
+        embedder_(embedder),
+        profile_(profile) {
+    DCHECK(embedder_);
+    DCHECK(profile_);
 
-  MessageHandler(const MessageHandler&) = delete;
-  MessageHandler& operator=(const MessageHandler&) = delete;
-
-  // content::WebUIMessageHandler
-
-  void OnJavascriptAllowed() override {
-    auto* panel_service =
-        RewardsPanelServiceFactory::GetForProfile(Profile::FromWebUI(web_ui()));
-
-    if (panel_service) {
-      panel_service_observation_.Observe(panel_service);
+    if (auto* service = RewardsPanelServiceFactory::GetForProfile(profile_)) {
+      panel_service_observation_.Observe(service);
     }
   }
 
-  void OnJavascriptDisallowed() override { panel_service_observation_.Reset(); }
+  PanelHandlerImpl(const PanelHandlerImpl&) = delete;
+  PanelHandlerImpl& operator=(const PanelHandlerImpl&) = delete;
 
-  void RegisterMessages() override {
-    RegisterMessage("pageReady", &MessageHandler::HandlePageReady);
-    RegisterMessage("showUI", &MessageHandler::HandleShowUI);
-    RegisterMessage("hideUI", &MessageHandler::HandleHideUI);
+  ~PanelHandlerImpl() override = default;
+
+  // brave_rewards::mojom::PanelHandler:
+  void ShowUI() override {
+    if (embedder_) {
+      embedder_->ShowUI();
+    }
   }
 
-  // brave_rewards::RewardsPanelService::Observer
-  void OnRewardsPanelRequested(Browser* browser) override {
-    if (!IsJavascriptAllowed()) {
+  void CloseUI() override {
+    if (embedder_) {
+      embedder_->CloseUI();
+    }
+  }
+
+  void StartRewards(StartRewardsCallback callback) override {
+    auto* rewards_service = RewardsServiceFactory::GetForProfile(profile_);
+    if (!rewards_service) {
       NOTREACHED();
+      std::move(callback).Run();
       return;
     }
 
-    auto* panel_service =
-        RewardsPanelServiceFactory::GetForProfile(Profile::FromWebUI(web_ui()));
+    rewards_service->StartProcess(std::move(callback));
+  }
 
-    if (panel_service) {
-      std::string args = TakeRewardsPanelArgs(web_ui());
-      FireWebUIListener("rewardsPanelRequested", base::Value(std::move(args)));
+  // brave_rewards::RewardsPanelService::Observer:
+  void OnRewardsPanelRequested(Browser* browser) override {
+    if (ui_handler_) {
+      ui_handler_->OnRewardsPanelRequested(TakeRewardsPanelArgs(profile_));
     }
   }
 
  private:
-  template <typename F>
-  void RegisterMessage(const std::string& name, F&& fn) {
-    web_ui()->RegisterMessageCallback(
-        name, base::BindRepeating(fn, base::Unretained(this)));
-  }
-
-  void HandlePageReady(const base::Value::List& args) {
-    AllowJavascript();
-    StartRewards();
-  }
-
-  void HandleShowUI(const base::Value::List& args) {
-    if (auto* panel_ui = GetRewardsPanelUI()) {
-      if (auto embedder = panel_ui->embedder()) {
-        embedder->ShowUI();
-      }
-    }
-  }
-
-  void HandleHideUI(const base::Value::List& args) {
-    if (auto* panel_ui = GetRewardsPanelUI()) {
-      if (auto embedder = panel_ui->embedder()) {
-        embedder->CloseUI();
-      }
-    }
-  }
-
-  void StartRewards() {
-    auto* rewards_service =
-        RewardsServiceFactory::GetForProfile(Profile::FromWebUI(web_ui()));
-
-    if (!rewards_service) {
-      return NotifyError("rewards-service-not-available");
-    }
-
-    rewards_service->StartProcess(base::BindOnce(
-        &MessageHandler::OnRewardsProcessStarted, weak_factory_.GetWeakPtr()));
-  }
-
-  void NotifyError(const std::string& type) {
-    if (IsJavascriptAllowed()) {
-      FireWebUIListener("error", base::Value(type));
-    }
-  }
-
-  void OnRewardsProcessStarted() {
-    if (IsJavascriptAllowed()) {
-      FireWebUIListener("rewardsStarted");
-    }
-  }
-
-  RewardsPanelUI* GetRewardsPanelUI() {
-    if (auto* controller = web_ui()->GetController()) {
-      return controller->GetAs<RewardsPanelUI>();
-    }
-    return nullptr;
-  }
-
+  mojo::Receiver<brave_rewards::mojom::PanelHandler> receiver_;
+  mojo::Remote<brave_rewards::mojom::UIHandler> ui_handler_;
+  base::WeakPtr<ui::MojoBubbleWebUIController::Embedder> embedder_;
+  raw_ptr<Profile> profile_ = nullptr;
   RewardsPanelService::Observation panel_service_observation_{this};
-  base::WeakPtrFactory<MessageHandler> weak_factory_{this};
 };
 
 }  // namespace
 
 RewardsPanelUI::RewardsPanelUI(content::WebUI* web_ui)
     : MojoBubbleWebUIController(web_ui, true) {
+  auto* profile = Profile::FromWebUI(web_ui);
+
   auto* source = content::WebUIDataSource::Create(kBraveRewardsPanelHost);
   source->AddLocalizedStrings(kStrings);
-  source->AddString("rewardsPanelArgs", TakeRewardsPanelArgs(web_ui));
+  source->AddString("rewardsPanelArgs", TakeRewardsPanelArgs(profile));
 
   webui::SetupWebUIDataSource(source,
                               base::make_span(kBraveRewardsPanelGenerated,
@@ -388,14 +345,25 @@ RewardsPanelUI::RewardsPanelUI(content::WebUI* web_ui)
   content::WebUIDataSource::Add(web_ui->GetWebContents()->GetBrowserContext(),
                                 source);
 
-  auto* profile = Profile::FromWebUI(web_ui);
-  auto favicon_source = std::make_unique<FaviconSource>(
-      profile, chrome::FaviconUrlFormat::kFavicon2);
-  content::URLDataSource::Add(profile, std::move(favicon_source));
-
-  web_ui->AddMessageHandler(std::make_unique<MessageHandler>());
+  content::URLDataSource::Add(
+      profile, std::make_unique<FaviconSource>(
+                   profile, chrome::FaviconUrlFormat::kFavicon2));
 }
 
 RewardsPanelUI::~RewardsPanelUI() = default;
 
 WEB_UI_CONTROLLER_TYPE_IMPL(RewardsPanelUI)
+
+void RewardsPanelUI::BindInterface(
+    mojo::PendingReceiver<PanelHandlerFactory> receiver) {
+  panel_factory_receiver_.reset();
+  panel_factory_receiver_.Bind(std::move(receiver));
+}
+
+void RewardsPanelUI::CreatePanelHandler(
+    mojo::PendingReceiver<brave_rewards::mojom::PanelHandler> panel_handler,
+    mojo::PendingRemote<brave_rewards::mojom::UIHandler> ui_handler) {
+  panel_handler_ = std::make_unique<PanelHandlerImpl>(
+      std::move(panel_handler), std::move(ui_handler), embedder(),
+      Profile::FromWebUI(web_ui()));
+}

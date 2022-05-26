@@ -15,6 +15,7 @@
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
 #include "brave/browser/ui/brave_actions/brave_action_icon_with_badge_image_source.h"
 #include "brave/common/webui_url_constants.h"
+#include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "brave/components/brave_rewards/common/pref_names.h"
 #include "brave/components/l10n/common/locale_util.h"
 #include "brave/grit/brave_generated_resources.h"
@@ -253,8 +254,13 @@ void BraveRewardsActionView::OnPublisherUpdated(
   if (!publisher_id.empty()) {
     if (auto* rewards_service = GetRewardsService()) {
       // TODO(zenparsing): When rewards is enabled, should we automatically
-      // check this again? Unfortunately we don't have a way to listen for
-      // Rewards being enabled. Perhaps initialized will work?
+      // check this again? We can use |OnRewardsInitialized|, but it doesn't
+      // really work because the publisher index has not been fully populated
+      // yet. We may need to introduce an event that is triggered when the
+      // publisher index has been updated.
+      // TODO(zenparsing): We also need to update the badge when the user
+      // manually refreshes the publisher status from the Rewards panel UI. It
+      // looks like we'll need another event for that.
       if (rewards_service->IsRewardsEnabled()) {
         status_pending = true;
         rewards_service->IsPublisherRegistered(
