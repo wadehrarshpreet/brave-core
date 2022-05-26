@@ -7,12 +7,25 @@
 #include <utility>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "base/guid.h"
 #include "base/values.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/value_conversion_utils.h"
 
 namespace brave_wallet {
+
+absl::optional<std::string> ExtractChainIdFromValue(
+    const base::Value::Dict* dict) {
+  if (!dict)
+    return absl::nullopt;
+
+  const std::string* chain_id = dict->FindString("chainId");
+  if (!chain_id) {
+    return absl::nullopt;
+  }
+  return *chain_id;
+}
 
 mojom::NetworkInfoPtr ValueToEthNetworkInfo(const base::Value& value) {
   mojom::NetworkInfo chain;

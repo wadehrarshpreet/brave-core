@@ -15,6 +15,8 @@
 
 namespace brave_wallet {
 
+absl::optional<std::string> ExtractChainIdFromValue(
+    const base::Value::Dict* dict);
 base::Value EthNetworkInfoToValue(const mojom::NetworkInfo& info);
 mojom::NetworkInfoPtr ValueToEthNetworkInfo(const base::Value& value);
 base::ListValue PermissionRequestResponseToValue(
